@@ -1,4 +1,3 @@
-using System.Text.Json;
 using App.Models;
 using DotNetEnv;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +14,8 @@ builder.Services.AddIdentity<AppUser, IdentityRole>()
                 .AddErrorDescriber<AppIdentityErrorDescriber>()
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
+
+builder.Logging.AddConsole();
 
 // Connect database
 builder.Services.AddDbContext<AppDbContext>(options => {

@@ -1,0 +1,154 @@
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext dbContext
+
+@{
+    Layout = "_LayoutAdminCP";
+    ViewData["Title"] = "Quản lý CSDL";
+    var dbInfo = ViewBag.DbInfo;
+    var connect = dbContext.Database.GetDbConnection();
+    var dbName = connect.Database;
+}
+
+<link rel="stylesheet" href="~/lib/datatables/css/jquery.dataTables.min.css" />
+
+<h2>Quản lý Cơ sở dữ liệu</h2>
+
+<partial name="_StatusMessage" />
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">CSDL: @dbName
+            <form class="mt-2" type="hidden" method="post" asp-action="SeedData" onsubmit="return confirmSeed(event);">
+                <button type="submit" class="btn btn-success btn-sm">
+                    <i class="fas fa-random"></i> Seed Data
+                </button>
+            </form>
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+        <table id="dataTable" class="table table-bordered text-black" width="100%" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Tên bảng</th>
+                    <th>Số dòng</th>
+                    <th>Dung lượng (MB)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var index = 0;
+                }
+                @foreach (var table in dbInfo)
+                {
+                    index++;
+                    <tr>
+                        <td>@index</td>
+                        <td class="tooltip-text" data-tooltip="@table.Columns">@table.Name</td>
+                        @* <td>@table.Name</td> *@
+                        <td>@table.Rows</td>
+                        <td>@table.TotalSpaceMB</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <form type="hidden" method="post" asp-action="ExportToExcel" value="@table.Name">
+                                    <input type="hidden" name="tableName" value="@table.Name"/>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-file-export"></i> Sao lưu
+                                    </button>
+                                </form>
+                                <form id="importForm" method="post" enctype="multipart/form-data" asp-action="ImportFromExcel">
+                                    <input type="hidden" name="tableName" value="@table.Name" />
+                                    <input type="file" id="excelFileInput_@table.Name" name="excelFile" accept=".xlsx, .xls" style="display: none;" />
+                                    <button type="button" class="btn btn-info" onclick="triggerFileInput('@table.Name')">
+                                        <i class="fas fa-file-import"></i> Khôi phục
+                                    </button>
+                                </form>
+                                <form type="hidden" method="post" asp-action="DeleteDataTable" onsubmit="return confirmDelete(event);">
+                                    <input type="hidden" name="tableName" value="@table.Name"/>
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash-alt"></i> Xoá
+                                    </button>
+                                </form>
+                            </div>
+
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmSeed(event) {
+        const confirmation = confirm("Thao tác này sẽ xoá toàn bộ dữ liệu đang có\nBạn có chắc chắn muốn tạo ngẫu nhiên dữ liệu?");
+
+        if (!confirmation) {
+            event.preventDefault();
+            return false;
+        }
+        return true;
+    }
+</script>
+<script>
+    function confirmDelete(event) {
+        const confirmation = confirm("Bạn có chắc chắn muốn xóa toàn bộ dữ liệu trong bảng này?");
+
+        if (!confirmation) {
+            event.preventDefault();
+            return false;
+        }
+        return true;
+    }
+</script>
+<script>
+    function triggerFileInput(tableName) {
+        const confirmation = confirm("Dữ liệu cũ sẽ bị xoá!\nBạn có chắc chắn muốn khôi phục dữ liệu từ file Excel?");
+        
+        if (confirmation) {
+            document.getElementById('excelFileInput_' + tableName).click();
+        }
+    }
+
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', function () {
+            if (this.files.length > 0) {
+                const form = this.closest('form');
+                form.submit();
+            }
+        });
+    });
+</script>
+
+@section Scripts{
+    <script src="~/lib/datatables/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#dataTable').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                columnDefs: [
+                    { orderable: false, targets: -1 }
+                ],
+                language: {
+                    lengthMenu: "Hiển thị _MENU_ dòng mỗi trang",
+                    zeroRecords: "Không tìm thấy dữ liệu",
+                    info: "Hiển thị _START_ đến _END_ của _TOTAL_ dòng",
+                    infoEmpty: "Không có dữ liệu",
+                    search: "Tìm kiếm:",
+                    paginate: {
+                        first: "Đầu",
+                        last: "Cuối",
+                        next: "Sau",
+                        previous: "Trước"
+                    }
+                }
+            });
+        });
+    </script>
+}

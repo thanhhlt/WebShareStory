@@ -24,6 +24,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             }
         }
 
+        //Users
+        modelBuilder.Entity<AppUser>()
+            .Property(u => u.BirthDate)
+            .HasColumnType("DATE");
+
         // UserRelation
         modelBuilder.Entity<UserRelationModel>()
             .HasOne(ur => ur.User)
@@ -40,13 +45,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         modelBuilder.Entity<PostsModel>()
             .HasOne(p => p.User)
             .WithMany(u => u.Posts)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
         // modelBuilder.Entity<PostsModel>()
         //     .HasIndex(p => p.Content)
         //     .IsUnique();
         modelBuilder.Entity<PostsModel>()
             .HasOne(p => p.Category)
-            .WithMany(c => c.Posts);
+            .WithMany(c => c.Posts)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // Comments
         modelBuilder.Entity<CommentsModel>()
@@ -74,7 +80,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         modelBuilder.Entity<SupportRequestsModel>()
             .HasOne(r => r.User)
             .WithMany(u => u.SupportRequests);
-
+        
+        //Categories
         modelBuilder.Entity<CategoriesModel>()
             .HasOne(c => c.ParrentCate)
             .WithMany(c => c.ChildCates);

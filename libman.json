@@ -1,0 +1,25 @@
+{
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "jquery-easing@1.4.1",
+      "destination": "wwwroot/lib/jquery-easing"
+    },
+
+    {
+      "library": "font-awesome@5.15.3",
+      "destination": "wwwroot/lib/font-awesome"
+    },
+
+    {
+      "library": "popper.js@2.11.8",
+      "destination": "wwwroot/lib/popper.js"
+    },
+
+    {
+      "library": "datatables@1.10.21",
+      "destination": "wwwroot/lib/datatables"
+    }
+  ]
+}
