@@ -48,6 +48,7 @@ builder.Services.Configure<IdentityOptions> (options => {
 
     //Lockout
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes (15);
+    options.Lockout.AllowedForNewUsers = true;
 
     //User.
     options.User.AllowedUserNameCharacters =
@@ -65,13 +66,21 @@ builder.Services.ConfigureApplicationCookie(options => {
     options.AccessDeniedPath = "/access-denied";
 });
 
-builder.Services.AddAuthentication().AddGoogle(options => {
-    options.ClientId = Environment.GetEnvironmentVariable("CLIENT_ID") ?? "";
-    options.ClientSecret = Environment.GetEnvironmentVariable("CLIENT_SECRET") ?? "";
-    options.CallbackPath = new PathString("/signin-google");
-    // https://localhost:5001/signin-google
-    options.AccessDeniedPath = new PathString("/");
-});
+builder.Services.AddAuthentication()
+    .AddGoogle(options => {
+        options.ClientId = Environment.GetEnvironmentVariable("CLIENT_ID") ?? "";
+        options.ClientSecret = Environment.GetEnvironmentVariable("CLIENT_SECRET") ?? "";
+        options.CallbackPath = new PathString("/signin-google");
+        // https://localhost:5001/signin-google
+        options.AccessDeniedPath = new PathString("/");
+    })
+    .AddFacebook(options => {
+        options.AppId = Environment.GetEnvironmentVariable("APP_ID") ?? "";
+        options.AppSecret = Environment.GetEnvironmentVariable("APP_SECRET") ?? "";
+        options.CallbackPath = new PathString("sign-facebook");
+        // https://localhost:5001/signin-facebook
+        options.AccessDeniedPath = new PathString("/");
+    });
 
 
 var app = builder.Build();

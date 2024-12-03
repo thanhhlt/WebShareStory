@@ -508,52 +508,21 @@ namespace App.Areas.Identity.Controllers
             return View();
         }        
 
-        // GET: /account/SendCode
+        // POST: /account/SendCode
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult> SendCode(string returnUrl, bool rememberMe = false)
+        public async Task<IActionResult> SendCode(string returnUrl, bool rememberMe)
         {
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-            if (user == null)
+            if (user != null)
             {
-                return View("Error");
-            }
-            var userFactors = await _userManager.GetValidTwoFactorProvidersAsync(user);
-            var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
-            return View(new SendCodeViewModel { Providers = factorOptions, ReturnUrl = returnUrl, RememberMe = rememberMe });
-        }
+                // Generate the token and send it
+                var code = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+                if (string.IsNullOrWhiteSpace(code))
+                {
+                    return View("Error");
+                }
 
-        // POST: /account/SendCode
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SendCode(SendCodeViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View();
-            }
-
-            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-            if (user == null)
-            {
-                return View("Error");
-            }
-            // Dùng mã Authenticator
-            if (model.SelectedProvider == "Authenticator")
-            {
-                return RedirectToAction(nameof(VerifyAuthenticatorCode), new { ReturnUrl = model.ReturnUrl, RememberMe = model.RememberMe });
-            }
-
-            // Generate the token and send it
-            var code = await _userManager.GenerateTwoFactorTokenAsync(user, model.SelectedProvider);
-            if (string.IsNullOrWhiteSpace(code))
-            {
-                return View("Error");
-            }
-
-            if (model.SelectedProvider == "Email")
-            {
                 var emailBodyTemplate = await _emailTemplateService.GetTemplateAsync("TwoFactorAuthentication.html");
                 var emailBody = emailBodyTemplate.Replace("{{UserName}}", user.UserName)
                                                 .Replace("{{TwoFactorCode}}", code);
@@ -564,13 +533,13 @@ namespace App.Areas.Identity.Controllers
                 }
             }
 
-            return RedirectToAction(nameof(VerifyCode), new { Provider = model.SelectedProvider, ReturnUrl = model.ReturnUrl, RememberMe = model.RememberMe });
+            return RedirectToAction(nameof(VerifyCode), new {ReturnUrl = returnUrl, RememberMe = rememberMe});
         }
 
         // GET: /account/VerifyCode
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> VerifyCode(string provider, bool rememberMe, string returnUrl)
+        public async Task<IActionResult> VerifyCode(string returnUrl, bool rememberMe)
         {
             // Require that the user has already logged in via username/password or external login
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
@@ -578,7 +547,7 @@ namespace App.Areas.Identity.Controllers
             {
                 return View("Error");
             }
-            return View(new VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
+            return View(new VerifyCodeViewModel { ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
         // POST: /account/VerifyCode
@@ -596,7 +565,7 @@ namespace App.Areas.Identity.Controllers
             // The following code protects for brute force attacks against the two factor codes.
             // If a user enters incorrect codes for a specified amount of time then the user account
             // will be locked out for a specified amount of time.
-            var result = await _signInManager.TwoFactorSignInAsync(model.Provider, model.Code, model.RememberMe, model.RememberBrowser);
+            var result = await _signInManager.TwoFactorSignInAsync("Email", model.Code, model.RememberMe, model.RememberBrowser);
             if (result.Succeeded)
             {
                 return LocalRedirect(model.ReturnUrl);
@@ -609,91 +578,6 @@ namespace App.Areas.Identity.Controllers
             else
             {
                 ModelState.AddModelError(string.Empty, "Invalid code.");
-                return View(model);
-            }
-        }
-
-        // GET: /account/VerifyAuthenticatorCode
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> VerifyAuthenticatorCode(bool rememberMe, string returnUrl)
-        {
-            // Require that the user has already logged in via username/password or external login
-            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-            if (user == null)
-            {
-                return View("Error");
-            }
-            return View(new VerifyAuthenticatorCodeViewModel { ReturnUrl = returnUrl, RememberMe = rememberMe });
-        }
-
-        // POST: /account/VerifyAuthenticatorCode
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> VerifyAuthenticatorCode(VerifyAuthenticatorCodeViewModel model)
-        {
-            model.ReturnUrl ??= Url.Content("~/");
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            // The following code protects for brute force attacks against the two factor codes.
-            // If a user enters incorrect codes for a specified amount of time then the user account
-            // will be locked out for a specified amount of time.
-            var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(model.Code, model.RememberMe, model.RememberBrowser);
-            if (result.Succeeded)
-            {
-                return LocalRedirect(model.ReturnUrl);
-            }
-            if (result.IsLockedOut)
-            {
-                _logger.LogWarning(7, "User account locked out.");
-                return View("Lockout");
-            }
-            else
-            {
-                ModelState.AddModelError(string.Empty, "Mã sai.");
-                return View(model);
-            }
-        }
-
-        // GET: /account/UseRecoveryCode
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> UseRecoveryCode(string returnUrl)
-        {
-            // Require that the user has already logged in via username/password or external login
-            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-            if (user == null)
-            {
-                return View("Error");
-            }
-            return View(new UseRecoveryCodeViewModel { ReturnUrl = returnUrl });
-        }
-
-        //
-        // POST: /account/UseRecoveryCode
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UseRecoveryCode(UseRecoveryCodeViewModel model)
-        {
-            model.ReturnUrl ??= Url.Content("~/");
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            var result = await _signInManager.TwoFactorRecoveryCodeSignInAsync(model.Code);
-            if (result.Succeeded)
-            {
-                return LocalRedirect(model.ReturnUrl);
-            }
-            else
-            {
-                ModelState.AddModelError(string.Empty, "Sai mã phục hồi.");
                 return View(model);
             }
         }
