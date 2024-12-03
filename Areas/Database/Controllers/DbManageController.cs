@@ -40,6 +40,7 @@ public class DbManageController : Controller
     [TempData]
     public string StatusMessage { get; set; } = "";
 
+    [Route("/db-dashboard")]
     public IActionResult Index()
     {
         var tables = new List<TableInfo>();

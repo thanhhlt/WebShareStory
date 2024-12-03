@@ -1,0 +1,90 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using App.Models
+
+@inject SignInManager<AppUser> signInManager
+@inject UserManager<AppUser> userManager
+
+<link rel="stylesheet" href="~/css/AccountNavPartial.css" asp-append-version="true" />
+
+@if (signInManager.IsSignedIn(User))
+{
+    <div class="dropdown text-center navbar navbar-expand-lg">
+        <!-- Dropdown button -->
+        <a class="btn btn-primary dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-user-circle"></i> @userManager.GetUserName(User)
+        </a>
+        <!-- Dropdown menu -->
+        <ul class="dropdown-menu text-align-left">
+            <li>
+                <a class="dropdown-item mt-2" href="#">
+                    <i class="fas fa-id-card"></i> Trang cá nhân
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item mt-2" asp-area="Identity" asp-controller="Manage" asp-action="Index">
+                    <i class="fas fa-edit"></i> Thông tin cá nhân
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item mt-2" href="#">
+                    <i class="fas fa-wrench"></i> Tuỳ chọn
+                </a>
+            </li>
+            <li>
+                <hr>
+            </li>
+            <li>
+                <form asp-area="Identity" asp-controller="Account" asp-action="LogOff" type="hidden" method="post"
+                    class="form-horizontal" role="form">
+                    <button type="submit" class="dropdown-item btn btn-danger mb-3">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+}
+else
+{
+    <div class="dropdown text-center navbar navbar-expand-lg">
+        <!-- Dropdown button -->
+        <a class="btn btn-primary dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-user-circle"></i> Tài khoản
+        </a>
+        <!-- Dropdown menu -->
+        <ul class="dropdown-menu">
+            <li>
+                <a class="dropdown-item boder-nobg mb-2" asp-area="Identity" asp-controller="Account" asp-action="Login">
+                    Đăng nhập <i class="fas fa-sign-in-alt"></i>
+                </a>
+            </li>
+            <li class="small">Bạn chưa có tài khoản?</li>
+            <li>
+                <a class="small" asp-area="Identity" asp-controller="Account" asp-action="Register">
+                    Đăng ký
+                </a>
+            </li>
+            <li>
+                <hr class="hr-text" data-content="hoặc">
+            </li>
+            <li>
+                <form asp-area="Identity" asp-controller="Account" asp-action="ExternalLogin" asp-route-returnurl=""
+                    type="hidden" method="post" class="form-horizontal" role="form">
+                    <input type="hidden" name="provider" value="Google" />
+                    <button type="submit" class="dropdown-item btn btn-danger mb-3">
+                        <i class="fab fa-google"></i> Đăng nhập với Google
+                    </button>
+                </form>
+            </li>
+            <li>
+                <form asp-area="Identity" asp-controller="Account" asp-action="ExternalLogin" asp-route-returnurl=""
+                    type="hidden" method="post" class="form-horizontal" role="form">
+                    <input type="hidden" name="provider" value="Facebook" />
+                    <button type="submit" class="dropdown-item btn btn-primary">
+                        <i class="fab fa-facebook"></i> Đăng nhập với Facebook
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+}

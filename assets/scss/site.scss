@@ -21,7 +21,7 @@ html {
     margin-bottom: 60px;
   }
 
-  .tooltip-text {
+.tooltip-text {
     position: relative; /* Cần thiết cho việc hiển thị tooltip */
 }
 
@@ -42,6 +42,7 @@ html {
     white-space: normal; /* Cho phép text trong tooltip xuống dòng */
     max-width: 200px; /* Giới hạn chiều rộng của tooltip để text không quá dài */
     word-wrap: break-word; /* Tự động xuống dòng khi text dài */
+    z-index: 9999;
 }
 
 .tooltip-text:hover::after {
