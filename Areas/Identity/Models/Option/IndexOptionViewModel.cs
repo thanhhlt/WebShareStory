@@ -6,12 +6,18 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 
-namespace App.Areas.Identity.Models.ManageViewModels
+namespace App.Areas.Identity.Models.OptionViewModels
 {
-    public class ManageLoginsViewModel
+    public class IndexOptionViewModel
     {
         public IList<UserLoginInfo> CurrentLogins { get; set; }
 
         public IList<AuthenticationScheme> OtherLogins { get; set; }
+
+        public bool TwoFactor { get; set; }
+
+        public RemoveLoginViewModel RemoveLoginViewModel { get; set; }
+
+        public DeleteAccountViewmodel DeleteAccountViewmodel { get; set; }
     }
 }

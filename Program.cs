@@ -71,14 +71,14 @@ builder.Services.AddAuthentication()
         options.ClientId = Environment.GetEnvironmentVariable("CLIENT_ID") ?? "";
         options.ClientSecret = Environment.GetEnvironmentVariable("CLIENT_SECRET") ?? "";
         options.CallbackPath = new PathString("/signin-google");
-        // https://localhost:5001/signin-google
-        options.AccessDeniedPath = new PathString("/");
+        // https://localhost:5000/signin-google
+        options.AccessDeniedPath = new PathString("/externalloginfail");
     })
     .AddFacebook(options => {
         options.AppId = Environment.GetEnvironmentVariable("APP_ID") ?? "";
         options.AppSecret = Environment.GetEnvironmentVariable("APP_SECRET") ?? "";
-        options.CallbackPath = new PathString("sign-facebook");
-        // https://localhost:5001/signin-facebook
+        options.CallbackPath = new PathString("/sign-facebook");
+        // https://localhost:5000/signin-facebook
         options.AccessDeniedPath = new PathString("/");
     });
 

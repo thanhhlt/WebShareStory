@@ -3,7 +3,7 @@
 
 #nullable disable
 
-namespace App.Areas.Identity.Models.ManageViewModels
+namespace App.Areas.Identity.Models.OptionViewModels
 {
     public class RemoveLoginViewModel
     {

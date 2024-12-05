@@ -1,0 +1,34 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.ComponentModel.DataAnnotations;
+using App.Models;
+
+namespace App.Areas.Identity.Models.ProfileViewModels
+{
+    public class IndexProfileViewModel
+    {
+        [Display(Name = "Tên tài khoản")]
+        public string? UserName { get; set; }
+
+        [Display(Name = "Email")]
+        public string? Email { get; set; }
+
+        [Display(Name = "Số điện thoại")]
+        [RegularExpression(@"^0\d+$", ErrorMessage = "{0} sai định dạng.")]
+        public string? PhoneNumber { get; set; }
+
+        [Display(Name = "Ngày sinh")]
+        public required DateTime BirthDate { get; set; } = DateTime.UtcNow;
+
+        [Display(Name = "Giới tính")]
+        public Gender? Gender { get; set; }     
+
+        [Display(Name = "Địa chỉ")]
+        [MaxLength(255, ErrorMessage = "{0} tối đa {1} ký tự.")]
+        public string? Address { get; set; }
+
+        [Display(Name = "Thông tin giới thiệu")]
+        public string? Introduction { get; set; }
+    }
+}

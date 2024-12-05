@@ -5,10 +5,15 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace App.Areas.Identity.Models.ManageViewModels
+namespace App.Areas.Identity.Models.ProfileViewModels
 {
-    public class SetPasswordViewModel
+    public class ChangePasswordViewModel
     {
+        [Required(ErrorMessage = "{0} không được bỏ trống.")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Mật khẩu hiện tại")]
+        public string OldPassword { get; set; }
+
         [Required(ErrorMessage = "{0} không được bỏ trống.")]
         [StringLength(50, ErrorMessage = "{0} dài từ {2} đến {1} ký tự.", MinimumLength = 6)]
         [DataType(DataType.Password)]

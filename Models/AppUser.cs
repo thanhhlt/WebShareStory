@@ -3,11 +3,25 @@ using Microsoft.AspNetCore.Identity;
 
 namespace App.Models;
 
-public class AppUser: IdentityUser 
+public enum Gender
 {
-        [Required()]       
+        Male = 1,
+        Female = 2,
+        Unspecified = 3
+}
+
+public class AppUser : IdentityUser
+{
+        [Required()]
         [DataType(DataType.Date)]
         public DateTime BirthDate { get; set; } = DateTime.UtcNow;
+
+        public Gender? Gender { get; set; }
+
+        [MaxLength(255)]
+        public string? Address { get; set; }
+
+        public string? Introduction { get; set; }
 
         public bool? isActivate { get; set; }
 

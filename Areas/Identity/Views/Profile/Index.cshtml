@@ -1,0 +1,117 @@
+﻿@model IndexProfileViewModel
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+}
+
+<style>
+    .btn-square {
+        width: 50px;
+        height: 50px;
+        padding: 0;
+        text-align: center;
+        line-height: 50px;
+        border-radius: 0.2rem;
+    }
+
+    .custom-radio {
+        margin-right: 20px;
+    }
+</style>
+
+<partial name="_StatusMessage">
+
+<div class="row">
+    <div class="col-md-6">
+        <h1>@ViewData["Title"]</h1>
+        <hr>
+        <form asp-action="ChangeProfileInfo" method="post" role="form">
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+            <div class="form-group mb-3">
+                <label class="mb-2" asp-for="UserName" class="form-label"></label>
+                <input asp-for="UserName" class="form-control" disabled />
+            </div>
+            <div class="form-group mb-2">
+                <label class="mb-2" asp-for="Introduction"></label>
+                <textarea asp-for="Introduction" class="form-control"></textarea>
+                <span asp-validation-for="Introduction" class="text-danger"></span>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label" asp-for="Gender"></label>
+                    <div class="radio-group">
+                        <label class="custom-radio">
+                            <input type="radio" asp-for="Gender" value="@Gender.Male" /> Nam
+                        </label>
+                        <label class="custom-radio">
+                            <input type="radio" asp-for="Gender" value="@Gender.Female" /> Nữ
+                        </label>
+                        <label class="custom-radio">
+                            <input type="radio" asp-for="Gender" value="@Gender.Unspecified" /> Không xác định
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="BirthDate" class="form-label"></label>
+                        <input asp-for="BirthDate" class="form-control" type="date" />
+                        <span asp-validation-for="BirthDate" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="PhoneNumber" class="form-label"></label>
+                <input asp-for="PhoneNumber" class="form-control"/>
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="Address" class="form-label"></label>
+                <textarea asp-for="Address" class="form-control"></textarea>
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+            <button id="update-profile-button" type="submit" class="btn btn-sm btn-primary">Cập nhập</button>
+        </form>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Thông tin đăng nhập</h1>
+        <hr>
+
+        <form asp-action="ChangeEmail" method="get">
+            <div class="form-floating mb-3 d-flex">
+                <input asp-for="Email" class="form-control" disabled />
+                <button type="submit" class="btn btn-sm btn-primary ms-3 btn-square"><i
+                        class="fas fa-pencil-alt"></i></button>
+                <label asp-for="Email" class="form-label"></label>
+            </div>
+        </form>
+
+        <form asp-action="ChangePassword" method="get">
+            <div class="form-floating mb-3 d-flex">
+                <input class="form-control" value="*********************" disabled />
+                <button type="submit" class="btn btn-sm btn-primary ms-3 btn-square"><i
+                        class="fas fa-pencil-alt"></i></button>
+                <label class="form-label">Mật khẩu</label>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    @* Auto resize textarea *@
+    <script>
+        $(document).ready(function () {
+            $('textarea').each(function () {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+            $('textarea').on('input', function () {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        });
+    </script>
+}

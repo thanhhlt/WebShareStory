@@ -215,6 +215,14 @@ namespace App.Areas.Identity.Controllers
             return Challenge(properties, provider);
         }
 
+        //GET: /externalloginfail
+        [HttpGet("/externalloginfail")]
+        public IActionResult ExternalLoginFail(string? returnUrl)
+        {
+            returnUrl ??= Url.Content("~/");
+            return Redirect(returnUrl);
+        }
+
         // GET: /account/ExternalLoginCallback
         [HttpGet]
         [AllowAnonymous]
