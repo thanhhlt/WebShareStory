@@ -64,7 +64,8 @@ namespace App.Areas.Identity.Controllers
                 BirthDate = user.BirthDate,
                 Gender = user.Gender,
                 Address = user.Address,
-                Introduction = user.Introduction
+                Introduction = user.Introduction,
+                EmailConfirmed = user.EmailConfirmed
            };
 
            return View(model);
@@ -106,6 +107,49 @@ namespace App.Areas.Identity.Controllers
             StatusMessage = $"Error Cập nhật thông tin cá nhân thất bại.<br/> {string.Join("<br/>", errorMessages)}";
             _logger.LogWarning(StatusMessage);
             return RedirectToAction("Index");
+        }
+
+        //GET: /profile/ResendEmailConfirm
+        [HttpGet]
+        public async Task<IActionResult> ResendEmailConfirm()
+        {
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+
+            if (user == null)
+            {
+                StatusMessage = "Error Không tìm thấy tài khaoản.";
+                return RedirectToAction("Index");
+            }
+
+            try {
+                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+                var callbackUrl = Url.ActionLink(
+                    action: nameof(ConfirmEmail),
+                    values: 
+                        new { area = "Identity",
+                            controller = "Account",
+                            userId = user.Id, 
+                            code = code},
+                    protocol: Request.Scheme);
+
+                if (callbackUrl != null)
+                {
+                    var emailBodyTemplate = await _emailTemplateService.GetTemplateAsync("ConfirmEmail.html");
+                    var emailBody = emailBodyTemplate.Replace("{{ConfirmationLink}}", HtmlEncoder.Default.Encode(callbackUrl))
+                                                    .Replace("{{UserName}}", user.UserName);
+
+                    await _emailSender.SendEmailAsync(user.Email, "Xác nhận địa chỉ email - GocKeChuyen", emailBody);
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return Json(new{success = false, message = "Lỗi gửi email xác nhận."});
+            }
+            
+            return Json(new{success = true, message = "Đã gửi email xác nhận."});
         }
         
         //GET: /profile/ChangeEmail
@@ -210,6 +254,7 @@ namespace App.Areas.Identity.Controllers
                 await _emailSender.SendEmailAsync(model.NewEmail, "Xác nhận địa chỉ email - GocKeChuyen", emailBody);
             }
 
+            await _userManager.UpdateSecurityStampAsync(user);
             StatusMessage = "Thay đổi Email thành công. Kiểm tra Email mới để xác thực.";
             await _signInManager.RefreshSignInAsync(user);
 
@@ -261,6 +306,7 @@ namespace App.Areas.Identity.Controllers
                 }
                 return Json(new {success = false});
             }
+            await _userManager.UpdateSecurityStampAsync(user);
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Thay đổi mật khẩu thành công.";
 

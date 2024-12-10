@@ -18,8 +18,10 @@ namespace App.Areas.Identity.Models.ProfileViewModels
         [RegularExpression(@"^0\d+$", ErrorMessage = "{0} sai định dạng.")]
         public string? PhoneNumber { get; set; }
 
+        [Required(ErrorMessage = "{0} không được bỏ trống.")]
         [Display(Name = "Ngày sinh")]
-        public required DateTime BirthDate { get; set; } = DateTime.UtcNow;
+        [DataType(DataType.Date)]
+        public DateTime BirthDate { get; set; } = DateTime.Now;
 
         [Display(Name = "Giới tính")]
         public Gender? Gender { get; set; }     
@@ -30,5 +32,7 @@ namespace App.Areas.Identity.Models.ProfileViewModels
 
         [Display(Name = "Thông tin giới thiệu")]
         public string? Introduction { get; set; }
+
+        public bool EmailConfirmed { get; set; }
     }
 }

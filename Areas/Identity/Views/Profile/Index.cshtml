@@ -53,7 +53,7 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label asp-for="BirthDate" class="form-label"></label>
-                        <input asp-for="BirthDate" class="form-control" type="date" />
+                        <input asp-for="BirthDate" class="form-control" id="birthDate" type="text" />
                         <span asp-validation-for="BirthDate" class="text-danger"></span>
                     </div>
                 </div>
@@ -77,31 +77,38 @@
         <hr>
 
         <form asp-action="ChangeEmail" method="get">
-            <div class="form-floating mb-3 d-flex">
+            <label asp-for="Email" class="form-label"></label>
+            @if (!Model.EmailConfirmed)
+            {
+                <a href="#" id="resend-email-confirm">Gửi lại email xác thực.</a>
+                <div id="result-send-email"></div>
+            }
+            <div class="form-group mb-3 d-flex">
                 <input asp-for="Email" class="form-control" disabled />
                 <button type="submit" class="btn btn-sm btn-primary ms-3 btn-square"><i
                         class="fas fa-pencil-alt"></i></button>
-                <label asp-for="Email" class="form-label"></label>
             </div>
         </form>
 
         <form asp-action="ChangePassword" method="get">
-            <div class="form-floating mb-3 d-flex">
+            <label class="form-label">Mật khẩu</label>
+            <div class="form-group mb-3 d-flex">
                 <input class="form-control" value="*********************" disabled />
                 <button type="submit" class="btn btn-sm btn-primary ms-3 btn-square"><i
                         class="fas fa-pencil-alt"></i></button>
-                <label class="form-label">Mật khẩu</label>
             </div>
         </form>
     </div>
 </div>
-
+<p class="text-success"></p>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     @* Auto resize textarea *@
+    <link rel="stylesheet" href="~/lib/jqueryui/themes/base/jquery-ui.css" />
+    <script src="~/lib/jqueryui/jquery-ui.min.js"></script>
     <script>
         $(document).ready(function () {
             $('textarea').each(function () {
@@ -111,6 +118,46 @@
             $('textarea').on('input', function () {
                 this.style.height = 'auto';
                 this.style.height = (this.scrollHeight) + 'px';
+            });
+            $("#birthDate").datepicker({
+                dateFormat: "dd/mm/yy",
+                changeMonth: true,
+                changeYear: true,
+                yearRange: "1900:2100",
+                showButtonPanel: true,
+                onSelect: function (dateText, inst) {
+                    var date = $.datepicker.parseDate("dd/mm/yy", dateText);
+                    var formattedDate = $.datepicker.formatDate("dd/mm/yy", date);
+                    $(this).val(formattedDate);
+                }
+            });
+        });
+    </script>
+    <script>
+        $(document).on('click', '#resend-email-confirm', function (e) {
+            e.preventDefault();
+            const link = $(this);
+            const originalText = link.html();
+            const url = '@Url.Action("ResendEmailConfirm")';
+
+            link.html('<i class="fas fa-spinner fa-pulse"></i> Đang gửi...');
+            link.prop('disabled', true);
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        $('#result-send-email').html('<p class="text-success">'+response.message+'</p>')
+                    }
+                    else {
+                        $('#result-send-email').html('<p class="text-danger">'+response.message+'</p>')
+                    }
+                },
+                complete: function () {
+                    link.html(originalText);
+                    link.prop('disabled', false);
+                }
             });
         });
     </script>

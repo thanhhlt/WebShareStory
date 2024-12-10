@@ -30,12 +30,18 @@ namespace App.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("AccountCreationDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Address")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<DateTime>("BirthDate")
                         .HasColumnType("DATE");
+
+                    b.Property<DateTimeOffset?>("CommentLockEnd")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -77,6 +83,9 @@ namespace App.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<DateTimeOffset?>("PostLockEnd")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -87,7 +96,7 @@ namespace App.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<bool?>("isActivate")
+                    b.Property<bool>("isActivate")
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
@@ -201,6 +210,34 @@ namespace App.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Likes");
+                });
+
+            modelBuilder.Entity("App.Models.LoggedBrowsersModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BrowserInfo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("LoginTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("LoggedBrowsers");
                 });
 
             modelBuilder.Entity("App.Models.PostsModel", b =>
@@ -512,6 +549,17 @@ namespace App.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("App.Models.LoggedBrowsersModel", b =>
+                {
+                    b.HasOne("App.Models.AppUser", "User")
+                        .WithMany("LoggedBrowsers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("App.Models.PostsModel", b =>
                 {
                     b.HasOne("App.Models.AppUser", "User")
@@ -611,6 +659,8 @@ namespace App.Migrations
             modelBuilder.Entity("App.Models.AppUser", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("LoggedBrowsers");
 
                     b.Navigation("Posts");
 

@@ -1,6 +1,6 @@
 #nullable disable
 
-using App.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace App.Areas.Identity.Models.UserViewModels
 {
@@ -13,14 +13,20 @@ namespace App.Areas.Identity.Models.UserViewModels
 
             public int currentPage { get; set; }
 
-            public List<UserAndRole> users { get; set; }
+            public string SearchString { get; set; }
 
+            public string MessageSearchResult { get; set; }
+
+            public List<UserIndex> users { get; set; }
         }
 
-        public class UserAndRole : AppUser
+        public class UserIndex
         {
-            public string RoleNames { get; set; }
+            public string Id { get; set; }
+            public string UserName { get; set; }
+            public string Email { get; set; }
+            [DataType(DataType.Date)]
+            [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+            public DateTime AccountCreated { get; set; }
         }
-
-
 }

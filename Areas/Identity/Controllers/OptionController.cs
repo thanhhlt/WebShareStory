@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using App.Areas.Identity.Models.OptionViewModels;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace App.Areas.Identity.Controllers
 {
@@ -15,15 +16,18 @@ namespace App.Areas.Identity.Controllers
     [Route("/option/[action]")]
     public class OptionController : Controller
     {
+        private readonly AppDbContext _dbContext;
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ILogger<ProfileController> _logger;
 
         public OptionController(
-        UserManager<AppUser> userManager,
-        SignInManager<AppUser> signInManager,
-        ILogger<ProfileController> logger)
+            AppDbContext dbContext,
+            UserManager<AppUser> userManager,
+            SignInManager<AppUser> signInManager,
+            ILogger<ProfileController> logger)
         {
+            _dbContext = dbContext;
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
@@ -55,7 +59,10 @@ namespace App.Areas.Identity.Controllers
             {
                 CurrentLogins = currentLogins,
                 OtherLogins = otherLogins,
-                TwoFactor = await _userManager.GetTwoFactorEnabledAsync(user)
+                TwoFactor = await _userManager.GetTwoFactorEnabledAsync(user),
+                LoggedBrowsers = await _dbContext.LoggedBrowsers.Where(l => l.UserId == user.Id)
+                                                                .OrderByDescending(l => l.LoginTime)
+                                                                .Take(5).ToListAsync(),
             };
 
             return View(indexViewModel);
@@ -179,6 +186,27 @@ namespace App.Areas.Identity.Controllers
             await _userManager.SetTwoFactorEnabledAsync(user, false);
             await _signInManager.SignInAsync(user, isPersistent: false);
             return RedirectToAction(nameof(Index));
+        }
+
+        //POST: /option/LogoutAll
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LogoutAllAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound(" Error Không tìm thấy tài khoản.");
+            }
+
+            await _userManager.UpdateSecurityStampAsync(user);
+            HttpContext.Response.Cookies.Delete(".AspNetCore.Identity.TwoFactorRememberMe");
+            foreach (var cookie in HttpContext.Request.Cookies.Keys)
+            {
+                HttpContext.Response.Cookies.Delete(cookie);
+            }
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
         }
 
         //POST: /option/DeleteAccount

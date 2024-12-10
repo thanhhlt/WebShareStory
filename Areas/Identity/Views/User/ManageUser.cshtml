@@ -1,0 +1,320 @@
+@model ManageUserModel
+
+@{
+    ViewData["Title"] = "Quản lý thành viên";
+}
+@Html.AntiForgeryToken()
+
+<h2>@ViewData["Title"]</h2>
+
+<div id="_StatusMessage"></div>
+
+<div class="container mt-5">
+    <!-- User Info -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>Thông tin thành viên</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <img src="https://via.placeholder.com/150" alt="Avatar" class="img-thumbnail mb-3">
+                    @if (Model.UserInfo.isActivate)
+                    {
+                        <p><strong>Đang trực tuyến: </strong><span class="badge bg-success">Online</span></p>
+                    }
+                    else
+                    {
+                        <p><strong>Đang ngoại tuyến: </strong><span class="badge bg-danger">Offline</span></p>
+                    }
+                </div>
+                <div class="col-md-9">
+                    <p><strong>Tên tài khoản:</strong> @Model.UserInfo.UserName</p>
+                    <p><strong>ID:</strong> @Model.UserInfo.Id</p>
+                    <p><strong>Email:</strong> @Model.UserInfo.Email</p>
+                    <p><strong>Giới tính:</strong> @Model.UserInfo.Gender</p>
+                    <p><strong>Ngày sinh:</strong> @Model.UserInfo.BirthDate.ToString("dd/MM/yyyy")</p>
+                    <p><strong>Địa chỉ:</strong> @Model.UserInfo.Address</p>
+                    <p><strong>Ngày đăng ký:</strong> @Model.UserInfo.AccountCreated</p>
+                    <p><strong>Danh sách lệnh khoá:</strong></p>
+                    <ul id="lock-info">
+                        @if (Model.UserInfo.AccountLockEnd > DateTime.UtcNow)
+                        {
+                            <li>Cấm đăng nhập đến: @Model.UserInfo.AccountLockEnd</li>
+                        }
+                        @if (Model.UserInfo.PostLockEnd > DateTime.UtcNow)
+                        {
+                            <li>Cấm post bài đến: @Model.UserInfo.PostLockEnd</li>
+                        }
+                        @if (Model.UserInfo.CommentLockEnd > DateTime.UtcNow)
+                        {
+                            <li>Cấm bình luận đến: @Model.UserInfo.CommentLockEnd</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- List Posts -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>Danh sách bài viết</h3>
+        </div>
+        <div class="card-body">
+            <table id="dataTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tiêu đề</th>
+                        <th>Ngày tạo</th>
+                        <th>Ngày cập nhật</th>
+                        <th>Danh mục</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var post in Model.Posts)
+                    {
+                        <tr>
+                            <td>@post.Id</td>
+                            <td>@post.Title</td>
+                            <td>@post.DateCreated</td>
+                            <td>@post.DateUpdated</td>
+                            <td>@post.Category</td>
+                            <td><a href="#" class="btn btn-sm btn-primary">Xem</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Manage Role -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>Quản lý Role và Claim</h3>
+        </div>
+        <div class="card-body">
+            <form asp-action="UpdateRoleUser" method="post" id="manage-role-form" class="row align-items-center">
+                <input type="hidden" asp-for="UserId" value="@Model.UserId">
+                <div class="col-md-10">
+                    <div class="form-group">
+                        @Html.ListBoxFor(m => m.UserRoleNames, (IEnumerable<SelectListItem>)Model.AllRoleNames, new
+                            {
+                                id = "select-roles",
+                                @class = "w-100"
+                            })
+                    </div>
+                </div>
+                <div class="col-md-2 text-end">
+                    <button type="submit" id="saveRoles" class="btn btn-success w-100">Lưu Roles</button>
+                </div>
+            </form>
+            <!-- List Claims -->
+            <div class="mt-4">
+                <h4>Danh sách Claims</h4>
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tên Claim</th>
+                            <th>Giá trị</th>
+                            <th>Role cung cấp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="claimTableBody">
+                        @foreach (var claim in Model.Claims)
+                        {
+                            <tr>
+                                <td>@claim.ClaimType</td>
+                                <td>@claim.ClaimValue</td>
+                                <td>@claim.RoleName</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Mange lock -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>Thao tác lệnh khoá</h3>
+        </div>
+        <div class="card-body">
+            @* <p>Tính theo múi giờ +00:00. Hiện tại là: @DateTime.UtcNow</p> *@
+            <form asp-action="LockAccountOptions" id = "lock-account-options" method="post" role="form">
+                <input type="hidden" asp-for="UserId" value="@Model.UserId">
+                <div class="form-group mb-3">
+                    <label class="form-label">Khoá tài khoản đến:</label>
+                    <input asp-for="UserInfo.AccountLockEnd" class="form-control datetimeinput" type="text">
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Khoá đăng bài bài đến:</label>
+                    <input asp-for="UserInfo.PostLockEnd" class="form-control datetimeinput" type="text">
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Khoá bình luận đến:</label>
+                    <input asp-for="UserInfo.CommentLockEnd" class="form-control datetimeinput" type="text">
+                </div>
+                <button type="submit" class="btn btn-danger">Thực hiện lệnh khoá</button>
+            </form>
+        </div>
+    </div>
+    <!-- Other Options -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Chức năng khác</h3>
+        </div>
+        <div class="card-body">
+            @* <input type="hidden" name="__RequestVerificationToken" value="@Html.AntiForgeryToken()" /> *@
+            <button class="btn btn-success reset-password" data-user-id="@Model.UserId">Đặt lại mật khẩu</button>
+            <button class="btn btn-danger delete-account" data-user-id="@Model.UserId">Xoá tài khoản</button>
+        </div>
+    </div>
+    <a asp-action="Index">Quay về trang danh sách thành viên.</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <link rel="stylesheet" href="~/lib/datatables/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="~/lib/select2/css/select2.min.css" />
+    <link rel="stylesheet" href="~/lib/jquery-datetimepicker/jquery.datetimepicker.min.css">
+    <script src="~/lib/jquery-datetimepicker/jquery.datetimepicker.full.min.js"></script>
+    <script src="~/lib/datatables/js/jquery.dataTables.min.js"></script>
+    <script src="~/lib/datatables/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#dataTable').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                language: {
+                    lengthMenu: "Hiển thị _MENU_ dòng mỗi trang",
+                    zeroRecords: "Không tìm thấy dữ liệu",
+                    info: "Hiển thị _START_ đến _END_ của _TOTAL_ bản ghi",
+                    infoEmpty: "Không có bản ghi nào",
+                    search: "Tìm kiếm:",
+                    paginate: {
+                        first: "Đầu",
+                        last: "Cuối",
+                        next: "Sau",
+                        previous: "Trước"
+                    }
+                },
+                columnDefs: [
+                    { orderable: false, targets: -1 }
+                ]
+            });
+
+            $('#select-roles').select2({
+                placeholder: "Chọn vai trò",
+                allowClear: true,
+                closeOnSelect: false,
+            });
+
+            //Update Role
+            $('#manage-role-form').on('submit', function (e) {
+                e.preventDefault();
+                const form = $(this);
+                const formData = form.serialize();
+                const url = form.attr('action');
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (typeof response === 'string') {
+                            $('#claimTableBody').html(response)
+                        }
+                        $('#_StatusMessage').load("@Url.Action("GetStatusMessage")");
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi AJAX:", xhr.responseText);
+                        alert("Đã xảy ra lỗi trong quá trình xử lý. Chi tiết: " + xhr.responseText);
+                    }
+                });
+            });
+
+            $(".datetimeinput").datetimepicker({
+                format: "d/m/Y H:i",
+                step: 30,
+                closeOnWithoutClick: true
+            });
+
+            // Lock Account
+            $('#lock-account-options').on('submit', function (e) {
+                e.preventDefault();
+                const form = $(this);
+                const formData = form.serialize();
+                url = form.attr('action');
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: formData,
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (typeof response === 'string')
+                        {
+                            $('#lock-info').html(response)
+                        }
+                        $('#_StatusMessage').load("@Url.Action("GetStatusMessage")");
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi AJAX:", xhr.responseText);
+                        alert("Đã xảy ra lỗi trong quá trình xử lý. Chi tiết: " + xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        // Reset Password
+        $(document).on('click', '.reset-password', function () {
+            const userId = $(this).data('user-id');
+            
+            $.ajax({
+                url: '@Url.Action("ResetPassword")',
+                method: 'POST',
+                data: {userId: userId},
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    $('#_StatusMessage').load("@Url.Action("GetStatusMessage")");
+                },
+            });
+        });
+
+        // Delete Account
+        $(document).on('click', '.delete-account', function () {
+            const userId = $(this).data('user-id');
+
+            $.ajax({
+                url: '@Url.Action("DeleteAccount")',
+                method: 'POST',
+                data: {userId: userId},
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    if (response.redirect)
+                    {
+                        window.location.href = response.redirect;
+                    }
+                    else
+                    {
+                        $('#_StatusMessage').load("@Url.Action("GetStatusMessage")");
+                    }
+                }
+            });
+        });
+    </script>
+
+}

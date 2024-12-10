@@ -42,9 +42,11 @@
 
                 const form = $(this);
                 const submitButton = $('#update-email-button');
+                const originalText = submitButton.html();
                 const url = form.attr('action');
                 const formData = form.serialize();
 
+                submitButton.html('<i class="fas fa-spinner fa-pulse"></i> Đang gửi email xác nhận...');
                 submitButton.prop('disabled', true);
 
                 $.ajax({
@@ -58,6 +60,7 @@
                         $('#_StatusMessage').load("@Url.Action("GetStatusMessage")");
                     },
                     complete: function () {
+                        submitButton.html(originalText);
                         submitButton.prop('disabled', false);
                     }
                 });

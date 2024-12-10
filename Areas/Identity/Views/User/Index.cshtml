@@ -3,36 +3,46 @@
 @{
     ViewData["Title"] = "Danh sách các thành viên";
 }
+
 <h2>@ViewData["Title"]</h2>
-<partial name="_StatusMessage"></partial>
+<partial name="_StatusMessage">
 <p>Tổng số thành viên: @Model.totalUsers</p>
 
-<table class="table">
+<form asp-action="Index" method="get" role="form" class="form-inline">
+    <div class="input-group" style="max-width: 300px;">
+        <input asp-for="SearchString" 
+               class="form-control" 
+               placeholder="Nhập nội dung tìm kiếm..." 
+               aria-label="Search">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+    <span class="text-danger d-block mt-2">@Model.MessageSearchResult</span>
+</form>
+
+<table class="table table-striped mt-3">
     <tr>
-        <th>Tên user</th>
-        <th>Vai trò (role)</th>
-        <th>Tác vụ</th>
+        <th>ID</th>
+        <th>Tên tài khoản</th>
+        <th>Email</th>
+        <th>Ngày tham gia</th>
+        <th></th>
     </tr>
     @foreach (var user in Model.users)
     {
         <tr>
+            <td>@user.Id</td>
             <td>@user.UserName</td>
+            <td>@user.Email</td>
+            <td>@user.AccountCreated</td>
             <td>
-                @if (string.IsNullOrEmpty(user.RoleNames))
-                {
-                    <a class="text-dark" asp-action="AddRole" asp-route-id="@user.Id">+ Thêm roles</a>
-                }
-                else
-                {
-                    <a asp-action="AddRole" asp-route-id="@user.Id">@user.RoleNames</a>
-                }
-            </td>
-            <td>
-                <a class="btn btn-success btn-sm" asp-action="SetPassword" asp-route-id="@user.Id">Đặt mật khẩu</a>
+                <a class="btn btn-success btn-sm" asp-action="ManageUser" asp-route-id="@user.Id">Chi tiết</a>
             </td>
         </tr>
     }
 </table>
+
 @{
     var pagingmodel = new PagingModel()
     {
@@ -42,4 +52,4 @@
     };
 }
 
-<partial name="_PagingXTL" model="@pagingmodel" />
+<partial name="_Paging" model="@pagingmodel" />

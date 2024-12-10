@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
+using UAParser;
+using System.Web;
 
 namespace App.Areas.Identity.Controllers
 {
@@ -22,6 +24,7 @@ namespace App.Areas.Identity.Controllers
     [Route("/account/[action]")]
     public class AccountController : Controller
     {
+        private readonly AppDbContext _dbContext;
         private readonly UserManager<AppUser> _userManager;
         private readonly IUserStore<AppUser> _userStore;
         private readonly IUserEmailStore<AppUser> _emailStore;
@@ -31,6 +34,7 @@ namespace App.Areas.Identity.Controllers
         private readonly ILogger<AccountController> _logger;
 
         public AccountController(
+            AppDbContext dbContext,
             UserManager<AppUser> userManager,
             IUserStore<AppUser> userStore,
             SignInManager<AppUser> signInManager,
@@ -38,6 +42,7 @@ namespace App.Areas.Identity.Controllers
             IEmailTemplateService emailTemplateService,
             ILogger<AccountController> logger)
         {
+            _dbContext = dbContext;
             _userManager = userManager;
             _userStore = userStore;
             _emailStore = GetEmailStore();
@@ -80,6 +85,18 @@ namespace App.Areas.Identity.Controllers
                 if (result.Succeeded)
                 {
                     _logger.LogInformation(1, "User logged in.");
+
+                    //Save Browser Login Info
+                    var user = await _userManager.FindByNameAsync(model.UserNameOrEmail);
+                    if (user == null && AppUtilities.IsValidEmail(model.UserNameOrEmail))
+                    {
+                        user = await _userManager.FindByEmailAsync(model.UserNameOrEmail);
+                    }
+                    if (user != null)
+                    {
+                        await SaveBrowserInfo(user.Id);
+                    }
+
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
@@ -166,6 +183,7 @@ namespace App.Areas.Identity.Controllers
                     else
                     {
                         await _signInManager.SignInAsync(user, isPersistent: false);
+                        await SaveBrowserInfo(user.Id);
                         return LocalRedirect(returnUrl);
                     }
 
@@ -245,7 +263,9 @@ namespace App.Areas.Identity.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
-
+                var userId = _userManager.GetUserId(User);
+                if (!string.IsNullOrEmpty(userId))
+                    await SaveBrowserInfo(userId);
                 _logger.LogInformation(5, "User logged in with {Name} provider.", info.LoginProvider);
                 return LocalRedirect(returnUrl);
             }
@@ -290,6 +310,7 @@ namespace App.Areas.Identity.Controllers
                                 if (linkResult.Succeeded)
                                 {
                                     await _signInManager.SignInAsync(existingUser, isPersistent: false);
+                                    await SaveBrowserInfo(existingUser.Id);
                                     return LocalRedirect(returnUrl);
                                 }
                                 else
@@ -359,7 +380,9 @@ namespace App.Areas.Identity.Controllers
                             _logger.LogInformation(6, "User created an account using {Name} provider.", info.LoginProvider);
 
                             await _signInManager.SignInAsync(user, isPersistent: false, info.LoginProvider);
-                            return LocalRedirect(returnUrl);                        }
+                            await SaveBrowserInfo(user.Id);
+                            return LocalRedirect(returnUrl);                        
+                        }
                         else if (info.ProviderDisplayName == "Facebook")
                         {
                             // Phát sinh token để xác nhận email
@@ -389,6 +412,7 @@ namespace App.Areas.Identity.Controllers
                             else
                             {
                                 await _signInManager.SignInAsync(user, isPersistent: false);
+                                await SaveBrowserInfo(user.Id);
                                 return LocalRedirect(returnUrl);
                             }
                         }
@@ -576,6 +600,9 @@ namespace App.Areas.Identity.Controllers
             var result = await _signInManager.TwoFactorSignInAsync("Email", model.Code, model.RememberMe, model.RememberBrowser);
             if (result.Succeeded)
             {
+                var userId = _userManager.GetUserId(User);
+                if (!string.IsNullOrEmpty(userId))
+                    await SaveBrowserInfo(userId);
                 return LocalRedirect(model.ReturnUrl);
             }
             if (result.IsLockedOut)
@@ -595,6 +622,51 @@ namespace App.Areas.Identity.Controllers
         public IActionResult AccessDenied()
         {
             return View();
+        }
+
+        private async Task SaveBrowserInfo (string userId)
+        {
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var forwardedFor = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(forwardedFor))
+            {
+                ipAddress = forwardedFor.Split(',')[0].Trim();
+            }
+
+            var parser = Parser.GetDefault();
+            var client = parser.Parse(userAgent);
+
+            var browserInfo = $"{client.UA.Family} {client.UA.Major}, OS: {client.OS.Family} {client.OS.Major}";
+
+            if (_dbContext.LoggedBrowsers != null)
+            {
+                var existingBrowser = _dbContext.LoggedBrowsers.Where(b => b.UserId == userId && 
+                                                                        b.BrowserInfo == browserInfo && 
+                                                                        b.IpAddress == ipAddress).FirstOrDefault();
+
+                var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                var loginTimeInVietnam = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+
+                if (existingBrowser != null)
+                {
+                    existingBrowser.LoginTime = new DateTimeOffset(loginTimeInVietnam);
+                    _dbContext.LoggedBrowsers.Update(existingBrowser);
+                }
+                else
+                {
+                    var newBrowser = new LoggedBrowsersModel
+                    {
+                        UserId = userId,
+                        BrowserInfo = browserInfo,
+                        IpAddress = ipAddress,
+                        LoginTime = new DateTimeOffset(loginTimeInVietnam)
+                    };
+                    _dbContext.LoggedBrowsers.Add(newBrowser);
+                }
+
+                await _dbContext.SaveChangesAsync();
+            }
         }    
-  }
+    }
 }

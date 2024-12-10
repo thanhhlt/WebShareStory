@@ -3,12 +3,20 @@
 
 #nullable disable
 
-using Microsoft.AspNetCore.Identity;
-
 namespace App.Areas.Identity.Models.RoleViewModels
 {
-    public class RoleModel : IdentityRole
+    public struct ClaimsRole
     {
+        public string Id { get; set; }
+        public string Name { get; set; }
         public string[] Claims { get; set; }
+    }
+    public class RoleModel
+    {
+        public List<ClaimsRole> ClaimsRoles { get; set; } = new List<ClaimsRole>();
+
+        public CreateRoleModel CreateRoleModel { get; set; }
+
+        public string IdRoleDelete { get; set; }
     }
 }

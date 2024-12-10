@@ -1,23 +1,27 @@
-@model List<RoleModel>
+@model RoleModel
 @{
-    ViewData["Title"] = "Danh sách các role (vai trò)";
+    ViewData["Title"] = "Danh sách các role";
 }
 <h2>@ViewData["Title"]</h2>
 
 <partial name="_StatusMessage"></partial>
 
+<form asp-action="Create" id="input-role-form" method="post" role="form" class="d-flex flex-column gap-2">
+    <div class="d-flex align-items-center gap-2">
+        <label asp-for="CreateRoleModel.Name" class="form-label mb-0"></label>
+        <input asp-for="CreateRoleModel.Name" class="form-control" placeholder="Nhập tên role" style="width: auto;" />
+        <button id="add-role-button" type="submit" class="btn btn-sm btn-primary">Thêm role</button>
+    </div>
 
-<div class="mb-2">
-    <a class="btn btn-secondary" asp-action="Create">Tạo role mới</a>
-    <a class="btn btn-secondary" asp-action="Index" asp-controller="User">Quản lý thành viên</a>
-</div>
+    <span asp-validation-for="CreateRoleModel.Name" class="text-danger mt-2"></span>
+</form>
 
 <table class="table">
     <tr>
-        <th>Tên Role (vai trò)</th>
+        <th>Tên Role</th>
         <th>Tác vụ</th>
     </tr>
-    @foreach (var role in Model)
+    @foreach (var role in Model.ClaimsRoles)
     {
         <tr>
             <td>
@@ -28,9 +32,18 @@
                 }
             </td>
             <td>
-                <a class="btn btn-success btn-sm" asp-action="Edit" asp-route-roleid="@role.Id">Cập nhật</a>
-                <a class="btn btn-success btn-sm" asp-action="Delete" asp-route-roleid="@role.Id">Xóa</a>
+                <div class="d-flex gap-2">
+                    <a class="btn btn-success btn-sm" asp-action="Edit" asp-route-roleid="@role.Id">Cập nhật</a>
+                    <form asp-action="Delete" method="post" role="form">
+                        <input type="hidden" asp-for="IdRoleDelete" value="@role.Id">
+                        <button type="submit" class="btn btn-danger">Xoá</button>
+                    </form>
+                </div>
             </td>
         </tr>
     }
 </table>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

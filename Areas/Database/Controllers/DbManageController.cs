@@ -440,8 +440,8 @@ public class DbManageController : Controller
             .RuleFor(u => u.PhoneNumberConfirmed, f => f.Random.Bool())
             .RuleFor(u => u.TwoFactorEnabled, f => f.Random.Bool())
             .RuleFor(u => u.LockoutEnd, f => f.Random.Bool() ? f.Date.FutureOffset() : null)
-            .RuleFor(u => u.LockoutEnabled, f => f.Random.Bool())
-            .RuleFor(u => u.AccessFailedCount, f => f.Random.Int(0, 10))
+            .RuleFor(u => u.LockoutEnabled, (f, u) => u.LockoutEnd.HasValue && u.LockoutEnd > DateTime.UtcNow ? true : false)
+            .RuleFor(u => u.AccessFailedCount, (f, u) => u.LockoutEnabled ? 0 : f.Random.Int(0, 4))
             .RuleFor(u => u.isActivate, f => f.Random.Bool());
 
         List<AppUser> fkUsers = new List<AppUser>();

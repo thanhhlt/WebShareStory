@@ -1,0 +1,14 @@
+@model UserInfoModel
+
+@if (Model.AccountLockEnd > DateTime.UtcNow)
+{
+    <li>Cấm đăng nhập đến: @Model.AccountLockEnd</li>
+}
+@if (Model.PostLockEnd > DateTime.UtcNow)
+{
+    <li>Cấm post bài đến: @Model.PostLockEnd</li>
+}
+@if (Model.CommentLockEnd > DateTime.UtcNow)
+{
+    <li>Cấm bình luận đến: @Model.CommentLockEnd</li>
+}

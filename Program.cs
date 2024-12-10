@@ -1,3 +1,4 @@
+using System.Globalization;
 using App.Models;
 using DotNetEnv;
 using Microsoft.AspNetCore.Identity;
@@ -23,6 +24,9 @@ builder.Services.AddDbContext<AppDbContext>(options => {
     string connectionString = Environment.GetEnvironmentVariable("CONNECTIONSTRINGS") ?? "";
     options.UseSqlServer(connectionString);
 });
+
+// Add SignalR
+builder.Services.AddSignalR();
 
 var mailsettings = builder.Configuration.GetSection("MailSettings").Get<MailSettings>();
 string gmailPassword = Environment.GetEnvironmentVariable("GMAIL_PASSWORD") ?? "";
@@ -56,8 +60,8 @@ builder.Services.Configure<IdentityOptions> (options => {
     options.User.RequireUniqueEmail = true;
 
     //Login.
-    options.SignIn.RequireConfirmedEmail = true;
-    options.SignIn.RequireConfirmedAccount = true;
+    options.SignIn.RequireConfirmedEmail = false;
+    options.SignIn.RequireConfirmedAccount = false;
 });
 
 builder.Services.ConfigureApplicationCookie(options => {
@@ -79,8 +83,21 @@ builder.Services.AddAuthentication()
         options.AppSecret = Environment.GetEnvironmentVariable("APP_SECRET") ?? "";
         options.CallbackPath = new PathString("/sign-facebook");
         // https://localhost:5000/signin-facebook
-        options.AccessDeniedPath = new PathString("/");
+        options.AccessDeniedPath = new PathString("/externalloginfail");
     });
+
+// Config Format Time
+var cultureInfo = new CultureInfo("vi-VN");
+cultureInfo.DateTimeFormat.ShortDatePattern = "dd/MM/yyyy";
+cultureInfo.DateTimeFormat.LongDatePattern = "dd/MM/yyyy";
+
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+{
+    options.ValidationInterval = TimeSpan.FromMinutes(1);
+});
 
 
 var app = builder.Build();
@@ -106,6 +123,8 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.MapHub<PresenceHub>("presenceHub");
 
 app.MapControllerRoute(
     name: "default",

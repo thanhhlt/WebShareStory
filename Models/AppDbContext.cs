@@ -88,6 +88,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         modelBuilder.Entity<CategoriesModel>()
             .HasIndex(c => c.Name)
             .IsUnique();
+
+        //LoggedBrowsers
+        modelBuilder.Entity<LoggedBrowsersModel>()
+            .HasOne(l => l.User)
+            .WithMany(u => u.LoggedBrowsers)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     public DbSet<UserRelationModel>? UserRelations { get; set; }
@@ -96,4 +102,5 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<CommentsModel>? Comments { get; set; }
     public DbSet<LikesModel>? Likes { get; set; }
     public DbSet<SupportRequestsModel>? SupportRequests { get; set; }
+    public DbSet<LoggedBrowsersModel>? LoggedBrowsers { get; set; }
 }
