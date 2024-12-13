@@ -119,8 +119,7 @@ namespace App.Areas.Identity.Controllers
         }
 
         // POST: /logOff
-        [HttpPost("/logout/")]
-        [ValidateAntiForgeryToken]
+        [HttpGet("/logout/")]
         public async Task<IActionResult> LogOff()
         {
             await _signInManager.SignOutAsync();

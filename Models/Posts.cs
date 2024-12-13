@@ -41,4 +41,5 @@ public class PostsModel
     public virtual CategoriesModel? Category { get; set; }
     public virtual ICollection<CommentsModel>? Comments { get; set; }
     public virtual ICollection<LikesModel>? Likes { get; set; }
+    public virtual ICollection<ImagesModel>? Images { get; set; }
 }

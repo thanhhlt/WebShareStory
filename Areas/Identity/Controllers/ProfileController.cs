@@ -10,31 +10,40 @@ using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using System.Text.Encodings.Web;
+using Microsoft.EntityFrameworkCore;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace App.Areas.Identity.Controllers
 {
     [Authorize]
     [Area("Identity")]
-    [Route("/profile/[action]")]
+    [Route("/account/edit-profile/[action]")]
     public class ProfileController : Controller
     {
+        private readonly AppDbContext _dbContext;
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly IEmailTemplateService _emailTemplateService;
+        private readonly IWebHostEnvironment _environment;
         private readonly ILogger<ProfileController> _logger;
 
         public ProfileController(
-        UserManager<AppUser> userManager,
-        SignInManager<AppUser> signInManager,
-        IEmailSender emailSender,
-        IEmailTemplateService emailTemplateService,
-        ILogger<ProfileController> logger)
+            AppDbContext dbContext,
+            UserManager<AppUser> userManager,
+            SignInManager<AppUser> signInManager,
+            IEmailSender emailSender,
+            IEmailTemplateService emailTemplateService,
+            IWebHostEnvironment environment,
+            ILogger<ProfileController> logger)
         {
+            _dbContext = dbContext;
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _emailTemplateService = emailTemplateService;
+            _environment = environment;
             _logger = logger;
         }
 
@@ -47,7 +56,7 @@ namespace App.Areas.Identity.Controllers
         }
 
         // GET: /profile
-        [HttpGet("/profile")]
+        [HttpGet("/account/edit-profile")]
         public async Task<IActionResult> Index()
         {
            var user = await _userManager.GetUserAsync(HttpContext.User);
@@ -65,7 +74,10 @@ namespace App.Areas.Identity.Controllers
                 Gender = user.Gender,
                 Address = user.Address,
                 Introduction = user.Introduction,
-                EmailConfirmed = user.EmailConfirmed
+                EmailConfirmed = user.EmailConfirmed,
+                isActivate = user.isActivate,
+                FilePath = await _dbContext.Images.Where(i => i.UserId == user.Id && i.UseType == UseType.profile)
+                                                .Select(i => i.FilePath).FirstOrDefaultAsync() ?? "/images/no_avt.jpg"
            };
 
            return View(model);
@@ -107,6 +119,75 @@ namespace App.Areas.Identity.Controllers
             StatusMessage = $"Error Cập nhật thông tin cá nhân thất bại.<br/> {string.Join("<br/>", errorMessages)}";
             _logger.LogWarning(StatusMessage);
             return RedirectToAction("Index");
+        }
+
+        //POST: /profile/UpdateAvatar
+        [HttpPost]
+        public async Task<IActionResult> UpdateAvatarAsync([Bind("ImageAvatar")]IndexProfileViewModel model)
+        {
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            if (user == null)
+            {
+                return NotFound("Không tìm thấy tài khoản.");
+            }
+            if (model.ImageAvatar != null && model.ImageAvatar.Length > 0)
+            {
+                var extensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+                var fileExtension = Path.GetExtension(model.ImageAvatar.FileName).ToLower();
+
+                if (!extensions.Contains(fileExtension))
+                {
+                    StatusMessage = "Error Chỉ cho phép ảnh .jpg, .jpeg, .png, .webp, .gif";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                string directoryPath = Path.Combine(_environment.ContentRootPath, "Images/Profiles");
+                var filePath = Path.Combine(directoryPath, user.Id + fileExtension);
+
+                var existingFiles = Directory.GetFiles(directoryPath)
+                                            .Where(f => Path.GetFileNameWithoutExtension(f) == user.Id.ToString())
+                                            .ToList();
+                foreach (var file in existingFiles)
+                {
+                    System.IO.File.Delete(file);
+                }
+
+                using (var image = await Image.LoadAsync(model.ImageAvatar.OpenReadStream()))
+                {
+                    image.Mutate(x => x.Resize(new ResizeOptions
+                    {
+                        Mode = ResizeMode.Crop,
+                        Size = new Size(150, 150)
+                    }));
+
+                    await image.SaveAsync(filePath);
+                }
+
+                filePath = "/imgs/Profiles/" + user.Id + fileExtension;
+
+                var existingImage = await _dbContext.Images.Where(i => i.UserId == user.Id && i.UseType == UseType.profile).FirstOrDefaultAsync();
+                if (existingImage != null)
+                {
+                    existingImage.FileName = model.ImageAvatar.FileName;
+                    existingImage.FilePath = filePath;
+                }
+                else
+                {
+                    var image = new ImagesModel()
+                    {
+                        FileName = model.ImageAvatar.FileName,
+                        FilePath = filePath,
+                        UseType = UseType.profile,
+                        UserId = user.Id
+                    };
+                    _dbContext.Images.Add(image);
+                }
+                await _dbContext.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
+            }
+            StatusMessage = "Error Không có ảnh.";
+            return RedirectToAction(nameof(Index));
         }
 
         //GET: /profile/ResendEmailConfirm

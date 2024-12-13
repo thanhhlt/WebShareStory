@@ -14,15 +14,15 @@
             <i class="fas fa-user-circle"></i> @userManager.GetUserName(User)
         </a>
         <!-- Dropdown menu -->
-        <ul class="dropdown-menu text-align-left">
+        <ul class="dropdown-menu text-align-left shadow-lg">
             <li>
-                <a class="dropdown-item mt-2" href="#">
+                <a class="dropdown-item mt-2" asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@userManager.GetUserId(User)">
                     <i class="fas fa-id-card"></i> Trang cá nhân
                 </a>
             </li>
             <li>
                 <a class="dropdown-item mt-2" asp-area="Identity" asp-controller="Profile" asp-action="Index">
-                    <i class="fas fa-edit"></i> Thông tin cá nhân
+                    <i class="fas fa-edit"></i> Thay đổi thông tin
                 </a>
             </li>
             <li>
@@ -34,12 +34,16 @@
                 <hr>
             </li>
             <li>
-                <form asp-area="Identity" asp-controller="Account" asp-action="LogOff" type="hidden" method="post"
-                    class="form-horizontal" role="form">
-                    <button type="submit" class="dropdown-item btn btn-danger mb-3">
-                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
-                    </button>
-                </form>
+                <a class="dropdown-item mt-2" asp-area="" asp-controller="Profile" asp-action="ListUserFollow" asp-route-id="@userManager.GetUserId(User)">Danh sách theo dõi</a>
+            </li>
+            <li>
+                <a class="dropdown-item mt-2" asp-area="" asp-controller="Profile" asp-action="ListUserBlock" asp-route-id="@userManager.GetUserId(User)">Danh sách chặn</a>
+            </li>
+            <li>
+                <hr>
+            </li>
+            <li>
+                <a class="dropdown-item mt-2" asp-area="Identity" asp-controller="Account" asp-action="LogOff"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
             </li>
         </ul>
     </div>
@@ -52,7 +56,7 @@ else
             <i class="fas fa-user-circle"></i> Tài khoản
         </a>
         <!-- Dropdown menu -->
-        <ul class="dropdown-menu">
+        <ul class="dropdown-menu shadow-lg">
             <li>
                 <a class="dropdown-item boder-nobg mb-2" asp-area="Identity" asp-controller="Account" asp-action="Login">
                     Đăng nhập <i class="fas fa-sign-in-alt"></i>

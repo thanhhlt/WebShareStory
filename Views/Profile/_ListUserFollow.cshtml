@@ -1,0 +1,16 @@
+@model List<App.Controllers.ProfileController.UserRelation>
+
+@foreach (var user in Model)
+{
+    <div class="list-group-item d-flex align-items-center">
+        <input type="checkbox" name="selectedUsers" value="@user.UserId" class="form-check-input me-3">
+        <img src="@user.AvatarPath" alt="User Avatar" class="rounded-circle me-3"
+            style="width: 50px; height: 50px; object-fit: cover;">
+        <div class="flex-grow-1">
+            <a asp-action="Index" asp-route-id="@user.UserId" class="text-decoration-none">
+                <h5 class="mb-0">@user.UserName</h5>
+            </a>
+            <small class="text-muted">@user.DateCreated</small>
+        </div>
+    </div>
+}

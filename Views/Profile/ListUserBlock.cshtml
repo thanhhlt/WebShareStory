@@ -1,0 +1,74 @@
+@model List<App.Controllers.ProfileController.UserRelation>
+
+@{
+    ViewData["Title"] = "Danh sách chặn";
+}
+@Html.AntiForgeryToken()
+
+<div class="container my-5">
+    <h3 class="text-center mb-4">Danh sách tài khoản đã chặn</h3>
+    @if (Model == null || Model.Count == 0)
+    {
+        <p>Chưa chặn tài khoản nào.</p>
+    }
+    else
+    {
+        <div class="card">
+            <div class="list-group list-group-flush" id="list-user-block">
+                @foreach (var user in Model)
+                {
+                    <div class="list-group-item d-flex align-items-center">
+                        <input type="checkbox" name="selectedUsers" value="@user.UserId" class="form-check-input me-3">
+                        <img src="@user.AvatarPath" alt="User Avatar" class="rounded-circle me-3"
+                            style="width: 50px; height: 50px; object-fit: cover;">
+                        <div class="flex-grow-1">
+                            <a asp-action="Index" asp-route-id="@user.UserId" class="text-decoration-none">
+                                <h5 class="mb-0">@user.UserName</h5>
+                            </a>
+                            <small class="text-muted">@user.DateCreated</small>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <button id="unBlockButton" class="btn btn-danger btn-sm mt-3">Bỏ chặn</button>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#unBlockButton').click(function (e) {
+                e.preventDefault();
+
+                let selectedUsers = [];
+                $('input[name="selectedUsers"]:checked').each(function () {
+                    selectedUsers.push($(this).val());
+                });
+
+                if (selectedUsers.length === 0) {
+                    alert('Vui lòng chọn ít nhất một tài khoản để bỏ chặn.');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("UnblockUsers")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ userIds: selectedUsers }),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (typeof response === 'string')
+                            $("#list-user-block").html(response)
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi AJAX:", xhr.responseText);
+                        alert("Đã xảy ra lỗi trong quá trình xử lý. Chi tiết: " + xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+}

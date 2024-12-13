@@ -7,6 +7,7 @@ namespace App.Areas.Identity.Models.UserViewModels
         public string Id { get; set; }
         public string UserName { get; set; }
         public string Email { get; set; }
+        public bool EmailConfirmed { get; set; }
         public string Gender { get; set; }
         public DateTime BirthDate { get; set; }
         public string Address { get; set; }
@@ -15,5 +16,6 @@ namespace App.Areas.Identity.Models.UserViewModels
         public DateTimeOffset? AccountLockEnd { get; set; }
         public DateTimeOffset? PostLockEnd { get; set; }
         public DateTimeOffset? CommentLockEnd { get; set; }
+        public string AvatarPath { get; set; }
     }
 }

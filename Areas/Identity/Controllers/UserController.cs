@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Globalization;
-using System.Security.Claims;
 using App.Areas.Identity.Models.UserViewModels;
 using App.ExtendMethods;
 using App.Models;
@@ -18,7 +17,7 @@ namespace App.Areas.Identity.Controllers
 
     // [Authorize(Roles = RoleName.Administrator)]
     [Area("Identity")]
-    [Route("/manageUser/[action]")]
+    [Route("/manage-user/[action]")]
     public class UserController : Controller
     {
         private readonly ILogger<RoleController> _logger;
@@ -26,13 +25,20 @@ namespace App.Areas.Identity.Controllers
         private readonly AppDbContext _dbContext;
 
         private readonly UserManager<AppUser> _userManager;
+        private readonly IDeleteUserService _deleteUser;
 
-        public UserController(ILogger<RoleController> logger, RoleManager<IdentityRole> roleManager, AppDbContext dbContext, UserManager<AppUser> userManager)
+        public UserController(
+            ILogger<RoleController> logger, 
+            RoleManager<IdentityRole> roleManager, 
+            AppDbContext dbContext, 
+            UserManager<AppUser> userManager,
+            IDeleteUserService deleteUser)
         {
             _logger = logger;
             _roleManager = roleManager;
             _dbContext = dbContext;
             _userManager = userManager;
+            _deleteUser = deleteUser;
         }
 
         [TempData]
@@ -44,7 +50,7 @@ namespace App.Areas.Identity.Controllers
         }
 
         // GET: /manageUser
-        [HttpGet("/manageUser")]
+        [HttpGet("/manage-user")]
         public async Task<IActionResult> Index([FromQuery(Name = "p")] int currentPage, [Bind("SearchString")] UserListModel model)
         {
             model.currentPage = currentPage;
@@ -109,7 +115,7 @@ namespace App.Areas.Identity.Controllers
         }
 
         //GET: /manageUser/ManageUser
-        [HttpGet("{id}")]
+        [HttpGet("/manage-user/{id}")]
         public async Task<IActionResult> ManageUserAsync(string id)
         {
             if (id == null)
@@ -130,6 +136,7 @@ namespace App.Areas.Identity.Controllers
                 Id = id,
                 UserName = user.UserName,
                 Email = user.Email,
+                EmailConfirmed = user.EmailConfirmed,
                 Gender = user.Gender == Gender.Male ? "Nam"
                         : user.Gender == Gender.Female ? "Nữ"
                         : user.Gender == Gender.Unspecified ? "Không xác định"
@@ -140,7 +147,9 @@ namespace App.Areas.Identity.Controllers
                 AccountCreated = user.AccountCreationDate,
                 AccountLockEnd = user.LockoutEnd,
                 PostLockEnd = user.PostLockEnd,
-                CommentLockEnd = user.CommentLockEnd
+                CommentLockEnd = user.CommentLockEnd,
+                AvatarPath = await _dbContext.Images.Where(i => i.UserId == user.Id && i.UseType == UseType.profile)
+                                                .Select(i => i.FilePath).FirstOrDefaultAsync() ?? "/images/no_avt.jpg"
             };
 
             //Get post info
@@ -259,14 +268,12 @@ namespace App.Areas.Identity.Controllers
             user.PostLockEnd = model.UserInfo.PostLockEnd ?? null;
             user.CommentLockEnd = model.UserInfo.CommentLockEnd ?? null;
 
-            if (model.UserInfo.AccountLockEnd != null && model.UserInfo.AccountLockEnd > DateTime.UtcNow)
+            var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var timeInVietnam = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+
+            if (model.UserInfo.AccountLockEnd != null && model.UserInfo.AccountLockEnd > new DateTimeOffset(timeInVietnam))
             {
-                user.LockoutEnabled = true;
                 user.AccessFailedCount = 0;
-            }
-            else
-            {
-                user.LockoutEnabled = false;
             }
 
             var result = await _userManager.UpdateAsync(user);
@@ -343,8 +350,8 @@ namespace App.Areas.Identity.Controllers
                 return Json(new{success = false});
             }
 
-            var result = await _userManager.DeleteAsync(user);
-            if (!result.Succeeded)
+            var result = await _deleteUser.DeleteUserAsync(user.Id);
+            if (!result)
             {
                 StatusMessage = "Error Xoá tài khoản thất bại.";
                 return Json(new{success = false});

@@ -2,10 +2,10 @@
     .withUrl("/presenceHub")
     .build();
 
-connection.start()
-    .then(() => console.log("SignalR connected"))
-    .catch(err => console.error("Error connecting to SignalR:", err));
+connection.start().catch(function (err) {
+    console.error(err.toString());
+});
 
-connection.on("UserStatusChanged", (userId, isActivate) => {
-    console.log(`User ${userId} is now ${isActivate ? 'online' : 'offline'}`);
+connection.on("UserStatusChanged", function (userId, isActive) {
+    console.log(`User ${userId} is now ${isActive ? "Online" : "Offline"}`);
 });

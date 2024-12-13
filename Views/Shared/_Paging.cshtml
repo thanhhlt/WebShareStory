@@ -6,6 +6,7 @@
 *@
 
 @model App.Models.PagingModel
+
 @{
     int currentPage  = Model.currentpage;
     int countPages   = Model.countpages;
@@ -71,8 +72,16 @@
 
 }
 
-@* PHÁT SINH HTML*@
+<style>
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        margin-top: 20px;
+    }
+</style>
 
+@* PHÁT SINH HTML*@
 <ul class="pagination">
     <!-- Previous page link -->
     @if (preview != null && generateUrl != null)

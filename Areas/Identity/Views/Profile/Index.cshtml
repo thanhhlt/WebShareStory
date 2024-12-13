@@ -19,60 +19,76 @@
 </style>
 
 <partial name="_StatusMessage">
+    <div class="container mt-7">
+        <div class="row mb-4">
+            <h1>@ViewData["Title"]</h1>
+            <hr>
+            <div class="col-md-3 text-center">
+                <form asp-action="UpdateAvatar" method="post" enctype="multipart/form-data" id="uploadForm" style="display:none;">
+                    <input type="file" id="fileInput" name="ImageAvatar" accept=".jpg,.png,.jpeg,.webp,.gif"
+                        style="display:none;" />
+                </form>
+                <img src="@Model.FilePath" alt="Avatar" id="avatarImage" class="img-thumbnail mb-3" style="cursor:pointer;">
+                @if (Model.isActivate)
+                {
+                    <p><strong>Đang trực tuyến: </strong><span class="badge bg-success">Online</span></p>
+                }
+                else
+                {
+                    <p><strong>Đang ngoại tuyến: </strong><span class="badge bg-danger">Offline</span></p>
+                }
+            </div>
+            <div class="col-md-9">
+                <form asp-action="ChangeProfileInfo" method="post" role="form">
+                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                    <div class="form-group mb-3">
+                        <label class="mb-2" asp-for="UserName" class="form-label"></label>
+                        <input asp-for="UserName" class="form-control" disabled />
+                    </div>
+                    <div class="form-group mb-2">
+                        <label class="mb-2" asp-for="Introduction"></label>
+                        <textarea asp-for="Introduction" class="form-control"></textarea>
+                        <span asp-validation-for="Introduction" class="text-danger"></span>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" asp-for="Gender"></label>
+                            <div class="radio-group">
+                                <label class="custom-radio">
+                                    <input type="radio" asp-for="Gender" value="@Gender.Male" /> Nam
+                                </label>
+                                <label class="custom-radio">
+                                    <input type="radio" asp-for="Gender" value="@Gender.Female" /> Nữ
+                                </label>
+                                <label class="custom-radio">
+                                    <input type="radio" asp-for="Gender" value="@Gender.Unspecified" /> Không xác định
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="BirthDate" class="form-label"></label>
+                                <input asp-for="BirthDate" class="form-control" id="birthDate" type="text" />
+                                <span asp-validation-for="BirthDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label asp-for="PhoneNumber" class="form-label"></label>
+                        <input asp-for="PhoneNumber" class="form-control" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label asp-for="Address" class="form-label"></label>
+                        <textarea asp-for="Address" class="form-control"></textarea>
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+                    <button id="update-profile-button" type="submit" class="btn btn-sm btn-primary">Cập nhập</button>
+                </form>
+            </div>
+        </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <h1>@ViewData["Title"]</h1>
         <hr>
-        <form asp-action="ChangeProfileInfo" method="post" role="form">
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-group mb-3">
-                <label class="mb-2" asp-for="UserName" class="form-label"></label>
-                <input asp-for="UserName" class="form-control" disabled />
-            </div>
-            <div class="form-group mb-2">
-                <label class="mb-2" asp-for="Introduction"></label>
-                <textarea asp-for="Introduction" class="form-control"></textarea>
-                <span asp-validation-for="Introduction" class="text-danger"></span>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label" asp-for="Gender"></label>
-                    <div class="radio-group">
-                        <label class="custom-radio">
-                            <input type="radio" asp-for="Gender" value="@Gender.Male" /> Nam
-                        </label>
-                        <label class="custom-radio">
-                            <input type="radio" asp-for="Gender" value="@Gender.Female" /> Nữ
-                        </label>
-                        <label class="custom-radio">
-                            <input type="radio" asp-for="Gender" value="@Gender.Unspecified" /> Không xác định
-                        </label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label asp-for="BirthDate" class="form-label"></label>
-                        <input asp-for="BirthDate" class="form-control" id="birthDate" type="text" />
-                        <span asp-validation-for="BirthDate" class="text-danger"></span>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group mb-3">
-                <label asp-for="PhoneNumber" class="form-label"></label>
-                <input asp-for="PhoneNumber" class="form-control"/>
-                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <label asp-for="Address" class="form-label"></label>
-                <textarea asp-for="Address" class="form-control"></textarea>
-                <span asp-validation-for="Address" class="text-danger"></span>
-            </div>
-            <button id="update-profile-button" type="submit" class="btn btn-sm btn-primary">Cập nhập</button>
-        </form>
-    </div>
-
-    <div class="col-md-6">
         <h1>Thông tin đăng nhập</h1>
         <hr>
 
@@ -98,67 +114,82 @@
                         class="fas fa-pencil-alt"></i></button>
             </div>
         </form>
+        <p class="text-success"></p>
     </div>
-</div>
-<p class="text-success"></p>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+        @* Auto resize textarea *@
+        <link rel="stylesheet" href="~/lib/jqueryui/themes/base/jquery-ui.css" />
+        <script src="~/lib/jqueryui/jquery-ui.min.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                $('textarea').each(function () {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                });
+                $('textarea').on('input', function () {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                });
+                $("#birthDate").datepicker({
+                    dateFormat: "dd/mm/yy",
+                    changeMonth: true,
+                    changeYear: true,
+                    yearRange: "1900:2100",
+                    showButtonPanel: true,
+                    onSelect: function (dateText, inst) {
+                        var date = $.datepicker.parseDate("dd/mm/yy", dateText);
+                        var formattedDate = $.datepicker.formatDate("dd/mm/yy", date);
+                        $(this).val(formattedDate);
+                    }
+                });
+            });
+        </script>
+        <script>
+            $(document).on('click', '#resend-email-confirm', function (e) {
+                e.preventDefault();
+                const link = $(this);
+                const originalText = link.html();
+                const url = '@Url.Action("ResendEmailConfirm")';
+
+                link.html('<i class="fas fa-spinner fa-pulse"></i> Đang gửi...');
+                link.prop('disabled', true);
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function (response) {
+                        if (response.success) {
+                            $('#result-send-email').html('<p class="text-success">' + response.message + '</p>')
+                        }
+                        else {
+                            $('#result-send-email').html('<p class="text-danger">' + response.message + '</p>')
+                        }
+                    },
+                    complete: function () {
+                        link.html(originalText);
+                        link.prop('disabled', false);
+                    }
+                });
+            });
+        </script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const avatarImage = document.getElementById("avatarImage");
+                const fileInput = document.getElementById("fileInput");
+                const uploadForm = document.getElementById("uploadForm");
+
+                avatarImage.addEventListener("click", function () {
+                    fileInput.click();
+                });
+
+                fileInput.addEventListener("change", function () {
+                    uploadForm.submit();
+                });
+            });
+        </script>
     }
-    @* Auto resize textarea *@
-    <link rel="stylesheet" href="~/lib/jqueryui/themes/base/jquery-ui.css" />
-    <script src="~/lib/jqueryui/jquery-ui.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('textarea').each(function () {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-            });
-            $('textarea').on('input', function () {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-            });
-            $("#birthDate").datepicker({
-                dateFormat: "dd/mm/yy",
-                changeMonth: true,
-                changeYear: true,
-                yearRange: "1900:2100",
-                showButtonPanel: true,
-                onSelect: function (dateText, inst) {
-                    var date = $.datepicker.parseDate("dd/mm/yy", dateText);
-                    var formattedDate = $.datepicker.formatDate("dd/mm/yy", date);
-                    $(this).val(formattedDate);
-                }
-            });
-        });
-    </script>
-    <script>
-        $(document).on('click', '#resend-email-confirm', function (e) {
-            e.preventDefault();
-            const link = $(this);
-            const originalText = link.html();
-            const url = '@Url.Action("ResendEmailConfirm")';
-
-            link.html('<i class="fas fa-spinner fa-pulse"></i> Đang gửi...');
-            link.prop('disabled', true);
-
-            $.ajax({
-                url: url,
-                type: 'GET',
-                success: function (response) {
-                    if (response.success) {
-                        $('#result-send-email').html('<p class="text-success">'+response.message+'</p>')
-                    }
-                    else {
-                        $('#result-send-email').html('<p class="text-danger">'+response.message+'</p>')
-                    }
-                },
-                complete: function () {
-                    link.html(originalText);
-                    link.prop('disabled', false);
-                }
-            });
-        });
-    </script>
-}

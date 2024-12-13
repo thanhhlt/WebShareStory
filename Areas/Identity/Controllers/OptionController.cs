@@ -13,24 +13,27 @@ namespace App.Areas.Identity.Controllers
 {
     [Authorize]
     [Area("Identity")]
-    [Route("/option/[action]")]
+    [Route("/account/settings/[action]")]
     public class OptionController : Controller
     {
+        private readonly ILogger<ProfileController> _logger;
         private readonly AppDbContext _dbContext;
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
-        private readonly ILogger<ProfileController> _logger;
+        private readonly IDeleteUserService _deleteUser;
 
         public OptionController(
+            ILogger<ProfileController> logger,
             AppDbContext dbContext,
             UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
-            ILogger<ProfileController> logger)
+            IDeleteUserService deleteUser)
         {
+            _logger = logger;
             _dbContext = dbContext;
             _userManager = userManager;
             _signInManager = signInManager;
-            _logger = logger;
+            _deleteUser = deleteUser;
         }
 
         [TempData]
@@ -42,7 +45,7 @@ namespace App.Areas.Identity.Controllers
         }
 
         //GET: /option
-        [HttpGet("/option")]
+        [HttpGet("/account/settings")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(HttpContext.User);
@@ -227,8 +230,8 @@ namespace App.Areas.Identity.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var result = await _userManager.DeleteAsync(user);
-            if (!result.Succeeded)
+            var result = await _deleteUser.DeleteUserAsync(user.Id);
+            if (!result)
             {
                 StatusMessage = "Error Xoá tài khoản thất bại.";
                 return RedirectToAction(nameof(Index));

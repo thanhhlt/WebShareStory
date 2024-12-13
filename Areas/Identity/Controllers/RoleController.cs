@@ -16,7 +16,7 @@ namespace App.Areas.Identity.Controllers
 {
 
     [Area("Identity")]
-    [Route("/manageRole/[action]")]
+    [Route("/manage-role/[action]")]
     public class RoleController : Controller
     {
         private readonly ILogger<RoleController> _logger;
@@ -49,7 +49,7 @@ namespace App.Areas.Identity.Controllers
         }
 
         // GET: /role
-        [HttpGet("/manageRole")]
+        [HttpGet("/manage-role")]
         public async Task<IActionResult> Index()
         {            
            var r = await _roleManager.Roles.OrderBy(r => r.Name).ToListAsync();

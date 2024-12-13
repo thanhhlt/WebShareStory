@@ -18,7 +18,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-3 text-center">
-                    <img src="https://via.placeholder.com/150" alt="Avatar" class="img-thumbnail mb-3">
+                    <img src="@Model.UserInfo.AvatarPath" alt="Avatar" class="img-thumbnail mb-3">
                     @if (Model.UserInfo.isActivate)
                     {
                         <p><strong>Đang trực tuyến: </strong><span class="badge bg-success">Online</span></p>
@@ -29,9 +29,18 @@
                     }
                 </div>
                 <div class="col-md-9">
-                    <p><strong>Tên tài khoản:</strong> @Model.UserInfo.UserName</p>
+                    <p><strong>Tên tài khoản:</strong><a asp-area="" asp-controller="Profile" asp-action="Index"
+                            asp-route-id="@Model.UserInfo.Id" class="text-decoration-none"> @Model.UserInfo.UserName</a>
+                    </p>
                     <p><strong>ID:</strong> @Model.UserInfo.Id</p>
-                    <p><strong>Email:</strong> @Model.UserInfo.Email</p>
+                    @if(Model.UserInfo.EmailConfirmed)
+                    {
+                        <p><strong>Email:</strong> @Model.UserInfo.Email <small>(Đã xác thực)</small></p>
+                    }
+                    else 
+                    {
+                        <p><strong>Email:</strong> @Model.UserInfo.Email <small>(Chưa xác thực)</small></p> 
+                    }
                     <p><strong>Giới tính:</strong> @Model.UserInfo.Gender</p>
                     <p><strong>Ngày sinh:</strong> @Model.UserInfo.BirthDate.ToString("dd/MM/yyyy")</p>
                     <p><strong>Địa chỉ:</strong> @Model.UserInfo.Address</p>
@@ -141,7 +150,7 @@
         </div>
         <div class="card-body">
             @* <p>Tính theo múi giờ +00:00. Hiện tại là: @DateTime.UtcNow</p> *@
-            <form asp-action="LockAccountOptions" id = "lock-account-options" method="post" role="form">
+            <form asp-action="LockAccountOptions" id="lock-account-options" method="post" role="form">
                 <input type="hidden" asp-for="UserId" value="@Model.UserId">
                 <div class="form-group mb-3">
                     <label class="form-label">Khoá tài khoản đến:</label>
@@ -165,7 +174,6 @@
             <h3>Chức năng khác</h3>
         </div>
         <div class="card-body">
-            @* <input type="hidden" name="__RequestVerificationToken" value="@Html.AntiForgeryToken()" /> *@
             <button class="btn btn-success reset-password" data-user-id="@Model.UserId">Đặt lại mật khẩu</button>
             <button class="btn btn-danger delete-account" data-user-id="@Model.UserId">Xoá tài khoản</button>
         </div>
@@ -184,6 +192,7 @@
     <script src="~/lib/datatables/js/jquery.dataTables.min.js"></script>
     <script src="~/lib/datatables/js/dataTables.bootstrap4.min.js"></script>
     <script src="~/lib/select2/js/select2.min.js"></script>
+
     <script>
         $(document).ready(function () {
             $('#dataTable').DataTable({
@@ -260,8 +269,7 @@
                         'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
                     },
                     success: function (response) {
-                        if (typeof response === 'string')
-                        {
+                        if (typeof response === 'string') {
                             $('#lock-info').html(response)
                         }
                         $('#_StatusMessage').load("@Url.Action("GetStatusMessage")");
@@ -278,11 +286,11 @@
         // Reset Password
         $(document).on('click', '.reset-password', function () {
             const userId = $(this).data('user-id');
-            
+
             $.ajax({
                 url: '@Url.Action("ResetPassword")',
                 method: 'POST',
-                data: {userId: userId},
+                data: { userId: userId },
                 headers: {
                     'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
                 },
@@ -293,28 +301,31 @@
         });
 
         // Delete Account
-        $(document).on('click', '.delete-account', function () {
+        $(document).on('click', '.delete-account', function (e) {
+            e.preventDefault();
             const userId = $(this).data('user-id');
+
+            const confirmation = confirm("Bạn có chắc chắn muốn xóa tài khoản này?");
+            if (!confirmation) {
+                return;
+            }
 
             $.ajax({
                 url: '@Url.Action("DeleteAccount")',
                 method: 'POST',
-                data: {userId: userId},
+                data: { userId: userId },
                 headers: {
                     'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
                 },
                 success: function (response) {
-                    if (response.redirect)
-                    {
+                    if (response.redirect) {
                         window.location.href = response.redirect;
                     }
-                    else
-                    {
+                    else {
                         $('#_StatusMessage').load("@Url.Action("GetStatusMessage")");
                     }
                 }
             });
         });
     </script>
-
 }

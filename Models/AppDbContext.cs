@@ -1,4 +1,3 @@
-using App.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        // Edit table name
+        // Edit table Identity name
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             var tableName = entityType.GetTableName();
@@ -94,6 +93,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             .HasOne(l => l.User)
             .WithMany(u => u.LoggedBrowsers)
             .OnDelete(DeleteBehavior.Cascade);
+
+        //Images
+        modelBuilder.Entity<ImagesModel>()
+            .HasOne(i => i.User)
+            .WithMany()
+            .OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<ImagesModel>()
+            .HasOne(i => i.Post)
+            .WithMany(p => p.Images)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<ImagesModel>()
+            .HasIndex(i => i.FilePath)
+            .IsUnique();
     }
 
     public DbSet<UserRelationModel>? UserRelations { get; set; }
@@ -103,4 +115,5 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<LikesModel>? Likes { get; set; }
     public DbSet<SupportRequestsModel>? SupportRequests { get; set; }
     public DbSet<LoggedBrowsersModel>? LoggedBrowsers { get; set; }
+    public DbSet<ImagesModel>? Images { get; set; }
 }

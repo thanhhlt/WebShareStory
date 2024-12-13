@@ -1,0 +1,27 @@
+@model App.Controllers.ProfileController.IndexViewModel
+
+@if (Model.Relationship == RelationshipStatus.None)
+{
+    <button class="btn btn-success" id="follow-btn"
+            data-user-id = "@Model.UserId"
+            data-otheruser-id="@Model.OtherUserId"
+            data-status="@RelationshipStatus.Follow">Theo dõi</button>
+    <button class="btn btn-danger" id="block-btn"
+            data-user-id = "@Model.UserId"
+            data-otheruser-id="@Model.OtherUserId"
+            data-status="@RelationshipStatus.Block">Chặn</button>
+}
+else if (Model.Relationship == RelationshipStatus.Follow)
+{
+    <button class="btn btn-secondary" id="unfollow-btn"
+            data-user-id = "@Model.UserId"
+            data-otheruser-id="@Model.OtherUserId"
+            data-status="@RelationshipStatus.None">Bỏ theo dõi</button>
+}
+else
+{
+    <button class="btn btn-secondary" id="unblock-btn"
+            data-user-id = "@Model.UserId"
+            data-otheruser-id="@Model.OtherUserId"
+            data-status="@RelationshipStatus.None">Bỏ chặn</button>
+}

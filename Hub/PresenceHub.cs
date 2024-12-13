@@ -20,6 +20,8 @@ public class PresenceHub : Hub
             {
                 user.isActivate = true;
                 await _dbContext.SaveChangesAsync();
+
+                await Clients.Others.SendAsync("UserStatusChanged", userId, true);
             }
         }
 
@@ -36,6 +38,8 @@ public class PresenceHub : Hub
             {
                 user.isActivate = false;
                 await _dbContext.SaveChangesAsync();
+
+                await Clients.Others.SendAsync("UserStatusChanged", userId, false);
             }
         }
 

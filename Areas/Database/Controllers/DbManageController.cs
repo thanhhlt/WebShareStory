@@ -428,9 +428,9 @@ public class DbManageController : Controller
         var fakerUser = new Faker<AppUser>()
             // .RuleFor(u => u.Id, f => Guid.NewGuid().ToString())
             .RuleFor(u => u.BirthDate, f => f.Date.Between(new DateTime(1980, 1, 1), new DateTime(2012, 12, 31)))
-            .RuleFor(u => u.UserName, f => f.Internet.UserName())
+            .RuleFor(u => u.UserName, (f, u) => f.Internet.UserName() + "{i}")
             .RuleFor(u => u.NormalizedUserName, (f, u) => u.UserName?.ToUpperInvariant())
-            .RuleFor(u => u.Email, f => "fakeData" + f.Lorem.Word() + "@gmail.com")
+            .RuleFor(u => u.Email, (f, u) => "fakeData" + f.Lorem.Word() + "{i}@gmail.com")
             .RuleFor(u => u.NormalizedEmail, (f, u) => u.Email?.ToUpperInvariant())
             .RuleFor(u => u.EmailConfirmed, f => f.Random.Bool())
             .RuleFor(u => u.PasswordHash, f => Convert.ToBase64String(Guid.NewGuid().ToByteArray()))
@@ -440,7 +440,7 @@ public class DbManageController : Controller
             .RuleFor(u => u.PhoneNumberConfirmed, f => f.Random.Bool())
             .RuleFor(u => u.TwoFactorEnabled, f => f.Random.Bool())
             .RuleFor(u => u.LockoutEnd, f => f.Random.Bool() ? f.Date.FutureOffset() : null)
-            .RuleFor(u => u.LockoutEnabled, (f, u) => u.LockoutEnd.HasValue && u.LockoutEnd > DateTime.UtcNow ? true : false)
+            .RuleFor(u => u.LockoutEnabled, f => true)
             .RuleFor(u => u.AccessFailedCount, (f, u) => u.LockoutEnabled ? 0 : f.Random.Int(0, 4))
             .RuleFor(u => u.isActivate, f => f.Random.Bool());
 
@@ -448,6 +448,10 @@ public class DbManageController : Controller
         for (int i = 0; i < 200; i++)
         {
             var user = fakerUser.Generate();
+            user.UserName = user.UserName.Replace("{i}", i.ToString());
+            user.NormalizedUserName = user.UserName.ToUpperInvariant();
+            user.Email = user.Email.Replace("{i}", i.ToString());
+            user.NormalizedEmail = user.Email.ToUpperInvariant();
             fkUsers.Add(user);
         }
 

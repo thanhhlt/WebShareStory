@@ -4,6 +4,7 @@ using DotNetEnv;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 Env.Load();
 
@@ -43,6 +44,7 @@ if (mailsettings != null)
 builder.Services.AddSingleton<IEmailSender, SendMailService>();
 
 builder.Services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
+builder.Services.AddScoped<IDeleteUserService, DeleteUserService>();
 
 //IdentityOptions
 builder.Services.Configure<IdentityOptions> (options => {
@@ -113,12 +115,12 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// app.UseStaticFiles(new StaticFileOptions() {
-//     FileProvider = new PhysicalFileProvider(
-//         Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates")
-//     ),
-//     RequestPath = "/emailcontent"
-// });
+app.UseStaticFiles(new StaticFileOptions() {
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Images")
+    ),
+    RequestPath = "/imgs"
+});
 
 app.UseRouting();
 

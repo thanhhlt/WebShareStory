@@ -1,0 +1,68 @@
+.profile-card {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.img-thumbnail {
+    object-fit: cover;
+}
+
+.post-item:hover {
+    background-color: #f0f0f0;
+}
+.post-content {
+    display: -webkit-box;           /* Tiền tố cho WebKit (Chrome, Safari) */
+    -webkit-box-orient: vertical;   /* Tiền tố cho WebKit */
+    -webkit-line-clamp: 3;          /* Tiền tố cho WebKit để giới hạn số dòng hiển thị */
+    line-clamp: 3;                  /* Thuộc tính chuẩn */
+    overflow: hidden;               /* Ẩn phần vượt quá */
+    text-overflow: ellipsis;        /* Hiển thị dấu ba chấm (...) khi bị cắt */
+    white-space: normal;  
+}
+.info-label {
+    font-weight: bold;
+}
+.online-indicator {
+    display: inline-block;
+    margin-top: 5px;
+    height: 4px;
+    width: 150px;
+    background: linear-gradient(90deg, #01aa01, #008000, #004e00);
+    border-radius: 2px;
+    animation: pulse-green 2s infinite alternate;
+}
+
+.offline-indicator {
+    display: inline-block;
+    margin-top: 5px;
+    height: 4px;
+    width: 150px;
+    background: linear-gradient(90deg, #ff0000, #800000, #350000);
+    border-radius: 2px;
+    animation: pulse-red 2s infinite alternate;
+}
+@keyframes pulse-green {
+    0% {
+        background: #01aa01;
+    }
+    50% {
+        background: #008000;
+    }
+    100% {
+        background: #004e00;
+    }
+}
+
+@keyframes pulse-red {
+    0% {
+        background: #ff0000;
+    }
+    50% {
+        background: #800000;
+    }
+    100% {
+        background: #350000;
+    }
+}

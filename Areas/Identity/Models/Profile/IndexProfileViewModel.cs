@@ -34,5 +34,13 @@ namespace App.Areas.Identity.Models.ProfileViewModels
         public string? Introduction { get; set; }
 
         public bool EmailConfirmed { get; set; }
+
+        public string? FilePath { get; set; }
+
+        [Display(Name = "Ảnh đại diện")]
+        [FileExtensions(Extensions = "jpg,png,jpeg,webp")]
+        public IFormFile? ImageAvatar { get; set; }
+
+        public bool isActivate { get; set; }
     }
 }

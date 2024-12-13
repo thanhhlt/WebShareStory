@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Mail;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;
 
