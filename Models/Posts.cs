@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using App.Utilities;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace App.Models;
@@ -23,6 +24,11 @@ public class PostsModel
     [MaxLength(50)]
     public string? Hashtag { get; set; }
 
+    [Required]
+    [MaxLength(255)]
+    [RegularExpression(@"^[a-z0-9-]*$")]
+    public required string Slug { get; set; }
+
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
 
     public DateTime DateUpdated { get; set; } = DateTime.UtcNow;
@@ -42,4 +48,9 @@ public class PostsModel
     public virtual ICollection<CommentsModel>? Comments { get; set; }
     public virtual ICollection<LikesModel>? Likes { get; set; }
     public virtual ICollection<ImagesModel>? Images { get; set; }
+
+    public void SetName ()
+    {
+        Slug = SlugUtility.GenerateSlug(Title) + '.' + Id;
+    }
 }

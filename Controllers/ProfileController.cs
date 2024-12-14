@@ -99,6 +99,7 @@ public class ProfileController : Controller
                                         Id = p.Id,
                                         Title = p.Title,
                                         Content = p.Content,
+                                        Slug = p.Slug,
                                         DateCreated = p.DateCreated,
                                         DateUpdated = p.DateUpdated
                                     }).ToList();

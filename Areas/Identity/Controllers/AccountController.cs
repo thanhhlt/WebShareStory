@@ -73,7 +73,7 @@ namespace App.Areas.Identity.Controllers
             {
                 var result = await _signInManager.PasswordSignInAsync(model.UserNameOrEmail, model.Password, model.RememberMe, lockoutOnFailure: true);                
 
-                if ((!result.Succeeded) && AppUtilities.IsValidEmail(model.UserNameOrEmail))
+                if ((!result.Succeeded) && ValidationEmail.IsValidEmail(model.UserNameOrEmail))
                 {
                     var user = await _userManager.FindByEmailAsync(model.UserNameOrEmail);
                     if (user != null && user.UserName != null)
@@ -88,7 +88,7 @@ namespace App.Areas.Identity.Controllers
 
                     //Save Browser Login Info
                     var user = await _userManager.FindByNameAsync(model.UserNameOrEmail);
-                    if (user == null && AppUtilities.IsValidEmail(model.UserNameOrEmail))
+                    if (user == null && ValidationEmail.IsValidEmail(model.UserNameOrEmail))
                     {
                         user = await _userManager.FindByEmailAsync(model.UserNameOrEmail);
                     }
