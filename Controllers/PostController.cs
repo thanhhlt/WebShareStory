@@ -2,6 +2,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using App.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,14 +14,17 @@ public class PostController : Controller
 {
     private readonly ILogger<PostController> _logger;
     private readonly AppDbContext _dbContext;
+    private readonly UserManager<AppUser> _userManager;
 
     public PostController(
         ILogger<PostController> logger,
-        AppDbContext dbContext
+        AppDbContext dbContext,
+        UserManager<AppUser> userManager
     )
     {
         _logger = logger;
         _dbContext = dbContext;
+        _userManager = userManager;
     }
 
     [TempData]
@@ -40,7 +44,7 @@ public class PostController : Controller
 
     //GET: /{slugCate}/{slugPost}
     [HttpGet("/{slugPost}")]
-    public async Task<IActionResult> Index (string slugPost)
+    public async Task<IActionResult> Index(string slugPost)
     {
         if (string.IsNullOrEmpty(slugPost))
         {
@@ -87,6 +91,8 @@ public class PostController : Controller
     {
         public int Id { get; set; }
 
+        public string UserId { get; set; }
+
         [Display(Name = "Tên bài viết")]
         [Required(ErrorMessage = "{0} không được bỏ trống.")]
         [MaxLength(255, ErrorMessage = "{0} dài không quá {1} ký tự.")]
@@ -108,9 +114,60 @@ public class PostController : Controller
         public SelectList AllCategories { get; set; }
     }
 
+    //GET: /CreaePost
+    [HttpGet]
+    public async Task<IActionResult> CreatePost()
+    {
+        var allCates = await _dbContext.Categories.Select(c => c.Name).ToListAsync();
+        EditCreateModel model = new EditCreateModel()
+        {
+            AllCategories = new SelectList(allCates),
+            UserId = (await _userManager.GetUserAsync(User)).Id
+        };
+        return View(model);
+    }
+
+    //POST: /CreaePost
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreatePostAsync(EditCreateModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errorMessages = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+
+            StatusMessage = $"Error Tạo bài viết thất bại.<br/> {string.Join("<br/>", errorMessages)}";
+            return Json(new {success = false});
+        }
+
+        var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+        var timeInVietnam = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+        PostsModel post = new PostsModel()
+        {
+            AuthorId = (await _userManager.GetUserAsync(User)).Id,
+            Title = model.Title,
+            Description = model.Description,
+            Content = model.Content,
+            Hashtag = model.HashTags,
+            CategoryId = await _dbContext.Categories.Where(c => c.Name == model.CategoryName)
+                                                    .Select(c => c.Id).FirstOrDefaultAsync(),
+            DateCreated = timeInVietnam,
+            DateUpdated = timeInVietnam,
+            Slug = "",
+        };
+        post.SetSlug();
+
+        _dbContext.Posts.Add(post);
+        await _dbContext.SaveChangesAsync();
+        return Json(new{success = true, redirect = Url.Action("Index", "Home")});
+    }
+
     //GET: /EditPost/{id}
     [HttpGet]
-    public async Task<IActionResult> EditPostAsync (int id)
+    public async Task<IActionResult> EditPostAsync(int id)
     {
         EditCreateModel model = await _dbContext.Posts.Where(p => p.Id == id)
                                                     .Include(p => p.Category)
@@ -135,7 +192,7 @@ public class PostController : Controller
     //POST: /EditPost/{id}
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditPostAsync (EditCreateModel model)
+    public async Task<IActionResult> EditPostAsync(EditCreateModel model)
     {
         if (!ModelState.IsValid)
         {
@@ -144,7 +201,7 @@ public class PostController : Controller
                 .Select(e => e.ErrorMessage)
                 .ToList();
 
-            StatusMessage = $"Error chỉnh sửa bài viết thất bại.<br/> {string.Join("<br/>", errorMessages)}";
+            StatusMessage = $"Error Chỉnh sửa bài viết thất bại.<br/> {string.Join("<br/>", errorMessages)}";
             return Json(new {success = false});
         }
         var post = await _dbContext.Posts.Where(p => p.Id == model.Id).FirstOrDefaultAsync();
@@ -175,7 +232,7 @@ public class PostController : Controller
     //POST: /DeletePost/{id}
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeletePostAsync (int? id)
+    public async Task<IActionResult> DeletePostAsync(int? id)
     {
         if (id == null)
         {

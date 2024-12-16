@@ -40,6 +40,11 @@
     {
       "library": "microsoft-signalr@8.0.7",
       "destination": "wwwroot/lib/microsoft-signalr"
+    },
+
+    {
+      "library": "summernote@0.9.1",
+      "destination": "wwwroot/lib/summernote"
     }
   ]
 }

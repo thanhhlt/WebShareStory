@@ -12,3 +12,14 @@
 <a asp-area="Identity" asp-controller="User" asp-action="Index">Quản lý User</a>
 <a asp-area="Post" asp-controller="Category" asp-action="Index">Quản lý Cate</a>
 <a asp-area="Post" asp-controller="Post" asp-action="ManagePost">Quản lý Post</a>
+
+
+<textarea id="summernote"></textarea>
+
+@{
+    var summernote = new App.Models.Summernote("#summernote");
+}
+
+@section Scripts {
+    <partial name="_Summernote" model="summernote">
+}

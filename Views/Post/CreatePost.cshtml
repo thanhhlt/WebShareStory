@@ -1,0 +1,108 @@
+@model App.Controllers.PostController.EditCreateModel
+
+@{
+    ViewData["Title"] = "Tạo bài viết";
+}
+
+@Html.AntiForgeryToken()
+
+<h2>@ViewData["Title"]</h2>
+
+<div id="_StatusMessage"></div>
+
+<div class="container">
+    <form asp-action="CreatePost" class="mb-3" id="create-post-form">
+        @Html.HiddenFor(m => m.Id)
+        <div class="form-group mb-3">
+            <strong><label asp-for="Title" class="control-label"></label></strong>
+            <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề">
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <strong><label class="control-label">Danh mục</label></strong>
+            @Html.DropDownListFor(m => m.CategoryName, Model.AllCategories, "Chọn danh mục",
+                new { id = "select-cate", @class = "form-control" })
+        </div>
+        <div class="form-group mb-3">
+            <strong><label asp-for="Description" class="form-label"></label></strong>
+            <textarea asp-for="Description" class="form-control"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <strong><label asp-for="Content" class="form-label"></label></strong>
+            <textarea id="postContent" asp-for="Content" class="form-control"></textarea>
+            <span asp-validation-for="Content" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <strong><label asp-for="HashTags" class="form-label"></label></strong>
+            <textarea asp-for="HashTags" class="form-control"></textarea>
+            <span asp-validation-for="HashTags" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Cập nhật</button>
+    </form>
+</div>
+
+@{
+    var summernote = new App.Models.Summernote("#postContent");
+    summernote.Height = 500;
+    summernote.Post.UserId = Model.UserId;
+    summernote.Post.PostId = 5;
+}
+
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <link rel="stylesheet" href="~/lib/select2/css/select2.min.css" />
+    <script src="~/lib/select2/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#select-cate').select2({
+                placeholder: "Chọn danh mục",
+                allowClear: true,
+                closeOnSelect: true
+            });
+
+            $('textarea').each(function () {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+            $('textarea').on('input', function () {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+
+            $('#create-post-form').on('submit', function (e) {
+                e.preventDefault();
+                const form = $(this);
+                const formData = form.serialize();
+                const url = form.attr('action');
+                
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: formData,
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.redirect) {
+                            window.location.href = response.redirect;
+                        }
+                        else {
+                            $('#_StatusMessage').load("@Url.Action("GetStatusMessage")");
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi AJAX:", xhr.responseText);
+                        alert("Đã xảy ra lỗi trong quá trình xử lý. Chi tiết: " + xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+    <partial name="_Summernote" model="summernote">
+}
