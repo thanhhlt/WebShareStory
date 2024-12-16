@@ -1,7 +1,9 @@
 #nullable disable
 
 using System.Linq.Dynamic.Core;
+using System.Text.RegularExpressions;
 using App.Models;
+using HtmlAgilityPack;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -98,7 +100,7 @@ public class ProfileController : Controller
                                     .Select(p => new PostsModel{
                                         Id = p.Id,
                                         Title = p.Title,
-                                        Content = p.Content,
+                                        Description = p.Description ?? RemoveImagesAndTags(p.Content ?? ""),
                                         Slug = p.Slug,
                                         DateCreated = p.DateCreated,
                                         DateUpdated = p.DateUpdated
@@ -128,6 +130,22 @@ public class ProfileController : Controller
         }
         model.Relationship = userRelation.Status;
         return View(model);
+    }
+    private string RemoveImagesAndTags(string html)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+
+        var imgNodes = doc.DocumentNode.SelectNodes("//img");
+        if (imgNodes != null)
+        {
+            foreach (var img in imgNodes)
+            {
+                img.Remove();
+            }
+        }
+
+        return doc.DocumentNode.InnerText.Trim();
     }
 
     //POST: /profile/UpdateRelation

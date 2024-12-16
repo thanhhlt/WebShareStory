@@ -30,7 +30,7 @@
         </div>
         <div class="form-group mb-3">
             <strong><label asp-for="Content" class="form-label"></label></strong>
-            <textarea asp-for="Content" class="form-control"></textarea>
+            <textarea id="postContent" asp-for="Content" class="form-control"></textarea>
             <span asp-validation-for="Content" class="text-danger"></span>
         </div>
         <div class="form-group mb-3">
@@ -42,6 +42,11 @@
         <button type="submit" class="btn btn-primary">Cập nhật</button>
     </form>
 </div>
+
+@{
+    var summernote = new App.Models.Summernote("#postContent");
+    summernote.Height = 500;
+}
 
 @section Scripts
 {
@@ -57,15 +62,6 @@
                 placeholder: "Chọn danh mục",
                 allowClear: true,
                 closeOnSelect: true
-            });
-
-            $('textarea').each(function () {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-            });
-            $('textarea').on('input', function () {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
             });
 
             $('#edit-post-form').on('submit', function (e) {
@@ -97,4 +93,6 @@
             });
         });
     </script>
+
+    <partial name="_Summernote" model="summernote">
 }

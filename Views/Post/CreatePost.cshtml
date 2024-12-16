@@ -46,8 +46,6 @@
 @{
     var summernote = new App.Models.Summernote("#postContent");
     summernote.Height = 500;
-    summernote.Post.UserId = Model.UserId;
-    summernote.Post.PostId = 5;
 }
 
 @section Scripts
@@ -64,15 +62,6 @@
                 placeholder: "Chọn danh mục",
                 allowClear: true,
                 closeOnSelect: true
-            });
-
-            $('textarea').each(function () {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-            });
-            $('textarea').on('input', function () {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
             });
 
             $('#create-post-form').on('submit', function (e) {

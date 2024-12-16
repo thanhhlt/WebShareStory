@@ -1,12 +1,6 @@
 # nullable disable
 namespace App.Models;
 
-public class Post
-{
-    public string UserId { get; set; }
-    public int PostId { get; set; }
-}
-
 public class Summernote
 {
     public Summernote(string iDEditor, bool loadLibrary = true)
@@ -15,7 +9,6 @@ public class Summernote
         LoadLibrary = loadLibrary;
     }
     
-    public Post Post { get; set; }
     public string IDEditor { get; set; }
     public bool LoadLibrary { get; set; }
     public int Height { get; set; } = 120;

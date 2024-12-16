@@ -13,12 +13,12 @@
     background-color: #f0f0f0;
 }
 .post-content {
-    display: -webkit-box;           /* Tiền tố cho WebKit (Chrome, Safari) */
-    -webkit-box-orient: vertical;   /* Tiền tố cho WebKit */
-    -webkit-line-clamp: 3;          /* Tiền tố cho WebKit để giới hạn số dòng hiển thị */
-    line-clamp: 3;                  /* Thuộc tính chuẩn */
-    overflow: hidden;               /* Ẩn phần vượt quá */
-    text-overflow: ellipsis;        /* Hiển thị dấu ba chấm (...) khi bị cắt */
+    display: -webkit-box;           
+    -webkit-box-orient: vertical;  
+    -webkit-line-clamp: 3; 
+    line-clamp: 3; 
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: normal;  
 }
 .info-label {

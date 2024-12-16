@@ -91,8 +91,6 @@ public class PostController : Controller
     {
         public int Id { get; set; }
 
-        public string UserId { get; set; }
-
         [Display(Name = "Tên bài viết")]
         [Required(ErrorMessage = "{0} không được bỏ trống.")]
         [MaxLength(255, ErrorMessage = "{0} dài không quá {1} ký tự.")]
@@ -122,7 +120,6 @@ public class PostController : Controller
         EditCreateModel model = new EditCreateModel()
         {
             AllCategories = new SelectList(allCates),
-            UserId = (await _userManager.GetUserAsync(User)).Id
         };
         return View(model);
     }
@@ -158,10 +155,17 @@ public class PostController : Controller
             DateUpdated = timeInVietnam,
             Slug = "",
         };
-        post.SetSlug();
 
         _dbContext.Posts.Add(post);
         await _dbContext.SaveChangesAsync();
+
+        var posts = await _dbContext.Posts.Where(p => p.Slug == "").ToListAsync();
+        foreach (var p in posts)
+        {
+            p.SetSlug();
+        }
+        await _dbContext.SaveChangesAsync();
+
         return Json(new{success = true, redirect = Url.Action("Index", "Home")});
     }
 

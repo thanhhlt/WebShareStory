@@ -1,38 +1,14 @@
 @model Summernote
 
-<link rel="stylesheet" href="~/lib/summernote/summernote-lite.min.css" asp-append-version="true" />
-<script src="~/lib/summernote/summernote-lite.min.js"></script>
+<link rel="stylesheet" href="~/lib/summernote/summernote-bs5.min.css" asp-append-version="true" />
+<script src="~/lib/summernote/summernote-bs5.min.js"></script>
 
 <script>
     $(document).ready(function() {
         $('@Model.IDEditor').summernote({
             height: @Model.Height,
             toolbar: @Html.Raw(Model.Toolbar),
-            callbacks: {
-                onImageUpload: function (files) {
-                    uploadImage(files[0]);
-                }
-            }
+            container: 'body'
         });
-        function uploadImage(file) {
-            var formData = new FormData();
-            formData.append("file", file);
-            formData.append("userId", @Model.Post.UserId);
-            formData.append("postId", @Model.Post.PostId);
-
-            $.ajax({
-                url: '/api/UploadImage/upload',
-                method: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                success: function (response) {
-                    $('@Model.IDEditor').summernote('insertImage', response.imagePath);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.error("Image upload failed: ", textStatus, errorThrown);
-                }
-            });
-        }
     });
 </script>

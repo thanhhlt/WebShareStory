@@ -14,7 +14,7 @@
             <i class="fas fa-user-circle"></i> @userManager.GetUserName(User)
         </a>
         <!-- Dropdown menu -->
-        <ul class="dropdown-menu text-align-left shadow-lg">
+        <ul class="dropdown-menu text-align-left shadow-lg dropdown-menu-nav">
             <li>
                 <a class="dropdown-item mt-2" asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@userManager.GetUserId(User)">
                     <i class="fas fa-id-card"></i> Trang cá nhân
@@ -56,7 +56,7 @@ else
             <i class="fas fa-user-circle"></i> Tài khoản
         </a>
         <!-- Dropdown menu -->
-        <ul class="dropdown-menu shadow-lg">
+        <ul class="dropdown-menu shadow-lg dropdown-menu-nav">
             <li>
                 <a class="dropdown-item boder-nobg mb-2" asp-area="Identity" asp-controller="Account" asp-action="Login">
                     Đăng nhập <i class="fas fa-sign-in-alt"></i>
