@@ -13,7 +13,7 @@ public class CommentsModel
 
     public DateTime DateCommented {get; set; } = DateTime.UtcNow;
 
-    [ForeignKey(nameof(ParrentComment))]
+    [ForeignKey(nameof(ParentComment))]
     public int? ParentCommentId { get; set; }
 
     [ForeignKey(nameof(Posts))]
@@ -22,7 +22,7 @@ public class CommentsModel
     [ForeignKey(nameof(User))]
     public required string UserId { get; set; }
 
-    public CommentsModel? ParrentComment { get; set; }
+    public CommentsModel? ParentComment { get; set; }
     public ICollection<CommentsModel>? ChildComments { get; set; }
     public required PostsModel Posts { get; set; }
     public required AppUser User { get; set; }

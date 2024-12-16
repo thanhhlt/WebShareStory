@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace App.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241214102333_AddPropertySlug")]
+    [Migration("20241214111122_AddPropertySlug")]
     partial class AddPropertySlug
     {
         /// <inheritdoc />
@@ -131,7 +131,7 @@ namespace App.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int?>("ParrentCateId")
+                    b.Property<int?>("ParentCateId")
                         .HasColumnType("int");
 
                     b.Property<string>("Slug")
@@ -144,7 +144,7 @@ namespace App.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.HasIndex("ParrentCateId");
+                    b.HasIndex("ParentCateId");
 
                     b.ToTable("Categories");
                 });
@@ -540,16 +540,16 @@ namespace App.Migrations
 
             modelBuilder.Entity("App.Models.CategoriesModel", b =>
                 {
-                    b.HasOne("App.Models.CategoriesModel", "ParrentCate")
+                    b.HasOne("App.Models.CategoriesModel", "ParentCate")
                         .WithMany("ChildCates")
-                        .HasForeignKey("ParrentCateId");
+                        .HasForeignKey("ParentCateId");
 
-                    b.Navigation("ParrentCate");
+                    b.Navigation("ParentCate");
                 });
 
             modelBuilder.Entity("App.Models.CommentsModel", b =>
                 {
-                    b.HasOne("App.Models.CommentsModel", "ParrentComment")
+                    b.HasOne("App.Models.CommentsModel", "ParentComment")
                         .WithMany("ChildComments")
                         .HasForeignKey("ParentCommentId");
 
@@ -565,7 +565,7 @@ namespace App.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ParrentComment");
+                    b.Navigation("ParentComment");
 
                     b.Navigation("Posts");
 

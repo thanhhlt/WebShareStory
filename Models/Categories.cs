@@ -20,14 +20,14 @@ public class CategoriesModel
     [RegularExpression(@"^[a-z0-9-]*$")]
     public required string Slug { get; set; }
 
-    [ForeignKey(nameof(ParrentCate))]
-    public int? ParrentCateId { get; set; }
+    [ForeignKey(nameof(ParentCate))]
+    public int? ParentCateId { get; set; }
 
-    public CategoriesModel? ParrentCate { get; set; }
+    public CategoriesModel? ParentCate { get; set; }
     public ICollection<CategoriesModel>? ChildCates { get; set; }
     public ICollection<PostsModel>? Posts { get; set; }
 
-    public void SetName ()
+    public void SetSlug ()
     {
         Slug = SlugUtility.GenerateSlug(Name);
     }

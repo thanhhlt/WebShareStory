@@ -55,7 +55,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
         // Comments
         modelBuilder.Entity<CommentsModel>()
-            .HasOne(c => c.ParrentComment)
+            .HasOne(c => c.ParentComment)
             .WithMany(c => c.ChildComments);
         modelBuilder.Entity<CommentsModel>()
             .HasOne(c => c.Posts)
@@ -82,7 +82,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         
         //Categories
         modelBuilder.Entity<CategoriesModel>()
-            .HasOne(c => c.ParrentCate)
+            .HasOne(c => c.ParentCate)
             .WithMany(c => c.ChildCates);
         modelBuilder.Entity<CategoriesModel>()
             .HasIndex(c => c.Name)

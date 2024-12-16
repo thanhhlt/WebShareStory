@@ -1,0 +1,139 @@
+@model App.Controllers.PostController.IndexViewModel
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+@Html.AntiForgeryToken()
+
+<style>
+    .post-header {
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .author-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .post-actions {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+
+    .post-actions button {
+        margin-left: 5px;
+    }
+
+    .post-content img {
+        max-width: 100%;
+        border-radius: 8px;
+    }
+
+    .hashtag {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .hashtag:hover {
+        text-decoration: underline;
+    }
+
+    .post-footer {
+        margin-top: 40px;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="post">
+        <!-- Author -->
+        <div class="post-header d-flex align-items-center">
+            <img src="@Model.PathAvatar" alt="Avatar tác giả" class="author-avatar me-3">
+            <div>
+                @if (Model.AuthorId != null)
+                {
+                    <strong>Tác giả: <a asp-controller="Profile" asp-action="Index" asp-route-id="@Model.AuthorId"
+                            class="text-dark">@Model.Author</a></strong>
+
+                }
+                else
+                {
+                    <strong>Tác giả: @Model.Author</strong>
+                }
+                <br>
+                <span class="text-muted">Ngày đăng: @Model.DateCreated | Cập nhật: @Model.DateUpdated</span>
+            </div>
+
+            <div class="post-actions">
+                <a asp-action="EditPost" asp-route-id="@Model.Id" class="btn btn-warning btn-sm">Sửa</a>
+                <button class="btn btn-danger btn-sm" id="deletePostBtn" data-id="@Model.Id">Xóa</button>
+            </div>
+        </div>
+
+        <!-- Category -->
+        <div class="mb-3">
+            <span class="badge bg-primary">Danh mục: @Model.CateName</span>
+        </div>
+
+        <hr>
+
+        <!-- Post -->
+        <h1 class="text-center">@Model.Title</h1>
+
+        <div class="mb-3">
+            @Html.Raw(Model.Content)
+        </div>
+
+        <hr>
+
+        <!-- Hashtags -->
+        <div class="mb-3">
+            <strong>Hashtags:</strong>
+            <a href="#" class="hashtag">#CảmXúc</a>,
+            <a href="#" class="hashtag">#TìnhYêu</a>,
+            <a href="#" class="hashtag">#CuộcSống</a>
+        </div>
+
+        <!-- Footer bài viết -->
+        <div class="post-footer text-end">
+            <span class="text-muted">Được đăng trên nền tảng <strong>Góc Kể Chuyện</strong></span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#deletePostBtn').click(function (e) {
+                e.preventDefault();
+                const button = $(this);
+                const id = button.data('id');
+                const url = '@Url.Action("DeletePost")';
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: { id },
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            window.location.href = response.redirect;
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi AJAX:", xhr.responseText);
+                        alert("Đã xảy ra lỗi trong quá trình xử lý. Chi tiết: " + xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+}

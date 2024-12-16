@@ -1,0 +1,121 @@
+@model IndexViewModel
+
+<style>
+    .description-container {
+        position: relative;
+        display: inline-block;
+        max-width: 300px; /* Đặt chiều rộng tối đa */
+    }
+
+    .description-content {
+        display: inline-block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%; /* Nội dung sẽ bị cắt nếu vượt quá chiều rộng */
+        vertical-align: middle;
+    }
+
+    .toggle-description {
+        padding: 0;
+        font-size: 0.9rem;
+    }
+</style>
+
+@{
+    ViewData["Title"] = "Quản lý danh mục";
+}
+
+<h2>@ViewData["Title"]</h2>
+<hr>
+
+<div id="_StatusMessage"><partial name="_StatusMessage"></div>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary btn-sm">Tạo danh mục</a>
+</p>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>STT</th>
+            <th>Danh mục</th>
+            <th>Mô tả</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int rootIndex = 0;
+            foreach (var cate in Model.Categories) {
+                await RenderCategory(cate, 0, $"{++rootIndex}");
+            }
+        }
+    </tbody>
+</table>
+
+@{ 
+    async Task RenderCategory(CategoriesModel cate, int level, string stt) {
+         string prefix = string.Concat(Enumerable.Repeat("--", level));
+         <tr>
+            <td>@stt</td>
+            <td>
+                @if (level == 0)
+                {
+                    <strong>@cate.Name</strong>
+                }
+                else
+                {
+                    @Html.Raw(prefix) @cate.Name
+                }
+            </td>
+            <td>
+                @if (!string.IsNullOrEmpty(cate.Description))
+                {
+                    <div class="description-container">
+                        <span class="description-content">@cate.Description</span>
+                        <button type="button" class="btn btn-link btn-sm toggle-description">Xem thêm</button>
+                    </div>
+                }
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@cate.Id" class="btn btn-sm btn-primary">Sửa</a>
+                <a asp-action="Delete" asp-route-id="@cate.Id" class="btn btn-sm btn-danger">Xóa</a>
+            </td>
+        </tr>     
+        if (cate.ChildCates?.Count > 0)
+        {
+            int childIndex = 0;
+            foreach (var cCategory in cate.ChildCates)
+            {
+                await RenderCategory(cCategory, level + 1, $"{stt}.{++childIndex}");
+            }
+        }  
+    }
+}
+
+@section Scripts
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.toggle-description').forEach(button => {
+                button.addEventListener('click', function () {
+                    const container = this.closest('.description-container');
+                    const content = container.querySelector('.description-content');
+
+                    if (this.innerText === 'Xem thêm') {
+                        content.style.whiteSpace = 'normal';
+                        content.style.overflow = 'visible';
+                        content.style.textOverflow = 'clip';
+                        this.innerText = 'Thu gọn';
+                    } else {
+                        content.style.whiteSpace = 'nowrap';
+                        content.style.overflow = 'hidden';
+                        content.style.textOverflow = 'ellipsis';
+                        this.innerText = 'Xem thêm';
+                    }
+                });
+            });
+        });
+    </script>
+}

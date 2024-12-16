@@ -477,12 +477,13 @@ public class DbManageController : Controller
                 usedNames.Add(uniqueName);
                 return uniqueName;
             })
-            .RuleFor(c => c.Description, f => f.Lorem.Sentence() + "fakeData");
+            .RuleFor(c => c.Description, f => f.Lorem.Paragraph(2) + "fakeData");
 
         List<CategoriesModel> fkCates = new List<CategoriesModel>();
         for (int i = 0; i < 10; i++)
         {
             var cate = fakerCategory.Generate();
+            cate.SetSlug();
             fkCates.Add(cate);
         }
 
@@ -515,6 +516,7 @@ public class DbManageController : Controller
         for (int i = 0; i < 125; i++)
         {
             var post = fakerPost.Generate();
+            post.SetSlug();
             fkPosts.Add(post);
         } 
 

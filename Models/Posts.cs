@@ -49,7 +49,7 @@ public class PostsModel
     public virtual ICollection<LikesModel>? Likes { get; set; }
     public virtual ICollection<ImagesModel>? Images { get; set; }
 
-    public void SetName ()
+    public void SetSlug ()
     {
         Slug = SlugUtility.GenerateSlug(Title) + '.' + Id;
     }

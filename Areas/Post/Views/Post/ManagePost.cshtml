@@ -1,0 +1,115 @@
+@using App.Models
+@model ManagePostModel
+@{
+    ViewData["Title"] = "Danh sách các bài viết";
+}
+@Html.AntiForgeryToken()
+
+<h2>@ViewData["Title"]</h2>
+<div class="_StatusMessage"><partial name="_StatusMessage"></div>
+    
+<div class="d-flex align-items-center gap-4 mb-3">
+    <p class="mr-3 mb-0">Tổng số bài viết: @Model.totalPosts</p>
+    <button id="deletePostsBtn" class="btn btn-danger btn-sm">Xoá bài viết</button>
+</div>
+
+<form asp-action="ManagePost" method="get" role="form" class="form-inline">
+    <div class="input-group" style="max-width: 300px;">
+        <input asp-for="SearchString" 
+               class="form-control" 
+               placeholder="Nhập nội dung tìm kiếm..." 
+               aria-label="Search">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+    <span class="text-danger d-block mt-2">@Model.MessageSearchResult</span>
+</form>
+
+<table class="table table-striped mt-3">
+    <tr>
+        <th></th>
+        <th>STT</th>
+        <th>Tiêu đề</th>
+        <th>Tác giả</th>
+        <th>Danh mục</th>
+        <th>Ngày đăng</th>
+        <th>Ngày cập nhật</th>
+    </tr>
+    @{
+        var index = 0;
+    }
+    @foreach (var post in Model.Posts)
+    {
+        index++;
+        <tr>
+            <td><input type="checkbox" name="selectedPosts" value="@post.Id" class="form-check-input me-3"></td>
+            <td>@index</td>
+            <td>
+                <a asp-area="" 
+                asp-controller="Post" 
+                asp-action="Index" 
+                asp-route-slugPost="@post.Slug" 
+                class="text-decoration-none">
+                    @post.Title
+                </a>
+            </td>
+            <td>@post.Author</td>
+            <td>@post.CategoryName</td>
+            <td>@post.DateCreated</td>
+            <td>@post.DateUpdated</td>
+        </tr>
+    }
+</table>
+
+@{
+    var pagingmodel = new PagingModel()
+    {
+        currentpage = Model.currentPage,
+        countpages = Model.countPages,
+        generateUrl = (int? p) => Url.Action("ManagePost", new { p = p}) ?? ""
+    };
+}
+
+<partial name="_Paging" model="@pagingmodel" />
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#deletePostsBtn').click(function (e) {
+                e.preventDefault();
+
+                let selectedPosts = [];
+                $('input[name="selectedPosts"]:checked').each(function () {
+                    selectedPosts.push(parseInt($(this).val(), 10));
+                });
+                console.log(selectedPosts);
+
+                if (selectedPosts.length === 0) {
+                    alert('Vui lòng chọn ít nhất một bài viết để xoá.');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("DeleteMultiPosts")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ postIds: selectedPosts }),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.redirect) {
+                            window.location.href = response.redirect;
+                        }
+                        $('#_StatusMessage').load("@Url.Action("GetStatusMessage")");
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi AJAX:", xhr.responseText);
+                        alert("Đã xảy ra lỗi trong quá trình xử lý. Chi tiết: " + xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+}
