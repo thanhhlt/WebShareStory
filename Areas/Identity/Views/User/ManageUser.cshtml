@@ -1,11 +1,40 @@
 @model ManageUserModel
 
 @{
-    ViewData["Title"] = "Quản lý thành viên";
+    Layout = "_LayoutAdminCP";
+    ViewData["Title"] = "Chi tiết";
+    ViewBag.NavActive = "list_users";
 }
 @Html.AntiForgeryToken()
 
-<h2>@ViewData["Title"]</h2>
+<div class="page-header">
+    <h3 class="fw-bold mb-3">@ViewData["Title"]</h3>
+    <ul class="breadcrumbs mb-3">
+        <li class="nav-home">
+            <a href="#">
+                <i class="icon-home"></i>
+            </a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a href="#">Quản lý thành viên</a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a asp-area="Identity" asp-controller="User" asp-action="Index">Danh sách thành viên</a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a asp-area="Identity" asp-controller="User" asp-action="ManageUser">Chi tiết</a>
+        </li>
+    </ul>
+</div>
 
 <div id="_StatusMessage"></div>
 
@@ -103,19 +132,15 @@
             <h3>Quản lý Role và Claim</h3>
         </div>
         <div class="card-body">
-            <form asp-action="UpdateRoleUser" method="post" id="manage-role-form" class="row align-items-center">
+            <form asp-action="UpdateRoleUser" method="post" id="manage-role-form">
                 <input type="hidden" asp-for="UserId" value="@Model.UserId">
-                <div class="col-md-10">
-                    <div class="form-group">
-                        @Html.ListBoxFor(m => m.UserRoleNames, (IEnumerable<SelectListItem>)Model.AllRoleNames, new
-                            {
-                                id = "select-roles",
-                                @class = "w-100"
-                            })
-                    </div>
-                </div>
-                <div class="col-md-2 text-end">
-                    <button type="submit" id="saveRoles" class="btn btn-success w-100">Lưu Roles</button>
+                <div class="form-group d-flex">
+                    @Html.ListBoxFor(m => m.UserRoleNames, (IEnumerable<SelectListItem>)Model.AllRoleNames, new
+                        {
+                            id = "select-roles",
+                            @class = "form-control w-100"
+                        })
+                    <button type="submit" id="saveRoles" class="btn btn-primary" style="padding: 0.4rem !important;">Lưu</button>
                 </div>
             </form>
             <!-- List Claims -->

@@ -1,11 +1,36 @@
 @using App.Models
 @model UserListModel
 @{
+    Layout = "_LayoutAdminCP";
     ViewData["Title"] = "Danh sách các thành viên";
+    ViewBag.NavActive = "list_users";
 }
 
-<h2>@ViewData["Title"]</h2>
+<div class="page-header">
+    <h3 class="fw-bold mb-3">@ViewData["Title"]</h3>
+    <ul class="breadcrumbs mb-3">
+        <li class="nav-home">
+            <a href="#">
+                <i class="icon-home"></i>
+            </a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a href="#">Quản lý thành viên</a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a asp-area="Identity" asp-controller="User" asp-action="Index">Danh sách thành viên</a>
+        </li>
+    </ul>
+</div>
+
 <partial name="_StatusMessage">
+
 <p>Tổng số thành viên: @Model.totalUsers</p>
 
 <form asp-action="Index" method="get" role="form" class="form-inline">
@@ -27,18 +52,14 @@
         <th>Tên tài khoản</th>
         <th>Email</th>
         <th>Ngày tham gia</th>
-        <th></th>
     </tr>
     @foreach (var user in Model.users)
     {
         <tr>
-            <td>@user.Id</td>
+            <td><a class="text-decoration-none" asp-action="ManageUser" asp-route-id="@user.Id">@user.Id</a></td>
             <td>@user.UserName</td>
             <td>@user.Email</td>
             <td>@user.AccountCreated</td>
-            <td>
-                <a class="btn btn-success btn-sm" asp-action="ManageUser" asp-route-id="@user.Id">Chi tiết</a>
-            </td>
         </tr>
     }
 </table>

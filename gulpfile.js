@@ -4,7 +4,7 @@ var gulp = require('gulp'),
 const sass = require('gulp-sass')(require('sass'));
 
 gulp.task('default', function () {
-    return gulp.src('assets/scss/site.scss')
+    return gulp.src('assets/scss/cate-manage.scss')
         .pipe(sass().on('error', sass.logError))
         .pipe(cssmin())
         .pipe(rename({
@@ -13,21 +13,7 @@ gulp.task('default', function () {
         .pipe(gulp.dest('wwwroot/css/'));
     });
 
-gulp.task('compile-all', function () {
-    return gulp.src('assets/scss/**/*.scss')
-        .pipe(sass().on('error', sass.logError))
-        .pipe(cssmin())
-        .pipe(rename({
-            suffix: ".min"
-        }))
-        .pipe(gulp.dest('wwwroot/css/'));
-});
-
 gulp.task("watch", function () {
    gulp.watch('assets/scss/*.scss', gulp.series('default'));
 });
-
-gulp.task("watch-all", function () {
-    gulp.watch('assets/scss/**/*.scss', gulp.series('compile-all'));
- });
  

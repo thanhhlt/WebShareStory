@@ -1,8 +1,32 @@
 @model RoleModel
 @{
-    ViewData["Title"] = "Danh sách các role";
+    Layout = "_LayoutAdminCP";
+    ViewData["Title"] = "Danh sách role";
+    ViewBag.NavActive = "list_roles";
 }
-<h2>@ViewData["Title"]</h2>
+
+<div class="page-header">
+    <h3 class="fw-bold mb-3">@ViewData["Title"]</h3>
+    <ul class="breadcrumbs mb-3">
+        <li class="nav-home">
+            <a href="#">
+                <i class="icon-home"></i>
+            </a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a href="#">Quản lý thành viên</a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a asp-area="Identity" asp-controller="Role" asp-action="Index">Danh sách role</a>
+        </li>
+    </ul>
+</div>
 
 <partial name="_StatusMessage"></partial>
 
@@ -10,7 +34,7 @@
     <div class="d-flex align-items-center gap-2">
         <label asp-for="CreateRoleModel.Name" class="form-label mb-0"></label>
         <input asp-for="CreateRoleModel.Name" class="form-control" placeholder="Nhập tên role" style="width: auto;" />
-        <button id="add-role-button" type="submit" class="btn btn-sm btn-primary">Thêm role</button>
+        <button id="add-role-button" type="submit" class="btn btn-primary">Thêm role</button>
     </div>
 
     <span asp-validation-for="CreateRoleModel.Name" class="text-danger mt-2"></span>
@@ -33,7 +57,7 @@
             </td>
             <td>
                 <div class="d-flex gap-2">
-                    <a class="btn btn-success btn-sm" asp-action="Edit" asp-route-roleid="@role.Id">Cập nhật</a>
+                    <a class="btn btn-info" asp-action="Edit" asp-route-roleid="@role.Id">Cập nhật</a>
                     <form asp-action="Delete" method="post" role="form">
                         <input type="hidden" asp-for="IdRoleDelete" value="@role.Id">
                         <button type="submit" class="btn btn-danger">Xoá</button>

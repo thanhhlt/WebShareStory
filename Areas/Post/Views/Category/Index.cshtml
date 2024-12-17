@@ -1,38 +1,38 @@
 @model IndexViewModel
 
-<style>
-    .description-container {
-        position: relative;
-        display: inline-block;
-        max-width: 300px; /* Đặt chiều rộng tối đa */
-    }
-
-    .description-content {
-        display: inline-block;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%; /* Nội dung sẽ bị cắt nếu vượt quá chiều rộng */
-        vertical-align: middle;
-    }
-
-    .toggle-description {
-        padding: 0;
-        font-size: 0.9rem;
-    }
-</style>
-
 @{
-    ViewData["Title"] = "Quản lý danh mục";
+    Layout = "_LayoutAdminCP";
+    ViewData["Title"] = "Danh sách danh mục";
+    ViewBag.NavActive = "list_cates";
 }
 
-<h2>@ViewData["Title"]</h2>
-<hr>
+<div class="page-header">
+    <h3>Danh sách danh mục</h3>
+    <ul class="breadcrumbs mb-3">
+        <li class="nav-home">
+            <a href="#">
+                <i class="icon-home"></i>
+            </a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a href="#">Quản lý bài viết</a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a asp-area="Post" asp-controller="Category" asp-action="Index">Danh sách danh mục</a>
+        </li>
+    </ul>
+</div>
 
 <div id="_StatusMessage"><partial name="_StatusMessage"></div>
 
 <p>
-    <a asp-action="Create" class="btn btn-primary btn-sm">Tạo danh mục</a>
+    <a asp-action="Create" class="btn btn-primary">Tạo danh mục</a>
 </p>
 
 <table class="table table-hover">
@@ -79,8 +79,8 @@
                 }
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@cate.Id" class="btn btn-sm btn-primary">Sửa</a>
-                <a asp-action="Delete" asp-route-id="@cate.Id" class="btn btn-sm btn-danger">Xóa</a>
+                <a asp-action="Edit" asp-route-id="@cate.Id" class="btn btn-primary">Sửa</a>
+                <a asp-action="Delete" asp-route-id="@cate.Id" class="btn btn-danger">Xóa</a>
             </td>
         </tr>     
         if (cate.ChildCates?.Count > 0)
@@ -96,6 +96,7 @@
 
 @section Scripts
 {
+    <link rel="stylesheet" href="~/css/cate-manage.min.css">
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.toggle-description').forEach(button => {

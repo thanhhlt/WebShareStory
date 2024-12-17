@@ -3,20 +3,31 @@
 
 @inject SignInManager<AppUser> signInManager
 @inject UserManager<AppUser> userManager
+@inject AppDbContext dbContext
+
+@{
+    var user = await userManager.GetUserAsync(User);
+    string avatarPath = "";
+    if (user != null)
+    {
+         avatarPath = dbContext.Images?.Where(i => i.UserId == user.Id && i.UseType == UseType.profile)
+                                    .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg";
+    }
+}
 
 <link rel="stylesheet" href="~/css/AccountNavPartial.css" asp-append-version="true" />
 
-@if (signInManager.IsSignedIn(User))
+@if (signInManager.IsSignedIn(User) && user != null)
 {
-    <div class="dropdown text-center navbar navbar-expand-lg">
+    <div class="dropdown text-center navbar">
         <!-- Dropdown button -->
-        <a class="btn btn-primary dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-user-circle"></i> @userManager.GetUserName(User)
+        <a class="btn btn-outline-light dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="@avatarPath" alt="..." class="rounded-circle" style="height: 42px;"> @user.UserName
         </a>
         <!-- Dropdown menu -->
         <ul class="dropdown-menu text-align-left shadow-lg dropdown-menu-nav">
             <li>
-                <a class="dropdown-item mt-2" asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@userManager.GetUserId(User)">
+                <a class="dropdown-item mt-2" asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@user.Id">
                     <i class="fas fa-id-card"></i> Trang cá nhân
                 </a>
             </li>

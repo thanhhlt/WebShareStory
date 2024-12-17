@@ -1,13 +1,41 @@
 @model EditRoleModel
  
 @{
+    Layout = "_LayoutAdminCP";
     ViewData["Title"] = "Cập nhật role";
+    ViewBag.NavActive = "list_roles";
 }
-<h2 id="title">@ViewData["Title"] @Model.Name</h2>
+
+<div class="page-header">
+    <h3 id="title">@ViewData["Title"] @Model.Name</h3>
+    <ul class="breadcrumbs mb-3">
+        <li class="nav-home">
+            <a href="#">
+                <i class="icon-home"></i>
+            </a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a href="#">Quản lý thành viên</a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a asp-area="Identity" asp-controller="Role" asp-action="Index">Danh sách role</a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a asp-action="Edit" asp-route-roleid="@Model.RoleId">Cập nhật role</a>
+        </li>
+    </ul>
+</div>
 
 <div id="_StatusMessage"></div>
-
-<hr>
 
 <!-- Form reame role -->
 <form asp-action="RenameRole" id="rename-role-form" method="post" role="form" class="d-flex flex-column gap-2">
@@ -15,7 +43,7 @@
         <input asp-for="RoleId" value="@Model.RoleId" class="form-control" type="hidden" />
         <label asp-for="Name" class="form-label mb-0"></label>
         <input asp-for="Name" class="form-control" style="width: auto;" placeholder="Nhập tên role" />
-        <button id="add-role-button" type="submit" class="btn btn-sm btn-primary">Đổi tên</button>
+        <button id="add-role-button" type="submit" class="btn btn-primary">Đổi tên</button>
     </div>
 
     <span asp-validation-for="Name" class="text-danger mt-2"></span>

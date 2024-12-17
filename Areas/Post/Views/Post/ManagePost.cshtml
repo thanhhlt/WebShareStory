@@ -1,16 +1,40 @@
 @using App.Models
 @model ManagePostModel
 @{
-    ViewData["Title"] = "Danh sách các bài viết";
+    Layout = "_LayoutAdminCP";
+    ViewData["Title"] = "Danh sách bài viết";
+    ViewBag.NavActive = "list_posts";
 }
 @Html.AntiForgeryToken()
 
-<h2>@ViewData["Title"]</h2>
+<div class="page-header">
+    <h3>Danh sách bài viết</h3>
+    <ul class="breadcrumbs mb-3">
+        <li class="nav-home">
+            <a href="#">
+                <i class="icon-home"></i>
+            </a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a href="#">Quản lý bài viết</a>
+        </li>
+        <li class="separator">
+            <i class="icon-arrow-right"></i>
+        </li>
+        <li class="nav-item">
+            <a asp-area="Post" asp-controller="Post" asp-action="ManagePost">Danh sáchh bài viết</a>
+        </li>
+    </ul>
+</div>
+
 <div class="_StatusMessage"><partial name="_StatusMessage"></div>
     
 <div class="d-flex align-items-center gap-4 mb-3">
     <p class="mr-3 mb-0">Tổng số bài viết: @Model.totalPosts</p>
-    <button id="deletePostsBtn" class="btn btn-danger btn-sm">Xoá bài viết</button>
+    <button id="deletePostsBtn" class="btn btn-danger">Xoá bài viết</button>
 </div>
 
 <form asp-action="ManagePost" method="get" role="form" class="form-inline">
@@ -43,7 +67,7 @@
     {
         index++;
         <tr>
-            <td><input type="checkbox" name="selectedPosts" value="@post.Id" class="form-check-input me-3"></td>
+            <td><input type="checkbox" name="selectedPosts" value="@post.Id" class="form-check-input border border-dark me-3"></td>
             <td>@index</td>
             <td>
                 <a asp-area="" 
