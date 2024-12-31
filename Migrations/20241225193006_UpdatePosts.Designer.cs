@@ -4,6 +4,7 @@ using App.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace App.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241225193006_UpdatePosts")]
+    partial class UpdatePosts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -596,8 +599,7 @@ namespace App.Migrations
 
                     b.HasOne("App.Models.PostsModel", "Post")
                         .WithMany("Likes")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("PostId");
 
                     b.HasOne("App.Models.AppUser", "User")
                         .WithMany()

@@ -18,15 +18,18 @@ public class DbManageController : Controller
     private readonly ILogger<DbManageController> _logger;
     private readonly AppDbContext _dbContext;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IDeleteUserService _deleteUser;
 
     public DbManageController(
         AppDbContext dbContext, 
         UserManager<AppUser> userManager,
-        ILogger<DbManageController> logger)
+        ILogger<DbManageController> logger,
+        IDeleteUserService deleteUser)
     {
         _logger = logger;
         _dbContext = dbContext;
         _userManager = userManager;
+        _deleteUser = deleteUser;
     }
 
     public struct TableInfo
@@ -406,6 +409,7 @@ public class DbManageController : Controller
             await SeedUsersAsync();
             await SeedCatesAsync();
             await SeedPostsAsync();
+            await SeedLikesAsync();
             StatusMessage = "Seed Data thành công!";
         }
         catch (Exception ex)
@@ -422,8 +426,10 @@ public class DbManageController : Controller
         var usersDel = _userManager.Users.Where(u => u.Email.Contains("fakeData")).ToList();
         foreach (var user in usersDel)
         {
-            await _userManager.DeleteAsync(user);
+            // await _userManager.DeleteAsync(user);
+            await _deleteUser.DeleteUserAsync(user.Id);
         }
+        await _dbContext.SaveChangesAsync();
 
         var fakerUser = new Faker<AppUser>()
             // .RuleFor(u => u.Id, f => Guid.NewGuid().ToString())
@@ -523,4 +529,54 @@ public class DbManageController : Controller
         await _dbContext.AddRangeAsync(fkPosts);
         await _dbContext.SaveChangesAsync();
     }
+
+    private async Task SeedLikesAsync()
+    {
+        _dbContext.Likes.RemoveRange(_dbContext.Likes);
+        await _dbContext.SaveChangesAsync();
+        await _dbContext.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('Likes', RESEED, 0)");
+
+        var userIds = await _dbContext.Users.Select(u => u.Id).ToListAsync();
+        var postIds = await _dbContext.Posts.Select(p => p.Id).ToListAsync();
+        var commentIds = await _dbContext.Comments.Select(c => c.Id).ToListAsync();
+
+        var fakerLike = new Faker<LikesModel>()
+            .RuleFor(l => l.UserId, f => f.PickRandom(userIds))
+            .RuleFor(l => l.LikeType, f => f.PickRandom<LikeTypes>())
+            .RuleFor(l => l.DateLiked, f => f.Date.Recent(30));
+
+        var fkLikes = new List<LikesModel>();
+        var uniqueLikes = new HashSet<(string, int?, int?)>();
+
+        for (int i = 0; i < 500; i++)
+        {
+            var like = fakerLike.Generate();
+
+            if (like.LikeType == LikeTypes.Post && postIds.Any())
+            {
+                like.PostId = new Faker().PickRandom(postIds);
+                like.CommentId = null;
+            }
+            else if (like.LikeType == LikeTypes.Comment && commentIds.Any())
+            {
+                like.CommentId = new Faker().PickRandom(commentIds);
+                like.PostId = null;
+            }
+            else
+            {
+                continue;
+            }
+
+            var key = (like.UserId, like.PostId, like.CommentId);
+            if (!uniqueLikes.Contains(key))
+            {
+                uniqueLikes.Add(key);
+                fkLikes.Add(like);
+            }
+        }
+
+        await _dbContext.AddRangeAsync(fkLikes);
+        await _dbContext.SaveChangesAsync();
+    }
+
 }

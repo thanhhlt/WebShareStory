@@ -11,7 +11,7 @@
 <div id="_StatusMessage"></div>
 
 <div class="container">
-    <form asp-action="CreatePost" class="mb-3" id="create-post-form">
+    <form asp-action="CreatePost" class="mb-3" id="create-post-form" enctype="multipart/form-data">
         @Html.HiddenFor(m => m.Id)
         <div class="form-group mb-3">
             <strong><label asp-for="Title" class="control-label"></label></strong>
@@ -32,6 +32,12 @@
             <strong><label asp-for="Content" class="form-label"></label></strong>
             <textarea id="postContent" asp-for="Content" class="form-control"></textarea>
             <span asp-validation-for="Content" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <strong><label asp-for="ImageThumbnail" class="form-label"></label></strong>
+            <input asp-for="ImageThumbnail" type="file" id="img-thumb" name="ImageThumbnail"
+                accept=".jpg,.png,.jpeg,.webp,.gif" class="form-control" />
+            <span asp-validation-for="ImageThumbnail" class="text-danger"></span>
         </div>
         <div class="form-group mb-3">
             <strong><label asp-for="HashTags" class="form-label"></label></strong>
@@ -67,18 +73,20 @@
             $('#create-post-form').on('submit', function (e) {
                 e.preventDefault();
                 const form = $(this);
-                const formData = form.serialize();
+                const formData = new FormData(form[0]);
                 const url = form.attr('action');
                 
                 $.ajax({
                     url: url,
                     type: 'POST',
                     data: formData,
+                    processData: false,
+                    contentType: false,
                     headers: {
                         'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
                     },
                     success: function (response) {
-                        if (response.redirect) {
+                        if (response.success) {
                             window.location.href = response.redirect;
                         }
                         else {

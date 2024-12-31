@@ -1,14 +1,91 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model App.Controllers.HomeController.IndexViewModel
+
+@{
+    ViewData["Title"] = "Trang chủ";
+    ViewBag.NavLink = "Index";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <h1 class="mb-4">Chia sẻ câu chuyện của bạn, truyền cảm hứng</br>cho mọi người</h1>
+        <p>Mỗi câu chuyện đều là một nguồn cảm hứng. Hãy bắt đầu chia sẻ ngay hôm nay!</p>
+        <a asp-controller="Post" asp-action="CreatePost" class="btn btn-primary btn-lg">Đăng câu chuyện ngay</a>
+    </div>
+</section>
 
-<a asp-area="Database" asp-controller="DbManage" asp-action="Index">Quản lý Database</a>
-<a asp-area="Identity" asp-controller="Role" asp-action="Index">Quản lý Role</a>
-<a asp-area="Identity" asp-controller="User" asp-action="Index">Quản lý User</a>
-<a asp-area="Post" asp-controller="Category" asp-action="Index">Quản lý Cate</a>
-<a asp-area="Post" asp-controller="Post" asp-action="ManagePost">Quản lý Post</a>
+<!-- Featured Stories -->
+<section class="featured-stories">
+    <h2 class="section-title">Câu chuyện nổi bật</h2>
+    <div class="container">
+        <div class="row">
+            @foreach (var post in Model.FeaturedPosts)
+            {
+                <div class="col-md-4">
+                    <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug"
+                        class="card featured-story shadow-sm">
+                        <img src="/home/Thumbnail?postId=@post.Id" class="post-thumbnail" alt="Thumbnail">
+                        <div class="card-body">
+                            <strong class="title">@post.Title</strong>
+                            <p class="description">@post.Description</p>
+                            <div class="post-info">
+                                <p class="text-muted"><img src="@post.AvatarPath" alt="avatar" class="avatar"> @post.Author
+                                    &bull; @post.CateName</p>
+                                <p><i class="fas fa-heart"></i> @post.NumLikes | <i class="fas fa-comments"></i> 45</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Latest Stories-->
+<section class="latest-stories">
+    <div class="container">
+        <h2 class="section-title">Câu chuyện mới nhất</h2>
+        <div class="list-group">
+            @foreach (var post in Model.LatestPosts)
+            {
+                <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug"
+                    class="list-group-item list-group-item-action d-flex p-3">
+                    <img src="/home/Thumbnail?postId=@post.Id" alt="Thumbnail" class="me-3 post-thumbnail">
+                    <div class="post-info">
+                        <p class="text-muted mb-2"><img src="@post.AvatarPath" alt="avatar" class="avatar"> @post.Author
+                            &bull; @post.CateName</p>
+                        <p class="text-muted mb-2 date"><em>Đăng ngày: @post.DateCreated - Cập nhật: @post.DateUpdated</em></p>
+                        <strong class="title">@post.Title</strong>
+                        <p class="description">@post.Description</p>
+                    </div>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/home.min.css">
+
+    <script>
+        function truncateText(selector, maxLines) {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+                const lineHeight = parseFloat(getComputedStyle(element).lineHeight);
+                const maxHeight = lineHeight * maxLines;
+
+                if (element.scrollHeight > maxHeight) {
+                    while (element.scrollHeight > maxHeight) {
+                        element.textContent = element.textContent.trim();
+                        element.textContent = element.textContent.slice(0, -1);
+                    }
+                    element.textContent = element.textContent.trim() + "...";
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            truncateText(".description", 3);
+        });
+    </script>
+}

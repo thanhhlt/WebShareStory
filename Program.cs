@@ -45,6 +45,7 @@ builder.Services.AddSingleton<IEmailSender, SendMailService>();
 
 builder.Services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
 builder.Services.AddScoped<IDeleteUserService, DeleteUserService>();
+builder.Services.AddScoped<IThumbnailService, ThumbnailService>();
 
 //IdentityOptions
 builder.Services.Configure<IdentityOptions> (options => {

@@ -10,7 +10,13 @@
 }
 
 .post-item:hover {
-    background-color: #f0f0f0;
+    background-color: #d3d3d3;
+}
+.post-thumbnail {
+    margin-right: 15px;
+    width: 250px !important; 
+    height: 150px; 
+    object-fit: cover;
 }
 .post-content {
     display: -webkit-box;           

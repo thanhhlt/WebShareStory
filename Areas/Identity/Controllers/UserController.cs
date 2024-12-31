@@ -165,7 +165,8 @@ namespace App.Areas.Identity.Controllers
                     Category = await (from c in _dbContext.Categories
                                     join p in _dbContext.Posts on c.Id equals p.CategoryId
                                     where p.Id == post.Id
-                                    select c.Name).FirstOrDefaultAsync()
+                                    select c.Name).FirstOrDefaultAsync(),
+                    Slug = post.Slug
                 };
                 posts.Add(postInfoModel);
             }

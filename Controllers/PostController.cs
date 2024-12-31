@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace App.Controllers;
 
@@ -15,16 +17,19 @@ public class PostController : Controller
     private readonly ILogger<PostController> _logger;
     private readonly AppDbContext _dbContext;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IWebHostEnvironment _environment;
 
     public PostController(
         ILogger<PostController> logger,
         AppDbContext dbContext,
-        UserManager<AppUser> userManager
+        UserManager<AppUser> userManager,
+        IWebHostEnvironment environment
     )
     {
         _logger = logger;
         _dbContext = dbContext;
         _userManager = userManager;
+        _environment = environment;
     }
 
     [TempData]
@@ -53,7 +58,7 @@ public class PostController : Controller
         IndexViewModel model = await _dbContext.Posts.Where(p => p.Slug == slugPost)
                                                     .Include(p => p.User)
                                                     .Include(p => p.Category)
-                                                    .Include(p => p.Images)
+                                                    .Include(p => p.Image)
                                                     .Select(p => new IndexViewModel
                                                     {
                                                         Id = p.Id,
@@ -110,9 +115,14 @@ public class PostController : Controller
         public string CategoryName { get; set; }
 
         public SelectList AllCategories { get; set; }
+
+        public string PathThumbnail { get; set; }
+
+        [Display(Name = "Ảnh thumbnail minh hoạ")]
+        public IFormFile ImageThumbnail { get; set; }
     }
 
-    //GET: /CreaePost
+    //GET: /CreatePost
     [HttpGet]
     public async Task<IActionResult> CreatePost()
     {
@@ -159,14 +169,65 @@ public class PostController : Controller
         _dbContext.Posts.Add(post);
         await _dbContext.SaveChangesAsync();
 
-        var posts = await _dbContext.Posts.Where(p => p.Slug == "").ToListAsync();
-        foreach (var p in posts)
+        post.SetSlug();
+
+        if (model.ImageThumbnail != null && model.ImageThumbnail.Length > 0)
         {
-            p.SetSlug();
+            var extensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+            var fileExtension = Path.GetExtension(model.ImageThumbnail.FileName).ToLower();
+
+            if (!extensions.Contains(fileExtension))
+            {
+                StatusMessage = "Error Chỉ cho phép ảnh .jpg, .jpeg, .png, .webp, .gif";
+                return Json(new{success = false});
+            }
+
+            string directoryPath = Path.Combine(_environment.ContentRootPath, "Images/Posts");
+            var filePath = Path.Combine(directoryPath, post.Id + fileExtension);
+
+            var existingFiles = Directory.GetFiles(directoryPath)
+                                        .Where(f => Path.GetFileNameWithoutExtension(f) == post.Id.ToString())
+                                        .ToList();
+            foreach (var file in existingFiles)
+            {
+                System.IO.File.Delete(file);
+            }
+
+            using (var image = await Image.LoadAsync(model.ImageThumbnail.OpenReadStream()))
+            {
+                image.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Mode = ResizeMode.Crop,
+                    Size = new Size(350, 210)
+                }));
+
+                await image.SaveAsync(filePath);
+            }
+
+            filePath = "/imgs/Posts/" + post.Id + fileExtension;
+
+            var img = await _dbContext.Images.Where(i => i.PostId == post.Id && i.UseType == UseType.post).FirstOrDefaultAsync();
+            if (img != null)
+            {
+                img.FileName = model.ImageThumbnail.FileName;
+                img.FilePath = filePath;
+            }
+            else
+            {
+                var image = new ImagesModel()
+                {
+                    FileName = model.ImageThumbnail.FileName,
+                    FilePath = filePath,
+                    UseType = UseType.post,
+                    PostId = post.Id
+                };
+                _dbContext.Images.Add(image);
+            }
         }
+
         await _dbContext.SaveChangesAsync();
 
-        return Json(new{success = true, redirect = Url.Action("Index", "Home")});
+        return Json(new{success = true, redirect = Url.Action("Index", new { slugPost = post.Slug})});
     }
 
     //GET: /EditPost/{id}
@@ -175,6 +236,7 @@ public class PostController : Controller
     {
         EditCreateModel model = await _dbContext.Posts.Where(p => p.Id == id)
                                                     .Include(p => p.Category)
+                                                    .Include(p => p.Image)
                                                     .Select(p => new EditCreateModel
                                                     {
                                                         Id = id,
@@ -182,7 +244,8 @@ public class PostController : Controller
                                                         Description = p.Description,
                                                         Content = p.Content,
                                                         HashTags = p.Hashtag,
-                                                        CategoryName = p.Category.Name
+                                                        CategoryName = p.Category.Name,
+                                                        PathThumbnail = p.Image.FilePath ?? null
                                                     }).FirstOrDefaultAsync();
         if (model == null)
         {
@@ -190,13 +253,14 @@ public class PostController : Controller
         }
         var allCategories = await _dbContext.Categories.Select(c => c.Name).ToListAsync();
         model.AllCategories = new SelectList(allCategories);
+
         return View(model);
     }
 
     //POST: /EditPost/{id}
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditPostAsync(EditCreateModel model)
+    public async Task<IActionResult> EditPostAsync(EditCreateModel model, bool thumbnailDeleted)
     {
         if (!ModelState.IsValid)
         {
@@ -229,6 +293,78 @@ public class PostController : Controller
         post.DateUpdated = timeInVietnam;
         post.SetSlug();
 
+        var img = await _dbContext.Images.Where(i => i.PostId == post.Id && i.UseType == UseType.post).FirstOrDefaultAsync();
+        if (thumbnailDeleted)
+        {
+            if (img != null)
+            {
+                if (img.FilePath.StartsWith("/imgs/"))
+                {
+                    var filePath = Path.Combine(_environment.ContentRootPath, "Images/" + img.FilePath.Substring(6));
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+                _dbContext.Images.Remove(img);
+                img = null;
+                await _dbContext.SaveChangesAsync();
+            }
+        }
+
+        if (model.ImageThumbnail != null && model.ImageThumbnail.Length > 0)
+        {
+            var extensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+            var fileExtension = Path.GetExtension(model.ImageThumbnail.FileName).ToLower();
+
+            if (!extensions.Contains(fileExtension))
+            {
+                StatusMessage = "Error Chỉ cho phép ảnh .jpg, .jpeg, .png, .webp, .gif";
+                return Json(new{success = false});
+            }
+
+            string directoryPath = Path.Combine(_environment.ContentRootPath, "Images/Posts");
+            var filePath = Path.Combine(directoryPath, post.Id + fileExtension);
+
+            var existingFiles = Directory.GetFiles(directoryPath)
+                                        .Where(f => Path.GetFileNameWithoutExtension(f) == post.Id.ToString())
+                                        .ToList();
+            foreach (var file in existingFiles)
+            {
+                System.IO.File.Delete(file);
+            }
+
+            using (var image = await Image.LoadAsync(model.ImageThumbnail.OpenReadStream()))
+            {
+                image.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Mode = ResizeMode.Crop,
+                    Size = new Size(350, 210)
+                }));
+
+                await image.SaveAsync(filePath);
+            }
+
+            filePath = "/imgs/Posts/" + post.Id + fileExtension;
+
+            if (img != null)
+            {
+                img.FileName = model.ImageThumbnail.FileName;
+                img.FilePath = filePath;
+            }
+            else
+            {
+                var image = new ImagesModel()
+                {
+                    FileName = model.ImageThumbnail.FileName,
+                    FilePath = filePath,
+                    UseType = UseType.post,
+                    PostId = post.Id
+                };
+                _dbContext.Images.Add(image);
+            }
+        }
+
         await _dbContext.SaveChangesAsync();
         return Json(new{success = true, redirect = Url.Action("Index", new { slugPost = post.Slug})});
     }
@@ -243,7 +379,8 @@ public class PostController : Controller
             _logger.LogError(string.Empty, "Không tìm tấy bài viết");
             return Json(new{success = false});
         }
-        var post = await _dbContext.Posts.Where(p => p.Id == id).FirstOrDefaultAsync();
+        var post = await _dbContext.Posts.Where(p => p.Id == id)
+                                        .Include(p => p.Image).FirstOrDefaultAsync();
         if (post == null)
         {
             _logger.LogError(string.Empty, "Bài viết không tồn tại");
@@ -252,6 +389,19 @@ public class PostController : Controller
 
         _dbContext.Posts.Remove(post);
         await _dbContext.SaveChangesAsync();
+
+        if (post.Image != null)
+        {
+            if (post.Image.FilePath.StartsWith("/imgs/"))
+            {
+                var filePath = Path.Combine(_environment.ContentRootPath, "Images/" + post.Image.FilePath.Substring(6));
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+            _dbContext.Images.Remove(post.Image);
+        }
 
         return Json(new{success = true, redirect = Url.Action("Index", "Home")});
     }

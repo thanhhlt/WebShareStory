@@ -62,13 +62,13 @@
                             asp-route-id="@Model.UserInfo.Id" class="text-decoration-none"> @Model.UserInfo.UserName</a>
                     </p>
                     <p><strong>ID:</strong> @Model.UserInfo.Id</p>
-                    @if(Model.UserInfo.EmailConfirmed)
+                    @if (Model.UserInfo.EmailConfirmed)
                     {
                         <p><strong>Email:</strong> @Model.UserInfo.Email <small>(Đã xác thực)</small></p>
                     }
-                    else 
+                    else
                     {
-                        <p><strong>Email:</strong> @Model.UserInfo.Email <small>(Chưa xác thực)</small></p> 
+                        <p><strong>Email:</strong> @Model.UserInfo.Email <small>(Chưa xác thực)</small></p>
                     }
                     <p><strong>Giới tính:</strong> @Model.UserInfo.Gender</p>
                     <p><strong>Ngày sinh:</strong> @Model.UserInfo.BirthDate.ToString("dd/MM/yyyy")</p>
@@ -119,7 +119,8 @@
                             <td>@post.DateCreated</td>
                             <td>@post.DateUpdated</td>
                             <td>@post.Category</td>
-                            <td><a href="#" class="btn btn-sm btn-primary">Xem</a></td>
+                            <td><a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug"
+                                    class="btn btn-sm btn-primary">Xem</a></td>
                         </tr>
                     }
                 </tbody>
@@ -140,7 +141,8 @@
                             id = "select-roles",
                             @class = "form-control w-100"
                         })
-                    <button type="submit" id="saveRoles" class="btn btn-primary" style="padding: 0.4rem !important;">Lưu</button>
+                    <button type="submit" id="saveRoles" class="btn btn-primary"
+                        style="padding: 0.4rem !important;">Lưu</button>
                 </div>
             </form>
             <!-- List Claims -->

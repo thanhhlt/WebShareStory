@@ -52,6 +52,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             .HasOne(p => p.Category)
             .WithMany(c => c.Posts)
             .OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<PostsModel>()
+            .HasMany(p => p.Likes)
+            .WithOne(l => l.Post)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<PostsModel>()
+            .HasMany(p => p.Comments)
+            .WithOne(c => c.Posts)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Comments
         modelBuilder.Entity<CommentsModel>()
@@ -101,7 +109,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             .OnDelete(DeleteBehavior.SetNull);
         modelBuilder.Entity<ImagesModel>()
             .HasOne(i => i.Post)
-            .WithMany(p => p.Images)
+            .WithOne(p => p.Image)
             .OnDelete(DeleteBehavior.Cascade);
         modelBuilder.Entity<ImagesModel>()
             .HasIndex(i => i.FilePath)

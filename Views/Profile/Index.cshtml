@@ -76,14 +76,20 @@
             {
                 foreach (var post in Model.Posts)
                 {
-                    <div class="card mb-4">
+                    <div class="card mb-4 post-item">
                         <div class="card-header">
                             <h6>@post.Title</h6>
                         </div>
-                        <div class="card-body">
-                            <p class="post-content">@post.Description</p>
-                            <a asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug" >Xem chi tiết</a>
-                            <div><small class="text-muted">Đăng ngày: @post.DateCreated - Cập nhật: @post.DateUpdated</small></div>
+                        <div class="card-body d-flex align-items-start">
+                            <div>
+                                <img src="/profile/Thumbnail?postId=@post.Id" alt="Thumbnail của @post.Title" class="post-thumbnail" >
+                            </div>
+                            <div>
+                                <p class="post-content">@post.Description</p>
+                                <a asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug" >Xem chi tiết</a>
+                                <div><small class="text-muted">Đăng ngày: @post.DateCreated - Cập nhật: @post.DateUpdated</small></div>
+                            </div>
+
                         </div>
                     </div>
                 }
@@ -95,6 +101,7 @@
 </div>
 
 @section Scripts {
+    <link rel="stylesheet" href="~/css/profile.min.css">
     <script>
         $(document).ready(function () {
             $(document).on('click', '#follow-btn', function (e) {

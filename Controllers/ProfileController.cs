@@ -17,16 +17,22 @@ public class ProfileController : Controller
     private readonly ILogger<ProfileController> _logger;
     private readonly AppDbContext _dbContext;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IThumbnailService _thumbnailService;
+    private readonly IWebHostEnvironment _env;
 
     public ProfileController(
         ILogger<ProfileController> logger,
         AppDbContext dbContext,
-        UserManager<AppUser> userManager
+        UserManager<AppUser> userManager,
+        IThumbnailService thumbnailService,
+        IWebHostEnvironment env
     )
     {
         _logger = logger;
         _dbContext = dbContext;
         _userManager = userManager;
+        _thumbnailService = thumbnailService;
+        _env = env;
     }
 
     public class PostListModel
@@ -100,7 +106,7 @@ public class ProfileController : Controller
                                     .Select(p => new PostsModel{
                                         Id = p.Id,
                                         Title = p.Title,
-                                        Description = p.Description ?? RemoveImagesAndTags(p.Content ?? ""),
+                                        Description = TrimDescription(p.Description ?? RemoveImagesAndTags(p.Content ?? ""), 250),
                                         Slug = p.Slug,
                                         DateCreated = p.DateCreated,
                                         DateUpdated = p.DateUpdated
@@ -146,6 +152,39 @@ public class ProfileController : Controller
         }
 
         return doc.DocumentNode.InnerText.Trim();
+    }
+    private string TrimDescription(string description, int maxLength)
+    {
+        if (description.Length > maxLength)
+        {
+            return description.Substring(0, maxLength).TrimEnd() + "...";
+        }
+        return description;
+    }
+
+    //GET: /profile/Thumbnail
+    [HttpGet]
+    public IActionResult Thumbnail(int postId)
+    {
+        var post = _dbContext.Posts.Include(p => p.Image).FirstOrDefault(p => p.Id == postId);
+
+        if (post?.Image != null)
+        {
+            var imagePath = post.Image.FilePath;
+            if (!string.IsNullOrEmpty(imagePath) && imagePath.StartsWith("/imgs/"))
+            {
+                imagePath = Path.Combine(_env.ContentRootPath, "Images/" + imagePath.Substring(6));
+                if (System.IO.File.Exists(imagePath))
+                {
+                    var imageBytes = System.IO.File.ReadAllBytes(imagePath);
+                    return File(imageBytes, "image/png");
+                }
+            }
+        }
+
+        var title = post?.Title ?? "Title";
+        var generatedImageBytes = _thumbnailService.GenerateThumbnail(title, 250, 150);
+        return File(generatedImageBytes, "image/png");
     }
 
     //POST: /profile/UpdateRelation

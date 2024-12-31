@@ -38,7 +38,7 @@ namespace App.Areas.Identity.Models.ProfileViewModels
         public string? FilePath { get; set; }
 
         [Display(Name = "Ảnh đại diện")]
-        [FileExtensions(Extensions = "jpg,png,jpeg,webp")]
+        [FileExtensions(Extensions = "jpg,png,jpeg,webp,gif")]
         public IFormFile? ImageAvatar { get; set; }
 
         public bool isActivate { get; set; }

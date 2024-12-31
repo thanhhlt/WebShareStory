@@ -11,7 +11,7 @@
 <div id="_StatusMessage"></div>
 
 <div class="container">
-    <form asp-action="EditPost" class="mb-3" id="edit-post-form">
+    <form asp-action="EditPost" class="mb-3" id="edit-post-form" enctype="multipart/form-data">
         @Html.HiddenFor(m => m.Id)
         <div class="form-group mb-3">
             <strong><label asp-for="Title" class="control-label"></label></strong>
@@ -21,7 +21,7 @@
         <div class="form-group mb-3">
             <strong><label class="control-label">Danh mục</label></strong>
             @Html.DropDownListFor(m => m.CategoryName, Model.AllCategories, "Chọn danh mục",
-                new { id = "select-cate", @class = "form-control" })
+                     new { id = "select-cate", @class = "form-control" })
         </div>
         <div class="form-group mb-3">
             <strong><label asp-for="Description" class="form-label"></label></strong>
@@ -32,6 +32,24 @@
             <strong><label asp-for="Content" class="form-label"></label></strong>
             <textarea id="postContent" asp-for="Content" class="form-control"></textarea>
             <span asp-validation-for="Content" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <strong><label asp-for="ImageThumbnail" class="form-label"></label></strong>
+            <div>
+                @if (!string.IsNullOrEmpty(Model.PathThumbnail))
+                {
+                    <div class="position-relative d-inline-block">
+                        <img src="@Url.Content(Model.PathThumbnail)" alt="Thumbnail"
+                            style="max-width: 300px; height: 150px; margin-bottom: 12px;">
+                        <input type="hidden" id="thumbnailDeleted" name="thumbnailDeleted" value="false" />
+                        <button type="button" class="btn-close position-absolute top-0 end-0" id="deleteThumbnail"
+                            style="z-index: 10; width: 6px; height: 6px; opacity: 0.3; top: 7px !important; right: 7px !important;"></button>
+                    </div>
+                }
+            </div>
+            <input asp-for="ImageThumbnail" type="file" id="img-thumb" name="ImageThumbnail"
+                accept=".jpg,.png,.jpeg,.webp,.gif" class="form-control" />
+            <span asp-validation-for="ImageThumbnail" class="text-danger"></span>
         </div>
         <div class="form-group mb-3">
             <strong><label asp-for="HashTags" class="form-label"></label></strong>
@@ -64,21 +82,36 @@
                 closeOnSelect: true
             });
 
+            $('#deleteThumbnail').on('click', function () {
+                if (confirm("Bạn có chắc muốn xoá ảnh thumbnail?")) {
+                    $('#img-thumb').val('');
+                    $('img[alt="Thumbnail"]').hide();
+                    $('#deleteThumbnail').hide();
+                    $('#thumbnailDeleted').val('true');
+                }
+            });
+
             $('#edit-post-form').on('submit', function (e) {
                 e.preventDefault();
                 const form = $(this);
-                const formData = form.serialize();
+                const formData = new FormData(form[0]);
                 const url = form.attr('action');
-                
+
+                if ($('#thumbnailDeleted').val() === 'true') {
+                    formData.append('thumbnailDeleted', true);
+                }
+
                 $.ajax({
                     url: url,
                     type: 'POST',
                     data: formData,
+                    processData: false,
+                    contentType: false,
                     headers: {
                         'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
                     },
                     success: function (response) {
-                        if (response.redirect) {
+                        if (response.success) {
                             window.location.href = response.redirect;
                         }
                         else {

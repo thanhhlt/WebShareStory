@@ -9,5 +9,6 @@ namespace App.Areas.Identity.Models.UserViewModels
         public DateTime DateCreated { get; set; }
         public DateTime DateUpdated { get; set; }
         public string Category { get; set; }
+        public string Slug { get; set; }
     }
 }
