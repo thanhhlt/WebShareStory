@@ -407,7 +407,7 @@ public class DbManageController : Controller
         try
         {
             await SeedUsersAsync();
-            await SeedCatesAsync();
+            // await SeedCatesAsync();
             await SeedPostsAsync();
             await SeedLikesAsync();
             StatusMessage = "Seed Data thành công!";
@@ -504,7 +504,7 @@ public class DbManageController : Controller
         await _dbContext.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('Posts', RESEED, 0)");
 
         var userIds = _dbContext.Users.Select(u => u.Id).ToList();
-        var cateIds = _dbContext.Categories.Select(c => c.Id).ToList();
+        var cateIds = _dbContext.Categories.Where(c => c.ParentCateId != null).Select(c => c.Id).ToList();
 
         var fakerPost = new Faker<PostsModel>()
             .RuleFor(p => p.AuthorId, f => f.PickRandom(userIds))

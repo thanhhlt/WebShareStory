@@ -1,0 +1,86 @@
+@model App.Components.MainContentSidebar.IndexViewModel
+
+<a asp-area="" asp-controller="Post" asp-action="CreatePost" class="create-post btn btn-primary mb-2"><i
+        class="fas fa-paper-plane"></i> Bài viết mới</a>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Mới nhất</h5>
+    </div>
+    <div class="card-body">
+        <ul class="story-list">
+            @foreach (var post in Model.LatestPosts)
+            {
+                <li class="d-flex">
+                    <a asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@post.AuthorId"
+                        title="Xem trang cá nhân">
+                        <img src="@post.AvatarPath" alt="avatar" class="avatar" />
+                    </a>
+                    <div class="story-info">
+                        <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug"
+                            class="story-title">@post.Title</a>
+                        <p class="text-muted story-author"><a asp-area="" asp-controller="Profile" asp-action="Index"
+                                asp-route-id="@post.AuthorId" class="author-name">@post.Author</a> &bull; <span>@post.CateName</span></p>
+                    </div>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Danh mục</h5>
+    </div>
+    <div class="card-body">
+        <ul class="category-list">
+            @foreach (var category in Model.Categories)
+            {
+                <li>
+                    <a href="#" class="sidebar-category-item" data-toggle="collapse" data-target="#category@(category.Id)">
+                        @category.Name
+                    </a>
+                    <ul id="category@(category.Id)" class="subcategory-list">
+                        @foreach (var subCategory in category.ChildCategories)
+                        {
+                            <li><a href="#">@subCategory.Name</a></li>
+                        }
+                    </ul>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Thành viên nổi bật</h5>
+    </div>
+    <div class="card-body">
+        <ul class="user-list">
+            @foreach (var user in Model.TopUsers)
+            {
+                <li>
+                    <a asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@user.Id" title="Xem trang cá nhân" class="d-flex align-items-center">
+                        <img src="@user.AvatarPath" alt="avatar" class="avatar" />
+                        <span>@user.UserName</span>
+                    </a>
+                    <p class="text-muted">&#10559;&nbsp;@user.NumPosts bài biết</p>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Thống kê</h5>
+    </div>
+    <div class="card-body">
+        <ul class="stat-list">
+            <li><i class="fas fa-book"></i> @Model.NumUsers bài viết</li>
+            <li><i class="fas fa-users"></i> @Model.NumPosts thành viên</li>
+            <li><i class="fas fa-comments"></i> @Model.NumPostInWeek bài viết trong tuần</li>
+        </ul>
+    </div>
+</div>

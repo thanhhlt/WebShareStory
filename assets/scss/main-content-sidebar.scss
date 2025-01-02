@@ -1,0 +1,125 @@
+.sidebar {
+    .card {
+        margin-bottom: .8rem;
+        background-color: #dfe2ff;
+    }
+
+    .card:hover {
+        background-color: #cdd2fa;
+    }
+
+    .card .card-header {
+        background-color: #45787dff;
+        color: white;
+        max-height: 2.7rem;
+        display: flex;
+        justify-content: center;
+        padding-top: .55rem;
+    }
+
+    .create-post {
+        background-color: #2577b1;
+    }
+
+    img.avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-right: .6rem !important;
+    }
+
+    // category list
+    .category-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .category-list>li {
+        margin-bottom: 10px;
+    }
+
+    .sidebar-category-item {
+        text-decoration: none;
+        font-weight: bold;
+        color: #333;
+        display: block;
+        padding: 5px 0;
+        font-size: .8rem;
+    }
+
+    .subcategory-list {
+        list-style: none;
+        padding-left: 20px;
+        display: none;
+    }
+
+    .subcategory-list li {
+        margin-bottom: 5px;
+        list-style-type: disc;
+    }
+
+    .subcategory-list a:hover {
+        color: #202020;
+        cursor: pointer;
+    }
+
+    .subcategory-list a {
+        text-decoration: none;
+        color: #555;
+        font-size: .7rem;
+    }
+
+    //story list
+    .story-list {
+        list-style: none !important;
+        padding: 0;
+        margin: 0;
+    }
+
+    a.story-title {
+        text-decoration: none;
+        color: #333;
+        font-size: .8rem;
+        font-weight: bold;
+    }
+
+    a.story-title:hover {
+        color: #000000;
+    }
+
+    p.story-author a,
+    p.story-author span {
+        font-size: .6rem;
+        text-decoration: none;
+    }
+
+    //topuser list
+    .user-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .user-list a {
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+
+    .user-list p.text-muted {
+        position: relative;
+        top: 10px;
+        font-size: 0.8rem;
+    }
+
+    .stat-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .stat-list li {
+        margin-bottom: 1rem;
+    }
+}

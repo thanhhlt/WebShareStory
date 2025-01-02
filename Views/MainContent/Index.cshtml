@@ -1,0 +1,65 @@
+@model App.Controllers.MainContentController.IndexViewModel
+
+@{
+    Layout = "_MainContentLayout";
+    ViewData["Title"] = "Danh sách câu chuyện";
+    ViewBag.NavLink = "Stories";
+}
+
+@section MainContentSidebar {
+    @await Component.InvokeAsync("MainContentSidebar")
+}
+
+@foreach (var cate in Model.Categories)
+{
+    <section class="category">
+        <div class="category-title">@cate.Name</div>
+        <div class="category-section">
+            @foreach (var subCate in cate.ChildCategories)
+            {
+                <div class="row category-item ">
+                    <div class="col-md-5 cate">
+                        <a href="#"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;@subCate.Name</a>
+                    </div>
+                    <div class="col-md-2">
+                        <p class="text-muted">@subCate.ToTalPosts bài viết</p>
+                    </div>
+                    <div class="col-md-5 post d-flex">
+                        <a asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@subCate.LatestPost.AuthorId"
+                            title="Xem trang cá nhân">
+                            <img src="@subCate.LatestPost.AvatarPath" alt="avatar" class="avatar" />
+                        </a>
+                        <div class="story-info">
+                            <a asp-area="" asp-controller="Post" asp-action="Index"
+                                asp-route-slugPost="@subCate.LatestPost.Slug" class="story-title">@subCate.LatestPost.Title</a>
+                            <p class="text-muted story-author">
+                                <span>@subCate.LatestPost.DateCreated &bull;</span>
+                                <a asp-area="" asp-controller="Profile" asp-action="Index"
+                                    asp-route-id="@subCate.LatestPost.AuthorId">@subCate.LatestPost.Author</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+}
+
+@section MainContentSidebarScripts {
+    @* MainContentSidebar *@
+    <link rel="stylesheet" href="~/css/main-content-sidebar.min.css" asp-append-version="true" />
+    <script src="~/lib/popper.js/umd/popper.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.sidebar-category-item').click(function (e) {
+                e.preventDefault();
+                var target = $(this).data('target');
+                var subCategoryList = $(target);
+
+                subCategoryList.slideToggle();
+            });
+        });
+    </script>
+    @* MainContent *@
+    <link rel="stylesheet" href="~/css/categories.min.css" asp-append-version="true" />
+}

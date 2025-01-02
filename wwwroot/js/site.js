@@ -7,5 +7,5 @@ connection.start().catch(function (err) {
 });
 
 connection.on("UserStatusChanged", function (userId, isActive) {
-    console.log(`User ${userId} is now ${isActive ? "Online" : "Offline"}`);
+    // console.log(`User ${userId} is now ${isActive ? "Online" : "Offline"}`);
 });
