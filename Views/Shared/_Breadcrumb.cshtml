@@ -1,0 +1,23 @@
+@model App.Models.Breadcrumb
+
+<style>
+    .breadcrumb-item+.breadcrumb-item::before {
+        content: ">";
+    }
+    .breadcrumb-item a {
+        text-decoration: none;
+        color: #5c5c5c;
+    }
+    .breadcrumb-item a:hover {
+        color: #04515a;
+</style>
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-area="" asp-controller="MainContent" asp-action="Index"><i class="fas fa-home"></i></a></li>
+    @foreach (var item in Model.Items)
+    {
+        <li class="breadcrumb-item" aria-current="page"><a href="@item.Url">@item.Title</a></li>
+    }
+  </ol>
+</nav>

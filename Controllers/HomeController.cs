@@ -49,57 +49,87 @@ public class HomeController : Controller
     }
 
     //GET: /
-    [HttpGet("/")]
+        [HttpGet("/")]
     public async Task<IActionResult> Index()
     {
         var model = new IndexViewModel();
 
-        var dateCreatedLatest = _context.Posts.Max(p => p.DateCreated);
+        var dateCreatedLatest = await _context.Posts.MaxAsync(p => p.DateCreated);
         var sevenDaysAgoFromLatest = dateCreatedLatest.AddDays(-7);
-        var featuredPosts = await _context.Posts.Where(p => p.DateCreated >= sevenDaysAgoFromLatest && p.DateCreated <= dateCreatedLatest)
-                                        .Include(p => p.Likes)
-                                        .Include(p => p.Category)
-                                        .Include(p => p.User)
-                                        .OrderByDescending(p => p.Likes.Count).Take(3).ToListAsync();
-        if (featuredPosts == null || featuredPosts.Count < 3)
-        {
-            featuredPosts = await _context.Posts.Include(p => p.Likes)
-                                                .Include(p => p.Category)
-                                                .Include(p => p.User)
-                                                .OrderByDescending(p => p.Likes.Count).Take(3).ToListAsync();
-        }
-        model.FeaturedPosts = featuredPosts.Select(p => new Post
-        {
-            Id = p.Id,
-            Slug = p.Slug,
-            Title = p.Title,
-            Description = TrimDescription(p.Description ?? RemoveImagesAndTags(p.Content ?? ""), 250),
-            DateCreated = p.DateCreated,
-            DateUpdated = p.DateUpdated,
-            NumLikes = p.Likes.Count,
-            CateName = p.Category.Name,
-            Author = p.User.UserName,
-            AvatarPath = _context.Images.Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
-                                        .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg"
-        }).ToList();
 
-        var latestPosts = _context.Posts.Include(p => p.Category)
-                                            .Include(p => p.User)
-                                            .OrderByDescending(p => p.DateCreated).Take(20)
-                                            .Select(p => new Post
-                                            {
-                                                Id = p.Id,
-                                                Slug = p.Slug,
-                                                Title = p.Title,
-                                                Description = TrimDescription(p.Description ?? RemoveImagesAndTags(p.Content ?? ""), 250),
-                                                DateCreated = p.DateCreated,
-                                                DateUpdated = p.DateUpdated,
-                                                CateName = p.Category.Name,
-                                                Author = p.User.UserName,
-                                                AvatarPath = _context.Images.Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
-                                                                            .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg"
-                                            }).ToList();
-        model.LatestPosts = latestPosts;
+        var featuredPosts = await _context.Posts
+            .AsNoTracking()
+            .Where(p => p.DateCreated >= sevenDaysAgoFromLatest && p.DateCreated <= dateCreatedLatest)
+            .OrderByDescending(p => p.Likes.Count)
+            .Take(3)
+            .Select(p => new Post
+            {
+                Id = p.Id,
+                Slug = p.Slug,
+                Title = p.Title,
+                Description = TrimDescription(p.Description ?? RemoveImagesAndTags(p.Content ?? ""), 250),
+                DateCreated = p.DateCreated,
+                DateUpdated = p.DateUpdated,
+                NumLikes = p.Likes.Count,
+                CateName = p.Category.Name,
+                Author = p.User.UserName,
+                AvatarPath = _context.Images
+                    .Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
+                    .Select(i => i.FilePath)
+                    .FirstOrDefault() ?? "/images/no_avt.jpg"
+            })
+            .ToListAsync();
+
+        if (featuredPosts.Count < 3)
+        {
+            var additionalPosts = await _context.Posts
+                .AsNoTracking()
+                .OrderByDescending(p => p.Likes.Count)
+                .Take(3 - featuredPosts.Count)
+                .Select(p => new Post
+                {
+                    Id = p.Id,
+                    Slug = p.Slug,
+                    Title = p.Title,
+                    Description = TrimDescription(p.Description ?? RemoveImagesAndTags(p.Content ?? ""), 250),
+                    DateCreated = p.DateCreated,
+                    DateUpdated = p.DateUpdated,
+                    NumLikes = p.Likes.Count,
+                    CateName = p.Category.Name,
+                    Author = p.User.UserName,
+                    AvatarPath = _context.Images
+                        .Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
+                        .Select(i => i.FilePath)
+                        .FirstOrDefault() ?? "/images/no_avt.jpg"
+                })
+                .ToListAsync();
+
+            featuredPosts.AddRange(additionalPosts);
+        }
+
+        model.FeaturedPosts = featuredPosts;
+
+        model.LatestPosts = await _context.Posts
+            .AsNoTracking()
+            .OrderByDescending(p => p.DateCreated)
+            .Take(20)
+            .Select(p => new Post
+            {
+                Id = p.Id,
+                Slug = p.Slug,
+                Title = p.Title,
+                Description = TrimDescription(p.Description ?? RemoveImagesAndTags(p.Content ?? ""), 250),
+                DateCreated = p.DateCreated,
+                DateUpdated = p.DateUpdated,
+                CateName = p.Category.Name,
+                Author = p.User.UserName,
+                AvatarPath = _context.Images
+                    .Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
+                    .Select(i => i.FilePath)
+                    .FirstOrDefault() ?? "/images/no_avt.jpg"
+            })
+            .ToListAsync();
+
         return View(model);
     }
     private static string RemoveImagesAndTags(string html)

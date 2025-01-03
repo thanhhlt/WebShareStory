@@ -35,6 +35,8 @@ public class PostsModel
 
     public bool isPublished { get; set; }
 
+    public bool isPinned { get; set; } = false;
+
     public bool isChildAllowed { get; set; }
 
     [ForeignKey(nameof(User))]

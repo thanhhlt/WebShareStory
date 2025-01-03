@@ -70,7 +70,8 @@ public class PostController : Controller
                                                         Hashtag = p.Hashtag,
                                                         Content = p.Content,
                                                         Slug = slugPost,
-                                                        User = p.User
+                                                        User = p.User,
+                                                        isPinned = p.isPinned,
                                                     }).FirstOrDefaultAsync();
         if (model == null)
         {
@@ -126,7 +127,10 @@ public class PostController : Controller
     [HttpGet]
     public async Task<IActionResult> CreatePost()
     {
-        var allCates = await _dbContext.Categories.Select(c => c.Name).ToListAsync();
+        var allCates = await _dbContext.Categories
+                                    .Include(c => c.ParentCate)
+                                    .Where(c => c.ParentCate != null)
+                                    .Select(c => c.Name).ToListAsync();
         EditCreateModel model = new EditCreateModel()
         {
             AllCategories = new SelectList(allCates),
@@ -251,7 +255,10 @@ public class PostController : Controller
         {
             return NotFound("Không tìm thấy bài viết.");
         }
-        var allCategories = await _dbContext.Categories.Select(c => c.Name).ToListAsync();
+        var allCategories = await _dbContext.Categories
+                                    .Include(c => c.ParentCate)
+                                    .Where(c => c.ParentCate != null)
+                                    .Select(c => c.Name).ToListAsync();
         model.AllCategories = new SelectList(allCategories);
 
         return View(model);
@@ -404,5 +411,28 @@ public class PostController : Controller
         }
 
         return Json(new{success = true, redirect = Url.Action("Index", "Home")});
+    }
+
+    //POST: /PinPost/{id}
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PinPostAsync(int? id)
+    {
+        if (id == null)
+        {
+            _logger.LogError(string.Empty, "Không tìm tấy bài viết");
+            return Json(new{success = false});
+        }
+        var post = await _dbContext.Posts.Where(p => p.Id == id).FirstOrDefaultAsync();
+        if (post == null)
+        {
+            _logger.LogError(string.Empty, "Bài viết không tồn tại");
+            return Json(new { success = false });
+        }
+
+        post.isPinned = !post.isPinned;
+        await _dbContext.SaveChangesAsync();
+
+        return Json(new{success = true, isPinned = post.isPinned});
     }
 }

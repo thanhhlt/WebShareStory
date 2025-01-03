@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet"> *@
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/select2/css/select2.min.css" />
     <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/layout.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/lib/font-awesome/css/all.min.css" />
@@ -38,6 +39,28 @@
                         <li class="nav-item"><a class="nav-link" href="#">Mới nhất</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">Liên hệ</a></li>
                     </ul>
+
+                    @* <form class="form-search" method="get" asp-controller="MainContent" asp-action="SearchPosts">
+                        <div class="input-group">
+                            <input class="form-control" id="inputfield" type="text" placeholder="Tìm kiếm..." aria-label="Search" name="query">
+
+                            <div class="dropdown">
+                                <button class="btn-options dropdown-toggle" type="button"
+                                    id="searchCategoryButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-caret-down"></i>
+                                </button>
+                                <ul class="dropdown-menu shadow-lg" aria-labelledby="searchCategoryButton">
+                                    <li><a class="dropdown-item" href="#" data-value="title">Tiêu đề</a></li>
+                                    <li><a class="dropdown-item" href="#" data-value="description">Mô tả</a></li>
+                                    <li><a class="dropdown-item" href="#" data-value="content">Nội dung</a></li>
+                                    <li><a class="dropdown-item" href="#" data-value="author">Tác giả</a></li>
+                                </ul>
+                                <input type="hidden" name="searchCategory" id="searchCategory" value="title">
+                            </div>
+
+                            <button class="btn-search" type="submit"><i class="fas fa-search"></i></button>
+                        </div>
+                    </form> *@
                     <partial name="_AccountNavPartial" />
                 </div>
             </div>
@@ -56,8 +79,25 @@
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
     <script src="~/lib/microsoft-signalr/signalr.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @* <script>
+        let inputfield = document.getElementById("inputfield");
+        let options = document.getElementsByClassName("dropdown-item");
+        for (option of options) {
+            option.onclick = function() {
+                inputfield.placeholder = `${this.innerHTML}`;
+            }
+        }
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function () {
+                document.getElementById('searchCategory').value = this.getAttribute('data-value');
+            });
+        });
+    </script> *@
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 

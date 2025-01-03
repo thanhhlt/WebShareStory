@@ -1,125 +1,199 @@
 .sidebar {
+    // Form search
+    .form-search {
+        display: flex;
+        align-items: center;
+        max-height: 1rem;
+        margin: 1rem 0;
+
+        .btn-options {
+            background-color: #e6e6e6;
+            border: 1px solid #ced4da;
+            border-left: none;
+            padding-right: .8rem;
+            height: 100%;
+        }
+
+        input {
+            background-color: #e6e6e6;
+            height: 2rem;
+            max-width: 100%;
+            font-size: small;
+        }
+
+        input:focus {
+            outline: none !important;
+            box-shadow: none;
+            transform: none;
+            border: none;
+        }
+
+        .btn-search {
+            background-color: #45787dff;
+            border: 1px solid rgb(107, 107, 107);
+            border-left: none;
+            border-radius: 0 .25rem .25rem 0;
+            width: 2rem;
+
+            i {
+                color: white;
+            }
+        }
+
+        .btn-search:hover {
+            background-color: rgb(30, 91, 99);
+        }
+
+        .dropdown-menu {
+            animation: slideup 0.5s ease;
+            background-color: #e6e6e6;
+            border: 1px solid #ced4da;
+            border-radius: 0 .25rem .25rem 0;
+            margin-left: -1px;
+            font-size: .8rem;
+
+            a:hover {
+                background-color: rgb(158, 196, 199);
+            }
+        }
+
+        @keyframes slideup {
+            from {
+                transform: translateY(25%);
+            }
+
+            to {
+            }
+        }
+    }
+
     .card {
         margin-bottom: .8rem;
         background-color: #dfe2ff;
+
+        // Create post
+        .create-post {
+            background-color: #2577b1;
+        }
+
+        .card-header {
+            background-color: #45787dff;
+            color: white;
+            max-height: 2.7rem;
+            display: flex;
+            justify-content: center;
+            padding-top: .55rem;
+        }
+
+        .card-body {
+            img.avatar {
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                margin-right: .6rem !important;
+            }
+
+            // Story list
+            .story-list {
+                list-style: none !important;
+                padding: 0;
+                margin: 0;
+
+                .story-info {
+                    .story-title {
+                        text-decoration: none;
+                        color: #333;
+                        font-size: .8rem;
+                        font-weight: bold;
+                    }
+
+                    .story-title:hover {
+                        color: #000000;
+                    }
+
+                    .story-author a,
+                    .story-author span {
+                        font-size: .6rem;
+                        text-decoration: none;
+                    }
+                }
+            }
+
+            // Category list
+            .category-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+
+                li {
+                    margin-bottom: 10px;
+                }
+
+                .sidebar-category-item {
+                    text-decoration: none;
+                    font-weight: bold;
+                    color: #333;
+                    display: block;
+                    padding: 5px 0;
+                    font-size: .8rem;
+                }
+
+                .subcategory-list {
+                    list-style: none;
+                    padding-left: 20px;
+                    display: none;
+
+                    li {
+                        margin-bottom: 5px;
+                        list-style-type: disc;
+                    }
+                }
+
+                .subcategory-list a {
+                    text-decoration: none;
+                    color: #555;
+                    font-size: .7rem;
+                }
+
+                .subcategory-list a:hover {
+                    color: #202020;
+                    cursor: pointer;
+                }
+            }
+
+            // Top user list
+            .user-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+
+                a {
+                    text-decoration: none;
+                    font-weight: bold;
+                    font-size: 0.8rem;
+                }
+
+                p.text-muted {
+                    position: relative;
+                    top: 10px;
+                    font-size: 0.8rem;
+                }
+            }
+
+            // Statistics
+            .stat-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+
+                li {
+                    margin-bottom: 1rem;
+                }
+            }
+        }
     }
 
     .card:hover {
         background-color: #cdd2fa;
-    }
-
-    .card .card-header {
-        background-color: #45787dff;
-        color: white;
-        max-height: 2.7rem;
-        display: flex;
-        justify-content: center;
-        padding-top: .55rem;
-    }
-
-    .create-post {
-        background-color: #2577b1;
-    }
-
-    img.avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        margin-right: .6rem !important;
-    }
-
-    // category list
-    .category-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .category-list>li {
-        margin-bottom: 10px;
-    }
-
-    .sidebar-category-item {
-        text-decoration: none;
-        font-weight: bold;
-        color: #333;
-        display: block;
-        padding: 5px 0;
-        font-size: .8rem;
-    }
-
-    .subcategory-list {
-        list-style: none;
-        padding-left: 20px;
-        display: none;
-    }
-
-    .subcategory-list li {
-        margin-bottom: 5px;
-        list-style-type: disc;
-    }
-
-    .subcategory-list a:hover {
-        color: #202020;
-        cursor: pointer;
-    }
-
-    .subcategory-list a {
-        text-decoration: none;
-        color: #555;
-        font-size: .7rem;
-    }
-
-    //story list
-    .story-list {
-        list-style: none !important;
-        padding: 0;
-        margin: 0;
-    }
-
-    a.story-title {
-        text-decoration: none;
-        color: #333;
-        font-size: .8rem;
-        font-weight: bold;
-    }
-
-    a.story-title:hover {
-        color: #000000;
-    }
-
-    p.story-author a,
-    p.story-author span {
-        font-size: .6rem;
-        text-decoration: none;
-    }
-
-    //topuser list
-    .user-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .user-list a {
-        text-decoration: none;
-        font-weight: bold;
-        font-size: 0.8rem;
-    }
-
-    .user-list p.text-muted {
-        position: relative;
-        top: 10px;
-        font-size: 0.8rem;
-    }
-
-    .stat-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .stat-list li {
-        margin-bottom: 1rem;
     }
 }

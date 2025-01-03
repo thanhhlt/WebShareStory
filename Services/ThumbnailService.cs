@@ -25,7 +25,7 @@ public class ThumbnailService : IThumbnailService
         image.Mutate(ctx => ctx.Fill(backgroundColor));
 
         string text = title.Length > 0 ? title.Substring(0, 1).ToUpper() : "T";
-        var font = SystemFonts.CreateFont("Arial", 72, FontStyle.Bold);
+        var font = SystemFonts.CreateFont("Arial", height/2, FontStyle.Bold);
         var textColor = Color.White;
 
         var textOptions = new RichTextOptions(font)

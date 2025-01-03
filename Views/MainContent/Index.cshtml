@@ -12,33 +12,38 @@
 
 @foreach (var cate in Model.Categories)
 {
-    <section class="category">
+    <section class="category" id='@cate.Id'>
         <div class="category-title">@cate.Name</div>
         <div class="category-section">
             @foreach (var subCate in cate.ChildCategories)
             {
                 <div class="row category-item ">
                     <div class="col-md-5 cate">
-                        <a href="#"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;@subCate.Name</a>
+                        <a asp-action="CategoryPosts" asp-route-slug="@subCate.Slug">
+                            <i class="fas fa-folder-open"></i><p>&nbsp;&nbsp;@subCate.Name</p>
+                        </a>
                     </div>
                     <div class="col-md-2">
                         <p class="text-muted">@subCate.ToTalPosts bài viết</p>
                     </div>
-                    <div class="col-md-5 post d-flex">
-                        <a asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@subCate.LatestPost.AuthorId"
-                            title="Xem trang cá nhân">
-                            <img src="@subCate.LatestPost.AvatarPath" alt="avatar" class="avatar" />
-                        </a>
-                        <div class="story-info">
-                            <a asp-area="" asp-controller="Post" asp-action="Index"
-                                asp-route-slugPost="@subCate.LatestPost.Slug" class="story-title">@subCate.LatestPost.Title</a>
-                            <p class="text-muted story-author">
-                                <span>@subCate.LatestPost.DateCreated &bull;</span>
-                                <a asp-area="" asp-controller="Profile" asp-action="Index"
-                                    asp-route-id="@subCate.LatestPost.AuthorId">@subCate.LatestPost.Author</a>
-                            </p>
+                    @if (subCate.LatestPost != null)
+                    {
+                        <div class="col-md-5 post d-flex">
+                            <a asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@subCate.LatestPost.AuthorId"
+                                title="Xem trang cá nhân">
+                                <img src="@subCate.LatestPost.AvatarPath" alt="avatar" class="avatar" />
+                            </a>
+                            <div class="story-info">
+                                <a asp-area="" asp-controller="Post" asp-action="Index"
+                                    asp-route-slugPost="@subCate.LatestPost.Slug" class="story-title">@subCate.LatestPost.Title</a>
+                                <p class="text-muted story-author">
+                                    <span>@subCate.LatestPost.DateCreated &bull;</span>
+                                    <a asp-area="" asp-controller="Profile" asp-action="Index"
+                                        asp-route-id="@subCate.LatestPost.AuthorId">@subCate.LatestPost.Author</a>
+                                </p>
+                            </div>
                         </div>
-                    </div>
+                    }
                 </div>
             }
         </div>
@@ -46,20 +51,36 @@
 }
 
 @section MainContentSidebarScripts {
-    @* MainContentSidebar *@
-    <link rel="stylesheet" href="~/css/main-content-sidebar.min.css" asp-append-version="true" />
-    <script src="~/lib/popper.js/umd/popper.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('.sidebar-category-item').click(function (e) {
-                e.preventDefault();
-                var target = $(this).data('target');
-                var subCategoryList = $(target);
-
-                subCategoryList.slideToggle();
-            });
-        });
-    </script>
-    @* MainContent *@
     <link rel="stylesheet" href="~/css/categories.min.css" asp-append-version="true" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            function scrollToElement() {
+                if (window.location.hash) {
+                    const targetId = window.location.hash.substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        const offset = targetElement.getBoundingClientRect().top + window.scrollY - document.querySelector('nav').offsetHeight - 10;
+                        window.scrollTo({ top: offset, behavior: 'smooth' });
+                    }
+                }
+            }
+
+                window.onload = scrollToElement;
+
+                window.addEventListener('hashchange', scrollToElement);
+
+                document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+                    anchor.addEventListener('click', function (e) {
+                        const targetId = this.getAttribute('href').substring(1);
+                        const targetElement = document.getElementById(targetId);
+                        if (targetElement) {
+                            e.preventDefault();
+                            const offset = targetElement.getBoundingClientRect().top + window.scrollY - document.querySelector('nav').offsetHeight - 10;
+                            window.scrollTo({ top: offset, behavior: 'smooth' });
+                        }
+                    });
+                });
+            });
+    </script>
 }

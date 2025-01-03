@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using App.Models;
 using App.Areas.Post.Models.Category;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Linq.Dynamic.Core;
 
 namespace App.Areas.Post.Controllers
 {
@@ -50,7 +51,10 @@ namespace App.Areas.Post.Controllers
         [HttpGet]
         public async Task<IActionResult> Create ()
         {
-            var allCates = await _dbContext.Categories.Select(c => c.Name).ToListAsync();
+            var allCates = await _dbContext.Categories
+                                        .Include(c => c.ParentCate)
+                                        .Where(c => c.ParentCate == null)
+                                        .Select(c => c.Name).ToListAsync();
             CreateModel model = new CreateModel()
             {
                 AllCates = new SelectList(allCates)
@@ -115,7 +119,10 @@ namespace App.Areas.Post.Controllers
                 return NotFound("Không tìm thấy danh mục.");
             }
 
-            var allCates = await _dbContext.Categories.Where(c => c.Name != category.Name).Select(c => c.Name).ToListAsync();
+            var allCates = await _dbContext.Categories
+                                        .Include(c => c.ParentCate)
+                                        .Where(c => c.Name != category.Name && c.ParentCate == null)
+                                        .Select(c => c.Name).ToListAsync();
             EditModel model = new EditModel()
             {
                 Id = category.Id,

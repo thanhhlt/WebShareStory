@@ -73,8 +73,10 @@
                 @if (!string.IsNullOrEmpty(cate.Description))
                 {
                     <div class="description-container">
-                        <span class="description-content">@cate.Description</span>
-                        <button type="button" class="btn btn-link btn-sm toggle-description">Xem thêm</button>
+                        <span class="description-content" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;">
+                            @cate.Description
+                        </span>
+                        <button type="button" class="btn btn-link btn-sm toggle-description" style="display: none;">Xem thêm</button>
                     </div>
                 }
             </td>
@@ -99,11 +101,15 @@
     <link rel="stylesheet" href="~/css/cate-manage.min.css">
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.toggle-description').forEach(button => {
-                button.addEventListener('click', function () {
-                    const container = this.closest('.description-container');
-                    const content = container.querySelector('.description-content');
+            document.querySelectorAll('.description-container').forEach(container => {
+                const content = container.querySelector('.description-content');
+                const button = container.querySelector('.toggle-description');
 
+                if (content.scrollWidth > content.offsetWidth) {
+                    button.style.display = 'inline-block';
+                }
+
+                button.addEventListener('click', function () {
                     if (this.innerText === 'Xem thêm') {
                         content.style.whiteSpace = 'normal';
                         content.style.overflow = 'visible';

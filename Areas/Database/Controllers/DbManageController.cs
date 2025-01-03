@@ -507,7 +507,8 @@ public class DbManageController : Controller
         var cateIds = _dbContext.Categories.Where(c => c.ParentCateId != null).Select(c => c.Id).ToList();
 
         var fakerPost = new Faker<PostsModel>()
-            .RuleFor(p => p.AuthorId, f => f.PickRandom(userIds))
+            // .RuleFor(p => p.AuthorId, f => f.PickRandom(userIds))
+            .RuleFor(p => p.AuthorId, "8e339bd2-b7c2-47f7-8e3f-71dad05bacb6")
             .RuleFor(p => p.Title, f => f.Lorem.Sentence(5))
             .RuleFor(p => p.Description, f => f.Lorem.Paragraph(2))
             .RuleFor(p => p.Content, f => f.Lorem.Paragraphs(7) + "fakeData")
@@ -516,7 +517,8 @@ public class DbManageController : Controller
             .RuleFor(p => p.DateUpdated, (f, p) => p.DateCreated)
             .RuleFor(p => p.isPublished, f => f.Random.Bool())
             .RuleFor(p => p.isChildAllowed, f => f.Random.Bool())
-            .RuleFor(p => p.CategoryId, f => f.PickRandom(cateIds));
+            .RuleFor(p => p.CategoryId, 9);
+            // .RuleFor(p => p.CategoryId, f => f.PickRandom(cateIds));
 
         List<PostsModel> fkPosts = new List<PostsModel>();
         for (int i = 0; i < 125; i++)

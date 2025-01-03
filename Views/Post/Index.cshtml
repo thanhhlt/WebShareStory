@@ -71,7 +71,11 @@
             </div>
 
             <div class="post-actions">
-                <a asp-action="EditPost" asp-route-id="@Model.Id" class="btn btn-warning btn-sm">Sửa</a>
+                @{
+                    string isPinned = Model.isPinned == true ? "Bỏ ghim" : "Ghim";
+                }
+                <button class="btn btn-warning btn-sm" id="pinPostBtn" data-id="@Model.Id">@isPinned</button>
+                <a asp-action="EditPost" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">Sửa</a>
                 <button class="btn btn-danger btn-sm" id="deletePostBtn" data-id="@Model.Id">Xóa</button>
             </div>
         </div>
@@ -109,6 +113,7 @@
 
 @section Scripts {
     <script>
+        @* Delete Post *@
         $(document).ready(function () {
             $('#deletePostBtn').click(function (e) {
                 e.preventDefault();
@@ -126,6 +131,32 @@
                     success: function (response) {
                         if (response.success) {
                             window.location.href = response.redirect;
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi AJAX:", xhr.responseText);
+                        alert("Đã xảy ra lỗi trong quá trình xử lý. Chi tiết: " + xhr.responseText);
+                    }
+                });
+            });
+
+            @* Pind Post *@
+            $('#pinPostBtn').click(function (e) {
+                e.preventDefault();
+                const button = $(this);
+                const id = button.data('id');
+                const url = '@Url.Action("PinPost")';
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: { id },
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            button.text(response.isPinned ? "Bỏ ghim" : "Ghim");
                         }
                     },
                     error: function (xhr) {

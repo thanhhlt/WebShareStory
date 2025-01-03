@@ -1,8 +1,34 @@
 @model App.Components.MainContentSidebar.IndexViewModel
 
-<a asp-area="" asp-controller="Post" asp-action="CreatePost" class="create-post btn btn-primary mb-2"><i
+<!-- Create Post -->
+<a asp-area="" asp-controller="Post" asp-action="CreatePost" class="create-post btn btn-primary btn-sm"><i
         class="fas fa-paper-plane"></i> Bài viết mới</a>
 
+<!-- Search -->
+<form class="form-search" method="get" asp-controller="MainContent" asp-action="SearchPosts">
+    <div class="input-group">
+        <input class="form-control" id="inputfield" type="text" placeholder="Tìm kiếm..." aria-label="Search"
+            name="query">
+
+        <div class="dropdown">
+            <button class="btn-options dropdown-toggle" type="button" id="searchCategoryButton"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-caret-down"></i>
+            </button>
+            <ul class="dropdown-menu shadow-lg" aria-labelledby="searchCategoryButton">
+                <li><a class="dropdown-item" href="#" data-value="title">Tiêu đề</a></li>
+                <li><a class="dropdown-item" href="#" data-value="description">Mô tả</a></li>
+                <li><a class="dropdown-item" href="#" data-value="content">Nội dung</a></li>
+                <li><a class="dropdown-item" href="#" data-value="author">Tác giả</a></li>
+            </ul>
+            <input type="hidden" name="searchCategory" id="searchCategory" value="title">
+        </div>
+
+        <button class="btn-search" type="submit"><i class="fas fa-search"></i></button>
+    </div>
+</form>
+
+<!-- Latest Posts -->
 <div class="card">
     <div class="card-header">
         <h5 class="card-title">Mới nhất</h5>
@@ -20,7 +46,8 @@
                         <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug"
                             class="story-title">@post.Title</a>
                         <p class="text-muted story-author"><a asp-area="" asp-controller="Profile" asp-action="Index"
-                                asp-route-id="@post.AuthorId" class="author-name">@post.Author</a> &bull; <span>@post.CateName</span></p>
+                                asp-route-id="@post.AuthorId" class="author-name">@post.Author</a> &bull;
+                            <span>@post.CateName</span></p>
                     </div>
                 </li>
             }
@@ -28,6 +55,7 @@
     </div>
 </div>
 
+<!-- Categories -->
 <div class="card">
     <div class="card-header">
         <h5 class="card-title">Danh mục</h5>
@@ -43,7 +71,7 @@
                     <ul id="category@(category.Id)" class="subcategory-list">
                         @foreach (var subCategory in category.ChildCategories)
                         {
-                            <li><a href="#">@subCategory.Name</a></li>
+                            <li><a asp-action="CategoryPosts" asp-route-slug="@subCategory.Slug">@subCategory.Name</a></li>
                         }
                     </ul>
                 </li>
@@ -52,6 +80,7 @@
     </div>
 </div>
 
+<!-- Top Users -->
 <div class="card">
     <div class="card-header">
         <h5 class="card-title">Thành viên nổi bật</h5>
@@ -61,7 +90,8 @@
             @foreach (var user in Model.TopUsers)
             {
                 <li>
-                    <a asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@user.Id" title="Xem trang cá nhân" class="d-flex align-items-center">
+                    <a asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@user.Id"
+                        title="Xem trang cá nhân" class="d-flex align-items-center">
                         <img src="@user.AvatarPath" alt="avatar" class="avatar" />
                         <span>@user.UserName</span>
                     </a>
@@ -72,6 +102,7 @@
     </div>
 </div>
 
+<!-- Statistics -->
 <div class="card">
     <div class="card-header">
         <h5 class="card-title">Thống kê</h5>

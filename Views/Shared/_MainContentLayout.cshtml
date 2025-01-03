@@ -16,5 +16,32 @@
 </div>
 
 @section Scripts {
+    @* MainContentSidebar *@
+    <link rel="stylesheet" href="~/css/main-content-sidebar.min.css" asp-append-version="true" />
+    <script src="~/lib/popper.js/umd/popper.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.sidebar-category-item').click(function (e) {
+                e.preventDefault();
+                var target = $(this).data('target');
+                var subCategoryList = $(target);
+
+                subCategoryList.slideToggle();
+            });
+        });
+
+        let inputfield = document.getElementById("inputfield");
+        let options = document.getElementsByClassName("dropdown-item");
+        for (option of options) {
+            option.onclick = function() {
+                inputfield.placeholder = `${this.innerHTML}`;
+            }
+        }
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function () {
+                document.getElementById('searchCategory').value = this.getAttribute('data-value');
+            });
+        });
+    </script>
     @RenderSection("MainContentSidebarScripts", required: false)
 }

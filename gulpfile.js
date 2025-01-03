@@ -4,7 +4,7 @@ var gulp = require('gulp'),
 const sass = require('gulp-sass')(require('sass'));
 
 gulp.task('default', function () {
-    return gulp.src('assets/scss/categories.scss')
+    return gulp.src('assets/scss/main-content-sidebar.scss')
         .pipe(sass().on('error', sass.logError))
         .pipe(cssmin())
         .pipe(rename({

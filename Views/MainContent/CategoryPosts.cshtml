@@ -1,0 +1,140 @@
+@model App.Controllers.MainContentController.CategoryPostsViewModel
+
+@{
+    Layout = "_MainContentLayout";
+    ViewData["Title"] = @Model.Category.Name;
+    ViewBag.NavLink = "Stories";
+
+    var pagingmodel = new PagingModel()
+    {
+        currentpage = Model.currentPage,
+        countpages = Model.countPages,
+        @* generateUrl = (int? p) => Url.Action("CategoryPosts", new { p = p}) ?? "" *@
+        generateUrl = (int? p) => Url.Action("CategoryPosts", new { slug = Model.Category.Slug, p = p, sortOption = ViewBag.SortOption, sortBy = ViewBag.SortBy }) ?? ""
+    };
+
+    var breadcrumb = new Breadcrumb()
+    {
+        Items = new List<Item>()
+        {
+            new Item() { Title = Model.Category.ParentCategory.Name, Url = Url.Action("Index") + $"#{Model.Category.ParentCategory.Id}" },
+            new Item() { Title = Model.Category.Name, Url = Url.Action("CategoryPosts", new { slug = Model.Category.Slug }) }
+        } 
+    };
+}
+
+@section MainContentSidebar {
+    @await Component.InvokeAsync("MainContentSidebar")
+}
+
+<partial name="_Breadcrumb" model="@breadcrumb" />
+
+<!-- Category -->
+<section class="category">
+    <div class="category-title">@Model.Category.Name</div>
+    <div class="category-section">@Model.Category.Description</div>
+</section>
+
+<!-- Posts Pinned -->
+<section class="posts posts-pinned">
+    @foreach (var post in Model.PostsPinned)
+    {
+        <div class="d-flex post-content">
+            <div class="col-md-10 d-flex">
+                <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug" class="post-thumb"
+                    title="@post.Description">
+                    <img src="/maincontent/Thumbnail?postId=@post.Id" alt="Thumbnail" class="me-3">
+                </a>
+                <div>
+                    <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug"
+                        class="post-title" title="@post.Description">
+                        @post.Title
+                    </a>
+                    <p class="text-muted post-author">
+                        <a asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@post.AuthorId">
+                            <img src="@post.AvatarPath" alt="avatar" class="avatar" />
+                            @post.Author
+                        </a>
+                        <span>&bull; @post.DateCreated</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <p class='post-likes'><i class="fas fa-heart"></i> Lượt thích: @post.NumLikes</p>
+                <p class='post-comments'><i class="fas fa-comments"></i> Bình luận: @post.NumComments</p>
+            </div>
+        </div>
+    }
+</section>
+
+<!-- Posts -->
+<section class="posts">
+    <ul class="sort-options">
+        <li class="sort-item">
+            <a asp-action="CategoryPosts" asp-route-slug="@Model.Category.Slug" asp-route-sortOption="DateCreated"
+                asp-route-sortBy="@ViewBag.SortBy" class="@(ViewBag.SortOption == "DateCreated" ? "active" : "")">
+                Thời gian đăng
+            </a>
+        </li>
+        <li class="sort-item">
+            <a asp-action="CategoryPosts" asp-route-slug="@Model.Category.Slug" asp-route-sortOption="DateUpdated"
+                asp-route-sortBy="@ViewBag.SortBy" class="@(ViewBag.SortOption == "DateUpdated" ? "active" : "")">
+                Thời gian cập nhật
+            </a>
+        </li>
+        <li class="sort-item">
+            <a asp-action="CategoryPosts" asp-route-slug="@Model.Category.Slug" asp-route-sortOption="NumLikes"
+                asp-route-sortBy="@ViewBag.SortBy" class="@(ViewBag.SortOption == "NumLikes" ? "active" : "")">
+                Lượt thích
+            </a>
+        </li>
+        <li class="sort-item">
+            <a asp-action="CategoryPosts" asp-route-slug="@Model.Category.Slug" asp-route-sortOption="NumComments"
+                asp-route-sortBy="@ViewBag.SortBy" class="@(ViewBag.SortOption == "NumComments" ? "active" : "")">
+                Bình luận
+            </a>
+        </li>
+        <li class="sort-item">
+            <a asp-action="CategoryPosts" asp-route-slug="@Model.Category.Slug" asp-route-sortOption="@ViewBag.SortOption"
+                asp-route-sortBy="@(ViewBag.SortBy == "asc" ? "desc" : "asc")" class="active">
+                <i class="fas @(ViewBag.SortBy == "asc" ? "fa-sort-amount-up" : "fa-sort-amount-down")"></i>
+            </a>
+        </li>
+    </ul>
+    <partial name="_Paging" model="@pagingmodel" />
+    @foreach (var post in Model.Posts)
+    {
+        <div class="d-flex post-content">
+            <div class="col-md-10 d-flex">
+                <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug" class="post-thumb"
+                    title="@post.Description">
+                    <img src="/maincontent/Thumbnail?postId=@post.Id" alt="Thumbnail" class="me-3">
+                </a>
+                <div>
+                    <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug"
+                        class="post-title" title="@post.Description">
+                        @post.Title
+                    </a>
+                    <p class="text-muted post-author">
+                        <a asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@post.AuthorId">
+                            <img src="@post.AvatarPath" alt="avatar" class="avatar" />
+                            @post.Author
+                        </a>
+                        <span>&bull; @post.DateCreated</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <p class='post-likes'><i class="fas fa-heart"></i> Lượt thích: @post.NumLikes</p>
+                <p class='post-comments'><i class="fas fa-comments"></i> Bình luận: @post.NumComments</p>
+            </div>
+        </div>
+    }
+    <partial name="_Paging" model="@pagingmodel" />
+</section>
+
+@section MainContentSidebarScripts {
+    <link rel="stylesheet" href="~/css/category-posts.min.css" asp-append-version="true" />
+}
