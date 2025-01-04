@@ -12,6 +12,13 @@
             border-left: none;
             padding-right: .8rem;
             height: 100%;
+            i {
+                opacity: .7;
+            }
+        }
+        .btn-options::after {
+            content: " " !important;
+            display: none;
         }
 
         input {
@@ -188,6 +195,7 @@
 
                 li {
                     margin-bottom: 1rem;
+                    opacity: .9;
                 }
             }
         }

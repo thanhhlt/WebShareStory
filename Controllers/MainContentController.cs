@@ -248,6 +248,49 @@ public class MainContentController : Controller
         return View(model);
     }
 
+    // GET: /stories/LatestPosts
+    [HttpGet("/stories/LatestPosts")]
+    public async Task<IActionResult> LatestPosts([FromQuery(Name = "p")] int currentPage)
+    {
+        var model = new CategoryPostsViewModel();
+
+        var posts = _dbContext.Posts
+            .OrderByDescending(p => p.DateCreated).Take(50)
+            .Select(p => new Post
+            {
+                Id = p.Id,
+                Slug = p.Slug,
+                Title = p.Title,
+                Description = TrimDescription(p.Description ?? RemoveImagesAndTags(p.Content ?? ""), 250),
+                DateCreated = p.DateCreated.ToString("dd/MM/yyyy"),
+                NumLikes = p.Likes.Count(),
+                NumComments = p.Comments.Count(),
+                AuthorId = p.AuthorId,
+                Author = p.User.UserName,
+                AvatarPath = _dbContext.Images
+                    .Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
+                    .Select(i => i.FilePath)
+                    .FirstOrDefault() ?? "/images/no_avt.jpg"
+            });
+
+        // Pagination
+        if (posts.Any())
+        {
+            model.currentPage = Math.Max(currentPage, 1);
+            model.totalPosts = posts.Count();
+            model.countPages = (int)Math.Ceiling((double)model.totalPosts / model.ITEMS_PER_PAGE);
+
+            if (model.currentPage > model.countPages)
+                model.currentPage = model.countPages;
+
+            posts = posts.Skip((model.currentPage - 1) * model.ITEMS_PER_PAGE)
+                         .Take(model.ITEMS_PER_PAGE);
+        }
+
+        model.Posts = await posts.ToListAsync();
+
+        return View(model);
+    }
 
     private static string RemoveImagesAndTags(string html)
     {

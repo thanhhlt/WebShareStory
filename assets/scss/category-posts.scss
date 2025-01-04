@@ -1,3 +1,5 @@
+@use "_posts-list.scss";
+
 .main-content {
     //Paging
     .pagination {
@@ -60,58 +62,6 @@
             }
             .sort-item a:hover {
                 color: white;
-            }
-        }
-
-        // Post content
-        .post-content {
-            margin-bottom: .5rem;
-            padding-left: .7rem;
-            padding-top: .7rem;
-            padding-bottom: .7rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #dfe2ff;
-            align-items: center;
-
-            .post-thumb {
-                display: flex;
-                align-items: center;
-            }
-            .post-thumb img {
-                width: 100px;
-                height: 60px;
-                align-items: center;
-            }
-
-            a {
-                text-decoration: none;
-            }
-
-            a.post-title {
-                color: #333;
-            }
-            a.post-title:hover {
-                color: #04515a;
-                font-weight: bold;
-            }
-
-            div > p.post-author {
-                margin-bottom: 0px;
-                font-size: .8rem;
-            }
-
-            .post-author img.avatar {
-                width: 30px;
-                height: 30px;
-                border-radius: 50%;
-                margin-right: .6rem;
-            }
-
-            .col-md-2 p {
-                margin-bottom: 0px;
-                color: #333;
-                opacity: 0.9;
             }
         }
     }
