@@ -107,7 +107,6 @@
                 $('input[name="selectedPosts"]:checked').each(function () {
                     selectedPosts.push(parseInt($(this).val(), 10));
                 });
-                console.log(selectedPosts);
 
                 if (selectedPosts.length === 0) {
                     alert('Vui lòng chọn ít nhất một bài viết để xoá.');

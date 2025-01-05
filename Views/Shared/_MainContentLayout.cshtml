@@ -32,6 +32,7 @@
 
         let inputfield = document.getElementById("inputfield");
         let options = document.getElementsByClassName("dropdown-item");
+        
         for (option of options) {
             option.onclick = function() {
                 inputfield.placeholder = `${this.innerHTML}`;

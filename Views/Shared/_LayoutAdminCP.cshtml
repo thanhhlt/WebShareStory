@@ -89,7 +89,8 @@
 								<p>Cơ sở dữ liệu</p>
 							</a>
 						</li>
-						<li class="nav-item @(ViewBag.NavActive == "list_users" || ViewBag.NavActive == "list_roles" ? "active" : "") submenu">
+						<li
+							class="nav-item @(ViewBag.NavActive == "list_users" || ViewBag.NavActive == "list_roles" ? "active" : "") submenu">
 							<a data-bs-toggle="collapse" href="#forms">
 								<i class="fas fa-users"></i>
 								<p>Quản lý thành viên</p>
@@ -110,7 +111,8 @@
 								</ul>
 							</div>
 						</li>
-						<li class="nav-item @(ViewBag.NavActive == "list_posts" || ViewBag.NavActive == "list_cates" ? "active" : "") submenu">
+						<li
+							class="nav-item @(ViewBag.NavActive == "list_posts" || ViewBag.NavActive == "list_cates" ? "active" : "") submenu">
 							<a data-bs-toggle="collapse" href="#tables">
 								<i class="fas fa-file-alt"></i>
 								<p>Quản lý bài viết</p>
@@ -131,10 +133,10 @@
 								</ul>
 							</div>
 						</li>
-						<li class="nav-item">
-							<a href="#">
+						<li class="nav-item @(ViewBag.NavActive == "list_contacts" ? "active" : "")">
+							<a asp-area="Contact" asp-controller="Contact" asp-action="Index">
 								<i class="fas fa-headset"></i>
-								<p>Yêu cầu hỗ trợ</p>
+								<p>Quản lý liên hệ</p>
 							</a>
 						</li>
 					</ul>
@@ -175,14 +177,23 @@
 											</li>
 											<li>
 												<div class="dropdown-divider"></div>
-												<a class="dropdown-item" asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@user.Id"><i class="fas fa-id-card"></i> Trang cá nhân</a>
-												<a class="dropdown-item" asp-area="Identity" asp-controller="Profile" asp-action="Index"><i class="fas fa-edit"></i> Thay đổi thông tin</a>
-												<a class="dropdown-item" asp-area="Identity" asp-controller="Option" asp-action="Index"><i class="fas fa-wrench"></i> Tuỳ chọn</a>
+												<a class="dropdown-item" asp-area="" asp-controller="Profile"
+													asp-action="Index" asp-route-id="@user.Id"><i
+														class="fas fa-id-card"></i> Trang cá nhân</a>
+												<a class="dropdown-item" asp-area="Identity" asp-controller="Profile"
+													asp-action="Index"><i class="fas fa-edit"></i> Thay đổi thông tin</a>
+												<a class="dropdown-item" asp-area="Identity" asp-controller="Option"
+													asp-action="Index"><i class="fas fa-wrench"></i> Tuỳ chọn</a>
 												<div class="dropdown-divider"></div>
-												<a class="dropdown-item" asp-area="" asp-controller="Profile" asp-action="ListUserFollow" asp-route-id="@user.Id">Danh sách theo dõi</a>
-												<a class="dropdown-item" asp-area="" asp-controller="Profile" asp-action="ListUserBlock" asp-route-id="@user.Id">Danh sách chặn</a>
+												<a class="dropdown-item" asp-area="" asp-controller="Profile"
+													asp-action="ListUserFollow" asp-route-id="@user.Id">Danh sách theo
+													dõi</a>
+												<a class="dropdown-item" asp-area="" asp-controller="Profile"
+													asp-action="ListUserBlock" asp-route-id="@user.Id">Danh sách chặn</a>
+												<a class="dropdown-item" asp-area="Contact" asp-controller="Contact" asp-action="ListContacts">Danh sách liên hệ</a>
 												<div class="dropdown-divider"></div>
-												<a class="dropdown-item" asp-area="Identity" asp-controller="Account" asp-action="LogOff"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+												<a class="dropdown-item" asp-area="Identity" asp-controller="Account"
+													asp-action="LogOff"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
 											</li>
 										</div>
 									</ul>

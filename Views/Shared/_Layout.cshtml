@@ -38,7 +38,8 @@
                                 asp-area="" asp-controller="MainContent" asp-action="Index">Câu chuyện</a></li>
                         <li class="nav-item"><a class="nav-link @(ViewBag.NavLink == "LatestPosts" ? "active" : "")"
                                 asp-area="" asp-controller="MainContent" asp-action="LatestPosts">Mới nhất</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Liên hệ</a></li>
+                        <li class="nav-item"><a class="nav-link @(ViewBag.NavLink == "Contact" ? "active" : "")"
+                                asp-route="SendContact">Liên hệ</a></li>
                     </ul>
 
                     @* <form class="form-search" method="get" asp-controller="MainContent" asp-action="SearchPosts">

@@ -21,7 +21,7 @@ public class DbManageController : Controller
     private readonly IDeleteUserService _deleteUser;
 
     public DbManageController(
-        AppDbContext dbContext, 
+        AppDbContext dbContext,
         UserManager<AppUser> userManager,
         ILogger<DbManageController> logger,
         IDeleteUserService deleteUser)
@@ -313,7 +313,7 @@ public class DbManageController : Controller
                                     var cellValue = worksheet.Cells[row, col]?.Text ?? string.Empty;
                                     var processedValue = ProcessCellValue(cellValue, worksheet.Cells[1, col].Text.Trim());
                                     values.Add(processedValue);
-                                }   
+                                }
 
                                 var insertQuery = "";
                                 if (tableName == "Users")
@@ -410,6 +410,7 @@ public class DbManageController : Controller
             // await SeedCatesAsync();
             await SeedPostsAsync();
             await SeedLikesAsync();
+            await SeedContactsAsync();
             StatusMessage = "Seed Data thành công!";
         }
         catch (Exception ex)
@@ -518,7 +519,7 @@ public class DbManageController : Controller
             .RuleFor(p => p.isPublished, f => f.Random.Bool())
             .RuleFor(p => p.isChildAllowed, f => f.Random.Bool())
             .RuleFor(p => p.CategoryId, 9);
-            // .RuleFor(p => p.CategoryId, f => f.PickRandom(cateIds));
+        // .RuleFor(p => p.CategoryId, f => f.PickRandom(cateIds));
 
         List<PostsModel> fkPosts = new List<PostsModel>();
         for (int i = 0; i < 125; i++)
@@ -526,7 +527,7 @@ public class DbManageController : Controller
             var post = fakerPost.Generate();
             post.SetSlug();
             fkPosts.Add(post);
-        } 
+        }
 
         await _dbContext.AddRangeAsync(fkPosts);
         await _dbContext.SaveChangesAsync();
@@ -581,4 +582,39 @@ public class DbManageController : Controller
         await _dbContext.SaveChangesAsync();
     }
 
+    private async Task SeedContactsAsync()
+    {
+        _dbContext.Contacts.RemoveRange(_dbContext.Contacts.Where(c => c.Content.Contains("fakeData")));
+        await _dbContext.SaveChangesAsync();
+        await _dbContext.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('Contacts', RESEED, 0)");
+
+        var userIds = _dbContext.Users.Select(u => u.Id).ToList();
+
+        var fakerContact = new Faker<ContactsModel>()
+            .RuleFor(c => c.Name, f => f.Name.FullName())
+            .RuleFor(c => c.Email, (f, c) => string.IsNullOrEmpty(c.UserId) ? f.Internet.Email() : null)
+            .RuleFor(c => c.Title, f => {
+                var text = f.Lorem.Text();
+                return text.Length > 35 ? text.Substring(0, Math.Min(30, text.Length)) : text;
+            })
+            .RuleFor(c => c.Content, f => {
+                var text = f.Lorem.Text();
+                return text.Length > 210 ? text.Substring(0, Math.Min(200, text.Length)) + "fakeData" : text + "fakeData";
+            })
+            .RuleFor(c => c.Status, f => f.Random.Int(0, 1))
+            .RuleFor(c => c.DateSend, f => f.Date.Past(1))
+            .RuleFor(c => c.Priority, f => f.Random.Int(1, 3))
+            .RuleFor(c => c.UserId, f => f.Random.Bool() ? f.PickRandom(userIds) : null)
+            .RuleFor(c => c.Response, (f, c) => c.Status == 1 ? f.Lorem.Paragraph() : null);
+
+        List<ContactsModel> fakeContacts = new List<ContactsModel>();
+        for (int i = 0; i < 200; i++)
+        {
+            var contact = fakerContact.Generate();
+            fakeContacts.Add(contact);
+        }
+
+        await _dbContext.Contacts.AddRangeAsync(fakeContacts);
+        await _dbContext.SaveChangesAsync();
+    }
 }

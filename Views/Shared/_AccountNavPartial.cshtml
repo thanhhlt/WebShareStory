@@ -22,7 +22,8 @@
         @if (signInManager.IsSignedIn(User) && user != null)
         {
             <!-- Dropdown button -->
-            <a class="dropdown-account dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="">
+            <a class="dropdown-account dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                style="">
                 <img src="@avatarPath" alt="avatar" class="rounded-circle" style="height: 38px;"> @user.UserName
             </a>
             <!-- Dropdown menu -->
@@ -33,7 +34,8 @@
                         <div class="u-text">
                             <p>@user.UserName</p>
                             <p class="email">@user.Email</p>
-                            <a asp-area="Database" asp-controller="DbManage" asp-action="Index" class="btn-manage"><i class="fas fa-cogs"></i> Quản lý</a>
+                            <a asp-area="Database" asp-controller="DbManage" asp-action="Index" class="btn-manage"><i
+                                    class="fas fa-cogs"></i> Quản lý</a>
                         </div>
                     </div>
                     <hr class="dropdown-divider">
@@ -56,6 +58,7 @@
                     <a class="dropdown-item" asp-area="" asp-controller="Profile" asp-action="ListUserBlock"
                         asp-route-id="@userManager.GetUserId(User)">Danh sách chặn
                     </a>
+                    <a class="dropdown-item" asp-area="Contact" asp-controller="Contact" asp-action="ListContacts">Danh sách liên hệ</a>
                     <hr class="dropdown-divider">
                     <a class="dropdown-item" asp-area="Identity" asp-controller="Account" asp-action="LogOff"><i
                             class="fas fa-sign-out-alt"></i> Đăng xuất

@@ -37,6 +37,6 @@ public class AppUser : IdentityUser
 
         public virtual ICollection<PostsModel>? Posts { get; set; }
         public virtual ICollection<CommentsModel>? Comments { get; set; }
-        public virtual ICollection<SupportRequestsModel>? SupportRequests { get; set; }
+        public virtual ICollection<ContactsModel>? SupportRequests { get; set; }
         public virtual ICollection<LoggedBrowsersModel>? LoggedBrowsers { get; set; }
 }

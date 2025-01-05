@@ -3,14 +3,17 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace App.Models;
 
-public class SupportRequestsModel
+public class ContactsModel
 {
     [Key]
     public int Id { get; set; }
 
     [Required]
+    [StringLength(50, MinimumLength = 5)]
+    public string Name { get; set; } = "";
+
     [StringLength(255, MinimumLength = 5)]
-    public string Email { get; set; } = "";
+    public string? Email { get; set; }
 
     [Required]
     [MaxLength(255)]

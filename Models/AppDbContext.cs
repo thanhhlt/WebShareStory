@@ -83,10 +83,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             .HasOne(l => l.Comment)
             .WithMany();
 
-        // SupportRequest
-        modelBuilder.Entity<SupportRequestsModel>()
+        // Contacts
+        modelBuilder.Entity<ContactsModel>()
             .HasOne(r => r.User)
-            .WithMany(u => u.SupportRequests);
+            .WithMany(u => u.SupportRequests)
+            .OnDelete(DeleteBehavior.Cascade);
         
         //Categories
         modelBuilder.Entity<CategoriesModel>()
@@ -121,7 +122,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<CategoriesModel>? Categories { get; set; }
     public DbSet<CommentsModel>? Comments { get; set; }
     public DbSet<LikesModel>? Likes { get; set; }
-    public DbSet<SupportRequestsModel>? SupportRequests { get; set; }
+    public DbSet<ContactsModel>? Contacts { get; set; }
     public DbSet<LoggedBrowsersModel>? LoggedBrowsers { get; set; }
     public DbSet<ImagesModel>? Images { get; set; }
 }
