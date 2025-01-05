@@ -38,25 +38,21 @@
                         @if (Model.Relationship == RelationshipStatus.None)
                         {
                             <button class="btn btn-success" id="follow-btn"
-                                    data-user-id = "@Model.UserId"
                                     data-otheruser-id="@Model.OtherUserId"
                                     data-status="@RelationshipStatus.Follow">Theo dõi</button>
                             <button class="btn btn-danger" id="block-btn"
-                                    data-user-id = "@Model.UserId"
                                     data-otheruser-id="@Model.OtherUserId"
                                     data-status="@RelationshipStatus.Block">Chặn</button>
                         }
                         else if (Model.Relationship == RelationshipStatus.Follow)
                         {
                             <button class="btn btn-secondary" id="unfollow-btn"
-                                    data-user-id = "@Model.UserId"
                                     data-otheruser-id="@Model.OtherUserId"
                                     data-status="@RelationshipStatus.None">Bỏ theo dõi</button>
                         }
                         else
                         {
                             <button class="btn btn-secondary" id="unblock-btn"
-                                    data-user-id = "@Model.UserId"
                                     data-otheruser-id="@Model.OtherUserId"
                                     data-status="@RelationshipStatus.None">Bỏ chặn</button>
                         }
@@ -101,13 +97,13 @@
 </div>
 
 @section Scripts {
-    <link rel="stylesheet" href="~/css/profile.min.css">
+    <link rel="stylesheet" href="~/css/profile.min.css" asp-append-version="true">
     <script>
         $(document).ready(function () {
+            // Follow
             $(document).on('click', '#follow-btn', function (e) {
                 e.preventDefault();
                 const button = $(this);
-                const userId = button.data('user-id');
                 const otheruserId = button.data('otheruser-id');
                 const status = button.data('status');
                 const url = '@Url.Action("UpdateRelation")';
@@ -115,7 +111,7 @@
                 $.ajax({
                     url: url,
                     type: 'POST',
-                    data: {userId, otheruserId, status},
+                    data: {otheruserId, status},
                     success: function (response) {
                         if (typeof response === "string")
                             $('#content-relation').html(response)
@@ -124,10 +120,10 @@
                 });
             });
             
+            // UnFollow
             $(document).on('click', '#unfollow-btn', function (e) {
                 e.preventDefault();
                 const button = $(this);
-                const userId = button.data('user-id');
                 const otheruserId = button.data('otheruser-id');
                 const status = button.data('status');
                 const url = '@Url.Action("UpdateRelation")';
@@ -135,7 +131,7 @@
                 $.ajax({
                     url: url,
                     type: 'POST',
-                    data: {userId, otheruserId, status},
+                    data: {otheruserId, status},
                     success: function (response) {
                         if (typeof response === "string")
                             $('#content-relation').html(response)
@@ -144,10 +140,10 @@
                 });
             });
 
+            // Block
             $(document).on('click', '#block-btn', function (e) {
                 e.preventDefault();
                 const button = $(this);
-                const userId = button.data('user-id');
                 const otheruserId = button.data('otheruser-id');
                 const status = button.data('status');
                 const url = '@Url.Action("UpdateRelation")';
@@ -155,7 +151,7 @@
                 $.ajax({
                     url: url,
                     type: 'POST',
-                    data: {userId, otheruserId, status},
+                    data: {otheruserId, status},
                     success: function (response) {
                         if (typeof response === "string")
                             $('#content-relation').html(response)
@@ -164,10 +160,10 @@
                 });
             });
 
+            // UnBlock
             $(document).on('click', '#unblock-btn', function (e) {
                 e.preventDefault();
                 const button = $(this);
-                const userId = button.data('user-id');
                 const otheruserId = button.data('otheruser-id');
                 const status = button.data('status');
                 const url = '@Url.Action("UpdateRelation")';
@@ -175,7 +171,7 @@
                 $.ajax({
                     url: url,
                     type: 'POST',
-                    data: {userId, otheruserId, status},
+                    data: {otheruserId, status},
                     success: function (response) {
                         if (typeof response === "string")
                             $('#content-relation').html(response)

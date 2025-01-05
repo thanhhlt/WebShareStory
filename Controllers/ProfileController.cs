@@ -189,8 +189,9 @@ public class ProfileController : Controller
 
     //POST: /profile/UpdateRelation
     [HttpPost]
-    public async Task<IActionResult> UpdateRelationAsync(string userId, string otheruserId, RelationshipStatus status)
+    public async Task<IActionResult> UpdateRelationAsync(string otheruserId, RelationshipStatus status)
     {
+        var userId = (await _userManager.GetUserAsync(User)).Id;
         if (userId == null || otheruserId == null)
         {
             return Json(new{success = false});
@@ -254,19 +255,15 @@ public class ProfileController : Controller
 
     //GET: /profile/ListUserFollow
     [HttpGet]
-    public async Task<IActionResult> ListUserFollowAsync(string id)
+    public async Task<IActionResult> ListUserFollowAsync()
     {
-        if (string.IsNullOrEmpty(id))
-        {
-            return NotFound("Không tìm thấy tài khoản.");
-        }
-        var user = await _userManager.FindByIdAsync(id);
-        if (user == null)
+        var userId = (await _userManager.GetUserAsync(User)).Id;
+        if (userId == null)
         {
             return NotFound("Không tìm thấy tài khoản.");
         }
 
-        return View(await GetListUserRelations(id, RelationshipStatus.Follow));
+        return View(await GetListUserRelations(userId, RelationshipStatus.Follow));
     }
 
     public class ListUserId
@@ -309,17 +306,13 @@ public class ProfileController : Controller
     [HttpGet]
     public async Task<IActionResult> ListUserBlockAsync(string id)
     {
-        if (string.IsNullOrEmpty(id))
-        {
-            return NotFound("Không tìm thấy tài khoản.");
-        }
-        var user = await _userManager.FindByIdAsync(id);
-        if (user == null)
+        var userId = (await _userManager.GetUserAsync(User)).Id;
+        if (userId == null)
         {
             return NotFound("Không tìm thấy tài khoản.");
         }
 
-        return View(await GetListUserRelations(id, RelationshipStatus.Block));
+        return View(await GetListUserRelations(userId, RelationshipStatus.Block));
     }
 
     //POST: profile/UnblockUsers
