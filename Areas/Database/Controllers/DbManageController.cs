@@ -411,6 +411,7 @@ public class DbManageController : Controller
             await SeedPostsAsync();
             await SeedLikesAsync();
             await SeedContactsAsync();
+            await SeedCommentsAsync();
             StatusMessage = "Seed Data thành công!";
         }
         catch (Exception ex)
@@ -615,6 +616,37 @@ public class DbManageController : Controller
         }
 
         await _dbContext.Contacts.AddRangeAsync(fakeContacts);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    private async Task SeedCommentsAsync()
+    {
+        _dbContext.Comments.RemoveRange(_dbContext.Comments.Where(c => c.Content.Contains("fakeData")));
+        await _dbContext.SaveChangesAsync();
+        await _dbContext.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('Comments', RESEED, 0)");
+
+        var userIds = _dbContext.Users.Select(u => u.Id).ToList();
+        var postIds = _dbContext.Posts.Select(p => p.Id).ToList();
+
+        var fakerComment = new Faker<CommentsModel>()
+            .RuleFor(c => c.Content, f => {
+                var text = f.Lorem.Text();
+                return text.Length > 210 ? text.Substring(0, Math.Min(200, text.Length)) + "fakeData" : text + "fakeData";
+            })
+            .RuleFor(c => c.DateCommented, f => f.Date.Past(1))
+            // .RuleFor(c => c.PostId, f => f.PickRandom(postIds))
+            .RuleFor(c => c.PostId, f => 6)
+            .RuleFor(c => c.UserId, f => f.PickRandom(userIds));
+            // .RuleFor(c => c.ParentCommentId, f => f.Random.Bool(0.2f) ? null : (int?)f.Random.Int(1, 200));
+
+        List<CommentsModel> fakeComments = new List<CommentsModel>();
+        for (int i = 0; i < 20; i++)
+        {
+            var comment = fakerComment.Generate();
+            fakeComments.Add(comment);
+        }
+
+        await _dbContext.Comments.AddRangeAsync(fakeComments);
         await _dbContext.SaveChangesAsync();
     }
 }

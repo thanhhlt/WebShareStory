@@ -1,4 +1,5 @@
 @model App.Controllers.MainContentController.CategoryPostsViewModel
+@using App.Utilities
 
 @{
     Layout = "_MainContentLayout";
@@ -55,8 +56,8 @@
                 </div>
 
                 <div class="col-md-2">
-                    <p class='post-likes'><i class="fas fa-heart"></i> Lượt thích: @post.NumLikes</p>
-                    <p class='post-comments'><i class="fas fa-comments"></i> Bình luận: @post.NumComments</p>
+                    <p class='post-likes'><i class="fas fa-heart"></i> Lượt thích: @NumberFormatter.FormatNumber(post.NumLikes)</p>
+                    <p class='post-comments'><i class="fas fa-comments"></i> Bình luận: @NumberFormatter.FormatNumber(post.NumComments)</p>
                 </div>
             </div>
         }

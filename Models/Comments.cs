@@ -24,6 +24,6 @@ public class CommentsModel
 
     public CommentsModel? ParentComment { get; set; }
     public ICollection<CommentsModel>? ChildComments { get; set; }
-    public required PostsModel Posts { get; set; }
-    public required AppUser User { get; set; }
+    public PostsModel? Posts { get; set; }
+    public AppUser? User { get; set; }
 }

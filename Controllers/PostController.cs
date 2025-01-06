@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using App.Utilities;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using System.Linq.Dynamic.Core;
 
 namespace App.Controllers;
 
@@ -40,14 +42,23 @@ public class PostController : Controller
         return PartialView("_StatusMessage");
     }
 
+    public class Comment : CommentsModel
+    {
+        public string UserName { get; set; }
+        public string AvatarPath { get; set; }
+    }
     public class IndexViewModel : PostsModel
     {
         public string Author { get; set; }
         public string PathAvatar { get; set; }
         public string CateName { get; set; }
+        public bool isLiked { get; set; }
+        public int NumLikes { get; set; }
+        public int NumComments { get; set; }
+        public List<Comment> CommentsView { get; set; }
     }
 
-    //GET: /{slugCate}/{slugPost}
+    //GET: /{slugPost}
     [HttpGet("/{slugPost}")]
     public async Task<IActionResult> Index(string slugPost)
     {
@@ -55,42 +66,229 @@ public class PostController : Controller
         {
             return NotFound("Không tìm thấy bài viết.");
         }
-        IndexViewModel model = await _dbContext.Posts.Where(p => p.Slug == slugPost)
-                                                    .Include(p => p.User)
-                                                    .Include(p => p.Category)
-                                                    .Include(p => p.Image)
-                                                    .Select(p => new IndexViewModel
-                                                    {
-                                                        Id = p.Id,
-                                                        AuthorId = p.AuthorId,
-                                                        CateName = p.Category.Name,
-                                                        Title = p.Title,
-                                                        DateCreated = p.DateCreated,
-                                                        DateUpdated = p.DateUpdated,
-                                                        Hashtag = p.Hashtag,
-                                                        Content = p.Content,
-                                                        Slug = slugPost,
-                                                        User = p.User,
-                                                        isPinned = p.isPinned,
-                                                    }).FirstOrDefaultAsync();
+        IndexViewModel model = await _dbContext.Posts.AsNoTracking()
+                                            .Where(p => p.Slug == slugPost)
+                                            .Select(p => new IndexViewModel
+                                            {
+                                                Id = p.Id,
+                                                AuthorId = p.AuthorId,
+                                                CateName = p.Category.Name,
+                                                Title = p.Title,
+                                                DateCreated = p.DateCreated,
+                                                DateUpdated = p.DateUpdated,
+                                                Hashtag = p.Hashtag,
+                                                Content = p.Content,
+                                                Slug = slugPost,
+                                                Author = p.User.UserName ?? "Vô danh",
+                                                PathAvatar = _dbContext.Images.Where(i => i.UserId == p.AuthorId &&
+                                                                                            i.UseType == UseType.profile)
+                                                                .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg",
+                                                isPinned = p.isPinned,
+                                                NumLikes = p.Likes.Count(),
+                                                NumComments = p.Comments.Count(),
+                                            }).FirstOrDefaultAsync();
         if (model == null)
         {
             return NotFound("Không tìm thấy bài viết.");
         }
-        if (model.User == null)
+
+        // Comments
+        // var allComments = await _dbContext.Comments.AsNoTracking()
+        //     .Where(c => c.PostId == model.Id).OrderByDescending(c => c.DateCommented)
+        //     .Include(c => c.ChildComments)
+        //     .Include(c => c.User)
+        //     .ToListAsync();
+
+        // model.CommentsView = BuildCommentTree(allComments);
+
+        var userId = (await _userManager.GetUserAsync(User))?.Id;
+        if (userId == null)
         {
-            model.Author = "Vô danh";
-            model.PathAvatar = "/images/no_avt.jpg";
+            model.isLiked = false;
+            return View(model);
+        }
+        model.isLiked = _dbContext.Likes.AsNoTracking().Where(l => l.UserId == userId && l.PostId == model.Id).FirstOrDefault() != null ? true : false;
+
+        return View(model);
+    }
+
+    // GET: /GetAllComments/{id}
+    [HttpGet]
+    public async Task<IActionResult> GetAllCommentsAsync(int postId)
+    {
+        var allComments = await _dbContext.Comments.AsNoTracking()
+            .Where(c => c.PostId == postId).OrderByDescending(c => c.DateCommented)
+            .Include(c => c.ChildComments)
+            .Include(c => c.User)
+            .ToListAsync();
+
+        var model = BuildCommentTree(allComments);
+        return Json(model);
+    }
+    private List<Comment> BuildCommentTree(List<CommentsModel> allComments)
+    {
+        var commentDict = allComments.ToDictionary(c => c.Id, c => c);
+        var result = new List<Comment>();
+
+        foreach (var comment in allComments.Where(c => c.ParentCommentId == null))
+        {
+            result.Add(BuildCommentWithReplies(comment, commentDict));
+        }
+
+        return result;
+    }
+    private Comment BuildCommentWithReplies(CommentsModel comment, Dictionary<int, CommentsModel> commentDict)
+    {
+        var commentView = new Comment
+        {
+            Id = comment.Id,
+            Content = comment.Content,
+            DateCommented = comment.DateCommented,
+            UserId = comment.UserId,
+            PostId = comment.PostId,
+            ParentCommentId = comment.ParentCommentId,
+            UserName = comment.User.UserName ?? "Vô danh",
+            AvatarPath = _dbContext.Images
+                                    .Where(i => i.UserId == comment.UserId && i.UseType == UseType.profile)
+                                    .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg",
+            ChildComments = new List<CommentsModel>()
+        };
+
+        var childComments = commentDict.Values.Where(c => c.ParentCommentId == comment.Id).OrderByDescending(c => c.DateCommented).ToList();
+
+        foreach (var childComment in childComments)
+        {
+            commentView.ChildComments.Add(BuildCommentWithReplies(childComment, commentDict));
+        }
+
+        return commentView;
+    }
+
+    //POST: /CommentPost/{id, content}
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CommentPostAsync(int id, string content)
+    {
+        if (string.IsNullOrEmpty(content))
+        {
+            _logger.LogError(string.Empty, "Lỗi comment");
+            return Json(new { success = false });
+        }
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            _logger.LogError(string.Empty, "Không tìm thấy tài khoản");
+            return Json(new { success = false });
+        }
+
+        var comment = new CommentsModel
+        {
+            Content = content,
+            DateCommented = DateTime.UtcNow,
+            PostId = id,
+            UserId = user.Id
+        };
+        await _dbContext.Comments.AddAsync(comment);
+        await _dbContext.SaveChangesAsync();
+
+        var model = new Comment
+        {
+            Id = comment.Id,
+            Content = comment.Content,
+            DateCommented = comment.DateCommented,
+            UserId = comment.UserId,
+            PostId = comment.PostId,
+            ParentCommentId = comment.ParentCommentId,
+            UserName = comment.User.UserName ?? "Vô danh",
+            AvatarPath = _dbContext.Images
+                                    .Where(i => i.UserId == comment.UserId && i.UseType == UseType.profile)
+                                    .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg",
+        };
+        return PartialView("_CommentPartial", model);
+    }
+
+    //POST: /ReplyComment/{content, postId, parentId}
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ReplyCommentAsync(int postId, int parentId, string content)
+    {
+        if (string.IsNullOrEmpty(content))
+        {
+            _logger.LogError(string.Empty, "Lỗi comment");
+            return Json(new { success = false });
+        }
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            _logger.LogError(string.Empty, "Không tìm thấy tài khoản");
+            return Json(new { success = false });
+        }
+
+        var comment = new CommentsModel
+        {
+            Content = content,
+            DateCommented = DateTime.UtcNow,
+            PostId = postId,
+            UserId = user.Id,
+            ParentCommentId = parentId
+        };
+        await _dbContext.Comments.AddAsync(comment);
+        await _dbContext.SaveChangesAsync();
+
+        var model = new Comment
+        {
+            Id = comment.Id,
+            Content = comment.Content,
+            DateCommented = comment.DateCommented,
+            UserId = comment.UserId,
+            PostId = comment.PostId,
+            ParentCommentId = comment.ParentCommentId,
+            UserName = comment.User.UserName ?? "Vô danh",
+            AvatarPath = _dbContext.Images
+                                    .Where(i => i.UserId == comment.UserId && i.UseType == UseType.profile)
+                                    .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg",
+        };
+        return PartialView("_CommentPartial", model);
+    }
+
+    //POST: /LikePost/{id}
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> LikePostAsync(int? id)
+    {
+        if (id == null)
+        {
+            _logger.LogError(string.Empty, "Không tìm thấy bài viết");
+            return Json(new { success = false });
+        }
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            _logger.LogError(string.Empty, "Không tìm thấy tài khoản");
+            return Json(new { success = false });
+        }
+        var like = await _dbContext.Likes.Where(l => l.UserId == user.Id && l.PostId == id).FirstOrDefaultAsync();
+        if (like == null)
+        {
+            like = new LikesModel {
+                LikeType = LikeTypes.Post,
+                DateLiked = DateTime.UtcNow,
+                UserId = user.Id,
+                PostId = id,
+                User = user
+            };
+            await _dbContext.Likes.AddAsync(like);
         }
         else
         {
-            model.AuthorId = model.User.Id;
-            model.Author = model.User.UserName;
-            model.PathAvatar = await _dbContext.Images.Where(i => i.UserId == model.User.Id && 
-                                                            i.UseType == UseType.profile)
-                                                        .Select(i => i.FilePath).FirstOrDefaultAsync() ?? "/images/no_avt.jpg";
+             _dbContext.Likes.Remove(like);
         }
-        return View(model);
+        await _dbContext.SaveChangesAsync();
+
+        var numLikes = _dbContext.Likes.Count(l => l.PostId == id);
+        var numLikesFormatted = NumberFormatter.FormatNumber(numLikes);
+
+        return Json(new { success = true, numLikesFormatted });
     }
 
     public class EditCreateModel
@@ -104,7 +302,7 @@ public class PostController : Controller
 
         [Display(Name = "Mô tả")]
         public string Description { get; set; }
-        
+
         [Display(Name = "Nội dung")]
         [Required(ErrorMessage = "{0} không được bỏ trống.")]
         public string Content { get; set; }
@@ -151,7 +349,7 @@ public class PostController : Controller
                 .ToList();
 
             StatusMessage = $"Error Tạo bài viết thất bại.<br/> {string.Join("<br/>", errorMessages)}";
-            return Json(new {success = false});
+            return Json(new { success = false });
         }
 
         var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
@@ -183,7 +381,7 @@ public class PostController : Controller
             if (!extensions.Contains(fileExtension))
             {
                 StatusMessage = "Error Chỉ cho phép ảnh .jpg, .jpeg, .png, .webp, .gif";
-                return Json(new{success = false});
+                return Json(new { success = false });
             }
 
             string directoryPath = Path.Combine(_environment.ContentRootPath, "Images/Posts");
@@ -231,7 +429,7 @@ public class PostController : Controller
 
         await _dbContext.SaveChangesAsync();
 
-        return Json(new{success = true, redirect = Url.Action("Index", new { slugPost = post.Slug})});
+        return Json(new { success = true, redirect = Url.Action("Index", new { slugPost = post.Slug }) });
     }
 
     //GET: /EditPost/{id}
@@ -277,21 +475,21 @@ public class PostController : Controller
                 .ToList();
 
             StatusMessage = $"Error Chỉnh sửa bài viết thất bại.<br/> {string.Join("<br/>", errorMessages)}";
-            return Json(new {success = false});
+            return Json(new { success = false });
         }
         var post = await _dbContext.Posts.Where(p => p.Id == model.Id).FirstOrDefaultAsync();
         if (post == null)
         {
             StatusMessage = "Không tìm thấy bài viết.";
-            return Json(new{success = false});
+            return Json(new { success = false });
         }
 
         var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
         var timeInVietnam = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
 
         var category = await _dbContext.Categories.Where(c => c.Name == model.CategoryName)
-                                                    .Select(c => new {c.Id, c.Slug}).FirstOrDefaultAsync();
-        
+                                                    .Select(c => new { c.Id, c.Slug }).FirstOrDefaultAsync();
+
         post.CategoryId = category.Id;
         post.Title = model.Title;
         post.Description = model.Description;
@@ -327,7 +525,7 @@ public class PostController : Controller
             if (!extensions.Contains(fileExtension))
             {
                 StatusMessage = "Error Chỉ cho phép ảnh .jpg, .jpeg, .png, .webp, .gif";
-                return Json(new{success = false});
+                return Json(new { success = false });
             }
 
             string directoryPath = Path.Combine(_environment.ContentRootPath, "Images/Posts");
@@ -373,7 +571,7 @@ public class PostController : Controller
         }
 
         await _dbContext.SaveChangesAsync();
-        return Json(new{success = true, redirect = Url.Action("Index", new { slugPost = post.Slug})});
+        return Json(new { success = true, redirect = Url.Action("Index", new { slugPost = post.Slug }) });
     }
 
     //POST: /DeletePost/{id}
@@ -384,7 +582,7 @@ public class PostController : Controller
         if (id == null)
         {
             _logger.LogError(string.Empty, "Không tìm tấy bài viết");
-            return Json(new{success = false});
+            return Json(new { success = false });
         }
         var post = await _dbContext.Posts.Where(p => p.Id == id)
                                         .Include(p => p.Image).FirstOrDefaultAsync();
@@ -410,7 +608,7 @@ public class PostController : Controller
             _dbContext.Images.Remove(post.Image);
         }
 
-        return Json(new{success = true, redirect = Url.Action("Index", "Home")});
+        return Json(new { success = true, redirect = Url.Action("Index", "Home") });
     }
 
     //POST: /PinPost/{id}
@@ -420,8 +618,8 @@ public class PostController : Controller
     {
         if (id == null)
         {
-            _logger.LogError(string.Empty, "Không tìm tấy bài viết");
-            return Json(new{success = false});
+            _logger.LogError(string.Empty, "Không tìm thấy bài viết");
+            return Json(new { success = false });
         }
         var post = await _dbContext.Posts.Where(p => p.Id == id).FirstOrDefaultAsync();
         if (post == null)
@@ -433,6 +631,6 @@ public class PostController : Controller
         post.isPinned = !post.isPinned;
         await _dbContext.SaveChangesAsync();
 
-        return Json(new{success = true, isPinned = post.isPinned});
+        return Json(new { success = true, isPinned = post.isPinned });
     }
 }

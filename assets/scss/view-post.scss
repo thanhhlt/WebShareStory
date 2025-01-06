@@ -1,0 +1,83 @@
+.main-content {
+    .post {
+        margin-right: 2rem;
+        .post-header {
+            margin-bottom: 2rem;
+            position: relative;
+
+            .author-avatar {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                object-fit: cover;
+            }
+
+            .post-meta {
+                span.text-muted {
+                    font-size: .85rem;
+                }
+            }
+
+            .post-actions {
+                position: absolute;
+                top: 0;
+                right: 0;
+
+                button, a {
+                    margin-left: .2rem;
+                }
+            }
+
+            .post-category {
+                margin-top: .8rem;
+            }
+        }
+
+        .post-body {
+            margin-bottom: 3rem;
+            .post-title {
+                text-align: center;
+                margin: 2rem 0;
+            }
+
+            .post-content {
+                * {
+                    max-width: 100%;
+                }
+                img {
+                    border-radius: 8px;
+                }
+            }
+
+            .post-sign {
+                margin-top: 1rem;
+                font-size: 0.9rem;
+                color: #6c757d;
+            }
+        }
+
+        .post-footer {
+            .post-stats {
+                span {
+                    margin-right: 1rem;
+                }
+                .post-likes button {
+                    margin-right: 0;
+                }
+            }
+
+            .post-share-bookmark {
+                margin-top: 0;
+                margin-left: auto;
+            }
+
+            .bookmark-btn, .share-btn, .like-btn {
+                color: rgb(24, 24, 24);
+                border: none;
+                background: none;
+                margin-right: 1rem;
+                opacity: .9;
+            }
+        }
+    }
+}

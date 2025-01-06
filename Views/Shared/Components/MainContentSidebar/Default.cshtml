@@ -1,4 +1,5 @@
 @model App.Components.MainContentSidebar.IndexViewModel
+@using App.Utilities
 
 <!-- Create Post -->
 <a asp-area="" asp-controller="Post" asp-action="CreatePost" class="create-post btn btn-primary btn-sm"><i
@@ -95,7 +96,7 @@
                         <img src="@user.AvatarPath" alt="avatar" class="avatar" />
                         <span>@user.UserName</span>
                     </a>
-                    <p class="text-muted">&#10559;&nbsp;@user.NumPosts bài biết</p>
+                    <p class="text-muted">&#10559;&nbsp;@NumberFormatter.FormatNumber(user.NumPosts) bài biết</p>
                 </li>
             }
         </ul>
@@ -109,9 +110,9 @@
     </div>
     <div class="card-body">
         <ul class="stat-list">
-            <li><i class="fas fa-book"></i> @Model.NumUsers bài viết</li>
-            <li><i class="fas fa-users"></i> @Model.NumPosts thành viên</li>
-            <li><i class="fas fa-comments"></i> @Model.NumPostInWeek bài viết trong tuần</li>
+            <li><i class="fas fa-book"></i> @NumberFormatter.FormatNumber(Model.NumUsers) bài viết</li>
+            <li><i class="fas fa-users"></i> @NumberFormatter.FormatNumber(Model.NumPosts) thành viên</li>
+            <li><i class="fas fa-comments"></i> @NumberFormatter.FormatNumber(Model.NumPostInWeek) bài viết trong tuần</li>
         </ul>
     </div>
 </div>

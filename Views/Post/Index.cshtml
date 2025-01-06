@@ -1,61 +1,24 @@
 @model App.Controllers.PostController.IndexViewModel
+@using App.Utilities
 
 @{
+    Layout = "_MainContentLayout";
     ViewData["Title"] = Model.Title;
+    ViewBag.NavLink = "Stories";
 }
 
 @Html.AntiForgeryToken()
 
-<style>
-    .post-header {
-        margin-bottom: 20px;
-        position: relative;
-    }
+@section MainContentSidebar {
+    @await Component.InvokeAsync("MainContentSidebar")
+}
 
-    .author-avatar {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .post-actions {
-        position: absolute;
-        top: 0;
-        right: 0;
-    }
-
-    .post-actions button {
-        margin-left: 5px;
-    }
-
-    .post-content img {
-        max-width: 100%;
-        border-radius: 8px;
-    }
-
-    .hashtag {
-        color: #007bff;
-        text-decoration: none;
-    }
-
-    .hashtag:hover {
-        text-decoration: underline;
-    }
-
-    .post-footer {
-        margin-top: 40px;
-        font-size: 0.9rem;
-        color: #6c757d;
-    }
-</style>
-
-<div class="container my-5">
-    <div class="post">
-        <!-- Author -->
-        <div class="post-header d-flex align-items-center">
+<article class="post my-5">
+    <!-- Header -->
+    <section class="post-header">
+        <div class="d-flex">
             <img src="@Model.PathAvatar" alt="Avatar tác giả" class="author-avatar me-3">
-            <div>
+            <div class="post-meta">
                 @if (Model.AuthorId != null)
                 {
                     <strong>Tác giả: <a asp-controller="Profile" asp-action="Index" asp-route-id="@Model.AuthorId"
@@ -69,102 +32,86 @@
                 <br>
                 <span class="text-muted">Ngày đăng: @Model.DateCreated | Cập nhật: @Model.DateUpdated</span>
             </div>
-
             <div class="post-actions">
                 @{
                     string isPinned = Model.isPinned == true ? "Bỏ ghim" : "Ghim";
                 }
-                <button class="btn btn-warning btn-sm" id="pinPostBtn" data-id="@Model.Id">@isPinned</button>
+                <button class="btn btn-warning btn-sm" id="pinPostBtn" data-id="@Model.Id"
+                    data-url="@Url.Action("PinPost")">@isPinned</button>
                 <a asp-action="EditPost" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">Sửa</a>
-                <button class="btn btn-danger btn-sm" id="deletePostBtn" data-id="@Model.Id">Xóa</button>
+                <button class="btn btn-danger btn-sm" id="deletePostBtn" data-id="@Model.Id"
+                    data-url="@Url.Action("DeletePost")">Xóa</button>
             </div>
         </div>
 
-        <!-- Category -->
-        <div class="mb-3">
+        <div class="post-category">
             <span class="badge bg-primary">Danh mục: @Model.CateName</span>
         </div>
+    </section>
 
-        <hr>
+    <hr>
 
-        <!-- Post -->
-        <h1 class="text-center mb-5">@Model.Title</h1>
-
-        <div class="mb-3">
+    <!-- Body -->
+    <section class="post-body">
+        <h1 class="post-title">@Model.Title</h1>
+        <div class="post-content">
             @Html.Raw(Model.Content)
         </div>
 
+        <!-- Footer bài viết -->
+        <div class="post-sign text-end">
+            <span class="text-muted">Được đăng trên nền tảng <strong>Góc Kể Chuyện</strong> bởi
+                <strong>@Model.Author</strong></span>
+        </div>
+    </section>
+
+    <hr>
+
+    <section class="post-footer">
+        <div class="d-flex">
+            <div class="post-stats">
+                <span class="post-likes">
+                    <button class="like-btn" id="likePostBtn" data-id="@Model.Id" data-url="@Url.Action("LikePost")">
+                        <i class="@(Model.isLiked ? "fas fa-heart" : "far fa-heart")" id="icon-like"></i>
+                    </button>
+                    <span id="num-likes" style="margin-right: 0;">@NumberFormatter.FormatNumber(Model.NumLikes)</span>
+                </span>
+                <span class="post-comments"><i class="far fa-comment"></i>
+                    @NumberFormatter.FormatNumber(Model.NumComments)</span>
+                <span class="post-views"><i class="far fa-eye"></i> @NumberFormatter.FormatNumber(239994)</span>
+            </div>
+            <div class="post-share-bookmark">
+                <button class="bookmark-btn"><i class="fas fa-bookmark"></i> Bookmark</button>
+                <button class="share-btn"><i class="fas fa-share-alt"></i> Share</button>
+            </div>
+        </div>
+
         <hr>
 
-        <!-- Hashtags -->
-        <div class="mb-3">
-            <strong>Hashtags:</strong>
-            <a href="#" class="hashtag">#CảmXúc</a>,
-            <a href="#" class="hashtag">#TìnhYêu</a>,
-            <a href="#" class="hashtag">#CuộcSống</a>
+        <div class="post-comments">
+            <h5>Bình luận (<span>@NumberFormatter.FormatNumber(Model.NumComments)</span>)</h5>
+            <form asp-action="CommentPost" class="formComment" id="commentForm" method="post" role="form">
+                <input name="id" type="hidden" value="@Model.Id">
+                <textarea name='content' id="commentText" class="form-control" rows="3"
+                    placeholder="Viết bình luận..."></textarea>
+                <button type="submit" class="btn btn-primary mt-2">Bình luận</button>
+            </form>
+
+            @* <div id="commentsContainer">
+                @foreach (var comment in Model.CommentsView)
+                {
+                    @await Html.PartialAsync("_CommentPartial", comment)
+                }
+            </div>
+            <button class="btn btn-secondary mt-2" id="loadMoreCommentsBtn">Xem thêm bình luận</button> *@
+            <div id="commentsContainer"></div>
+            <button id="loadMoreCommentsBtn" class="btn btn-secondary mt-3" data-url="@Url.Action("GetAllComments")"
+                data-id="@Model.Id">Tải thêm bình luận</button>
         </div>
+    </section>
+</article>
 
-        <!-- Footer bài viết -->
-        <div class="post-footer text-end">
-            <span class="text-muted">Được đăng trên nền tảng <strong>Góc Kể Chuyện</strong></span>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        @* Delete Post *@
-        $(document).ready(function () {
-            $('#deletePostBtn').click(function (e) {
-                e.preventDefault();
-                const button = $(this);
-                const id = button.data('id');
-                const url = '@Url.Action("DeletePost")';
-
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: { id },
-                    headers: {
-                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            window.location.href = response.redirect;
-                        }
-                    },
-                    error: function (xhr) {
-                        console.error("Lỗi AJAX:", xhr.responseText);
-                        alert("Đã xảy ra lỗi trong quá trình xử lý. Chi tiết: " + xhr.responseText);
-                    }
-                });
-            });
-
-            @* Pind Post *@
-            $('#pinPostBtn').click(function (e) {
-                e.preventDefault();
-                const button = $(this);
-                const id = button.data('id');
-                const url = '@Url.Action("PinPost")';
-
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: { id },
-                    headers: {
-                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            button.text(response.isPinned ? "Bỏ ghim" : "Ghim");
-                        }
-                    },
-                    error: function (xhr) {
-                        console.error("Lỗi AJAX:", xhr.responseText);
-                        alert("Đã xảy ra lỗi trong quá trình xử lý. Chi tiết: " + xhr.responseText);
-                    }
-                });
-            });
-        });
-    </script>
+@section MainContentSidebarScripts {
+    <link rel="stylesheet" href="~/css/view-post.min.css" asp-append-version="true">
+    <script src="~/js/view-post.js" asp-append-version="true"></script>
 }
