@@ -1,0 +1,17 @@
+@model List<App.Controllers.ProfileController.PostBookmark>
+
+<div class="list-group list-group-flush">
+    @foreach (var post in Model)
+    {
+        <div class="list-group-item d-flex align-items-center">
+            <input type="checkbox" name="selectedPosts" value="@post.PostId" class="form-check-input me-3">
+            <div class="">
+                <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug"
+                    class="text-decoration-none" title="@post.Description">
+                    <h5 class="mb-0">@post.Title</h5>
+                </a>
+                <small class="text-muted">@post.DateCreatedPost - @post.DateUpdatedPost</small>
+            </div>
+        </div>
+    }
+</div>

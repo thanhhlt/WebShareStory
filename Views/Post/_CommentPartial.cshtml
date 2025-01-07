@@ -1,14 +1,18 @@
 @model App.Controllers.PostController.Comment
 
 <div class="comment" data-id="@Model.Id" style="margin-left: @(Model.ParentCommentId != null ? "40px" : "0px");">
-    <strong>@Model.UserName</strong> - <span class="text-muted">@Model.DateCommented</span>
-    <p>@Model.Content</p>
-    <button class="btn btn-link btn-sm replyBtn" data-id="@Model.Id">Trả lời</button>
+    <div class="d-flex">
+        <img src="@Model.AvatarPath" alt="Avatar tác giả" class="author-avatar me-3">
+        <a asp-controller="Profile" asp-action="Index" asp-route-id="@Model.UserId" class="username">@Model.UserName</a>
+        <span class="text-muted date-comment">&nbsp;&nbsp;&bull;&nbsp;&nbsp;@Model.DateCommented</span>
+    </div>
+    <p class="comment-content">@Model.Content</p>
+    <button class="replyBtn" data-id="@Model.Id"><i class="far fa-comment"></i> Phản hồi</button>
 
     <form asp-action="ReplyComment" class="replyForm" style="display:none;"
         data-parentid="@Model.Id" data-postid="@Model.PostId">
-        <textarea class="form-control replyText" rows="2" placeholder="Viết câu trả lời..."></textarea>
-        <button type="submit" class="btn btn-primary btn-sm mt-2">Gửi</button>
+        <textarea class="form-control replyText" rows="2" placeholder="Viết phản hồi..."></textarea>
+        <button type="submit" class="btn-send-reply"><p>Gửi</p></button>
     </form>
 
     @if (Model.ChildComments?.Any() == true)

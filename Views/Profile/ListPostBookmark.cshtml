@@ -1,0 +1,74 @@
+@model List<App.Controllers.ProfileController.PostBookmark>
+
+@{
+    ViewData["Title"] = "Danh sách bài viết đã lưu";
+}
+@Html.AntiForgeryToken()
+
+<h3 class="text-center mb-4">Danh sách bài viết đã lưu</h3>
+
+<div class="container my-5">
+    @if (Model == null || Model.Count == 0)
+    {
+        <p>Chưa lưu bài viết nào.</p>
+    }
+    else
+    {
+        <div class="card" id="list-post-bookmark">
+            <div class="list-group list-group-flush">
+                @foreach (var post in Model)
+                {
+                    <div class="list-group-item d-flex align-items-center">
+                        <input type="checkbox" name="selectedPosts" value="@post.PostId" class="form-check-input me-3">
+                        <div class="">
+                            <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug"
+                                class="text-decoration-none" title="@post.Description">
+                                <h5 class="mb-0">@post.Title</h5>
+                            </a>
+                            <small class="text-muted">@post.DateCreatedPost - @post.DateUpdatedPost</small>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <button id="unBookmarkBtn" class="btn btn-danger btn-sm mt-3">Bỏ lưu</button>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#unBookmarkBtn').click(function (e) {
+                e.preventDefault();
+
+                let selectedPosts = [];
+                $('input[name="selectedPosts"]:checked').each(function () {
+                    selectedPosts.push($(this).val());
+                });
+
+                if (selectedPosts.length === 0) {
+                    alert('Vui lòng chọn ít nhất một bài viết để bỏ theo dõi.');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("UnBookmarkPosts")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ postIds: selectedPosts }),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (typeof response === 'string')
+                            $("#list-post-bookmark").html(response)
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi AJAX:", xhr.responseText);
+                        alert("Đã xảy ra lỗi trong quá trình xử lý. Chi tiết: " + xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+}

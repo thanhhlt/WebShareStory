@@ -37,7 +37,9 @@ public class HomeController : Controller
         public string Description { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateUpdated { get; set; }
+        public int NumViews { get; set; }
         public int NumLikes { get; set; }
+        public int NumComments { get; set; }
         public string CateName { get; set; }
         public string Author { get; set; }
         public string AvatarPath { get; set; }
@@ -70,7 +72,9 @@ public class HomeController : Controller
                 Description = TrimDescription(p.Description ?? RemoveImagesAndTags(p.Content ?? ""), 250),
                 DateCreated = p.DateCreated,
                 DateUpdated = p.DateUpdated,
+                NumViews = p.NumViews,
                 NumLikes = p.Likes.Count,
+                NumComments = p.Comments.Count,
                 CateName = p.Category.Name,
                 Author = p.User.UserName,
                 AvatarPath = _context.Images
@@ -94,7 +98,9 @@ public class HomeController : Controller
                     Description = TrimDescription(p.Description ?? RemoveImagesAndTags(p.Content ?? ""), 250),
                     DateCreated = p.DateCreated,
                     DateUpdated = p.DateUpdated,
+                    NumViews = p.NumViews,
                     NumLikes = p.Likes.Count,
+                    NumComments = p.Comments.Count,
                     CateName = p.Category.Name,
                     Author = p.User.UserName,
                     AvatarPath = _context.Images

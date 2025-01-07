@@ -32,6 +32,7 @@ public class PostsModel
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
 
     public DateTime DateUpdated { get; set; } = DateTime.UtcNow;
+    public int NumViews { get; set; }
 
     public bool isPublished { get; set; }
 

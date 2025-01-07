@@ -13,7 +13,7 @@
     @await Component.InvokeAsync("MainContentSidebar")
 }
 
-<article class="post my-5">
+<article class="post my-4">
     <!-- Header -->
     <section class="post-header">
         <div class="d-flex">
@@ -65,10 +65,11 @@
         </div>
     </section>
 
-    <hr>
-
+    @* <hr> *@
+    <!-- Footer -->
     <section class="post-footer">
-        <div class="d-flex">
+        <div class="d-flex post-footer-stats">
+            <!-- Stats -->
             <div class="post-stats">
                 <span class="post-likes">
                     <button class="like-btn" id="likePostBtn" data-id="@Model.Id" data-url="@Url.Action("LikePost")">
@@ -76,40 +77,38 @@
                     </button>
                     <span id="num-likes" style="margin-right: 0;">@NumberFormatter.FormatNumber(Model.NumLikes)</span>
                 </span>
-                <span class="post-comments"><i class="far fa-comment"></i>
-                    @NumberFormatter.FormatNumber(Model.NumComments)</span>
-                <span class="post-views"><i class="far fa-eye"></i> @NumberFormatter.FormatNumber(239994)</span>
+                <span class="post-comments"><i class="far fa-comments"></i>
+                    <span class="num-comments" style="margin-right: 0;">@NumberFormatter.FormatNumber(Model.NumComments)</span>
+                </span>
+                <span class="post-views"><i class="far fa-eye"></i> @NumberFormatter.FormatNumber(Model.NumViews)</span>
             </div>
             <div class="post-share-bookmark">
-                <button class="bookmark-btn"><i class="fas fa-bookmark"></i> Bookmark</button>
-                <button class="share-btn"><i class="fas fa-share-alt"></i> Share</button>
+                <button class="bookmark-btn" id="bookmarkPostBtn" data-id="@Model.Id" data-url="@Url.Action("BookmarkPost")">
+                    <i class="@(Model.isBookmark ? "fas fa-bookmark" : "far fa-bookmark")" id="icon-bookmark"></i> Bookmark
+                </button>
+                <button class="share-btn" onclick="copyToClipboard()"><i class="fas fa-share-alt"></i> Share</button>
             </div>
         </div>
 
-        <hr>
+        @* <hr> *@
 
+        <!-- Comment -->
         <div class="post-comments">
-            <h5>Bình luận (<span>@NumberFormatter.FormatNumber(Model.NumComments)</span>)</h5>
+            <h5>Bình luận (<span class="num-comments" style="margin-right: 0;">@NumberFormatter.FormatNumber(Model.NumComments)</span>)</h5>
             <form asp-action="CommentPost" class="formComment" id="commentForm" method="post" role="form">
                 <input name="id" type="hidden" value="@Model.Id">
                 <textarea name='content' id="commentText" class="form-control" rows="3"
                     placeholder="Viết bình luận..."></textarea>
-                <button type="submit" class="btn btn-primary mt-2">Bình luận</button>
+                <button type="submit" class="btn-comment"><p>Bình luận</p></button>
             </form>
 
-            @* <div id="commentsContainer">
-                @foreach (var comment in Model.CommentsView)
-                {
-                    @await Html.PartialAsync("_CommentPartial", comment)
-                }
-            </div>
-            <button class="btn btn-secondary mt-2" id="loadMoreCommentsBtn">Xem thêm bình luận</button> *@
-            <div id="commentsContainer"></div>
-            <button id="loadMoreCommentsBtn" class="btn btn-secondary mt-3" data-url="@Url.Action("GetAllComments")"
-                data-id="@Model.Id">Tải thêm bình luận</button>
+            <div id="comments-container"></div>
+            <button id="loadMoreBtn" class="btn-show-more" data-url="@Url.Action("GetAllComments")"
+                data-id="@Model.Id">Xem thêm bình luận</button>
         </div>
     </section>
 </article>
+
 
 @section MainContentSidebarScripts {
     <link rel="stylesheet" href="~/css/view-post.min.css" asp-append-version="true">

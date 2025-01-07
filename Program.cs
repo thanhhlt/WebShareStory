@@ -29,6 +29,15 @@ builder.Services.AddDbContext<AppDbContext>(options => {
 // Add SignalR
 builder.Services.AddSignalR();
 
+//Add Session
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 var mailsettings = builder.Configuration.GetSection("MailSettings").Get<MailSettings>();
 string gmailPassword = Environment.GetEnvironmentVariable("GMAIL_PASSWORD") ?? "";
 if (mailsettings != null)
@@ -123,12 +132,10 @@ app.UseStaticFiles(new StaticFileOptions() {
     RequestPath = "/imgs"
 });
 
+app.UseSession();
 app.UseRouting();
-
 app.UseAuthorization();
-
 app.MapHub<PresenceHub>("presenceHub");
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

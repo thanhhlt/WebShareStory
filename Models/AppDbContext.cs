@@ -27,6 +27,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         modelBuilder.Entity<AppUser>()
             .Property(u => u.BirthDate)
             .HasColumnType("DATE");
+        modelBuilder.Entity<AppUser>()
+            .HasMany(u => u.Likes)
+            .WithOne(l => l.User)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<AppUser>()
+            .HasMany(u => u.Comments)
+            .WithOne(c => c.User)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // UserRelation
         modelBuilder.Entity<UserRelationModel>()
@@ -60,6 +68,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             .HasMany(p => p.Comments)
             .WithOne(c => c.Posts)
             .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<PostsModel>()
+            .HasIndex(p => p.Slug)
+            .IsUnique();
 
         // Comments
         modelBuilder.Entity<CommentsModel>()
@@ -75,7 +86,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         // Likes
         modelBuilder.Entity<LikesModel>()
             .HasOne(l => l.User)
-            .WithMany();
+            .WithMany(u => u.Likes);
         modelBuilder.Entity<LikesModel>()
             .HasOne(l => l.Post)
             .WithMany(p => p.Likes);
@@ -115,6 +126,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         modelBuilder.Entity<ImagesModel>()
             .HasIndex(i => i.FilePath)
             .IsUnique();
+
+        // Bookmarks
+        modelBuilder.Entity<BookmarksModel>()
+            .HasOne(b => b.User)
+            .WithMany(u => u.Bookmarks)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<BookmarksModel>()
+            .HasIndex(b => new { b.UserId, b.PostId })
+            .IsUnique();
     }
 
     public DbSet<UserRelationModel>? UserRelations { get; set; }
@@ -125,4 +145,5 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<ContactsModel>? Contacts { get; set; }
     public DbSet<LoggedBrowsersModel>? LoggedBrowsers { get; set; }
     public DbSet<ImagesModel>? Images { get; set; }
+    public DbSet<BookmarksModel>? Bookmarks { get; set; }
 }

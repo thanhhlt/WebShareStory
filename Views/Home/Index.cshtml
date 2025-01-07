@@ -32,7 +32,11 @@
                             <div class="post-info">
                                 <p class="text-muted"><img src="@post.AvatarPath" alt="avatar" class="avatar"> @post.Author
                                     &bull; @post.CateName</p>
-                                <p><i class="fas fa-heart"></i> @NumberFormatter.FormatNumber(post.NumLikes) | <i class="fas fa-comments"></i> @NumberFormatter.FormatNumber(45)</p>
+                                <p>
+                                    <i class="fas fa-heart"></i> @NumberFormatter.FormatNumber(post.NumLikes) | 
+                                    <i class="fas fa-comments"></i> @NumberFormatter.FormatNumber(post.NumComments) | 
+                                    <i class="far fa-eye"></i> @NumberFormatter.FormatNumber(post.NumViews)
+                                </p>
                             </div>
                         </div>
                     </a>
@@ -55,7 +59,8 @@
                     <div class="post-info">
                         <p class="text-muted mb-2"><img src="@post.AvatarPath" alt="avatar" class="avatar"> @post.Author
                             &bull; @post.CateName</p>
-                        <p class="text-muted mb-2 date"><em>Đăng ngày: @post.DateCreated - Cập nhật: @post.DateUpdated</em></p>
+                        <p class="text-muted mb-2 date"><em>Đăng ngày: @post.DateCreated - Cập nhật: @post.DateUpdated</em>
+                        </p>
                         <strong class="title">@post.Title</strong>
                         <p class="description">@post.Description</p>
                     </div>

@@ -1,9 +1,10 @@
 ﻿const connection = new signalR.HubConnectionBuilder()
     .withUrl("/presenceHub")
+    .configureLogging(signalR.LogLevel.None)
     .build();
 
 connection.start().catch(function (err) {
-    console.error(err.toString());
+    // console.error(err.toString());
 });
 
 connection.on("UserStatusChanged", function (userId, isActive) {

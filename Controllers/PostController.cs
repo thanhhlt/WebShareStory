@@ -10,6 +10,8 @@ using App.Utilities;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using System.Linq.Dynamic.Core;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
 
 namespace App.Controllers;
 
@@ -20,17 +22,20 @@ public class PostController : Controller
     private readonly AppDbContext _dbContext;
     private readonly UserManager<AppUser> _userManager;
     private readonly IWebHostEnvironment _environment;
+    private readonly ICompositeViewEngine _viewEngine;
 
     public PostController(
         ILogger<PostController> logger,
         AppDbContext dbContext,
         UserManager<AppUser> userManager,
-        IWebHostEnvironment environment
+        IWebHostEnvironment environment,
+        ICompositeViewEngine viewEngine
     )
     {
         _logger = logger;
         _dbContext = dbContext;
         _userManager = userManager;
+        _viewEngine = viewEngine;
         _environment = environment;
     }
 
@@ -42,10 +47,44 @@ public class PostController : Controller
         return PartialView("_StatusMessage");
     }
 
+    private async Task<string> RenderViewAsync<TModel>(string viewName, TModel model, bool partial = false)
+    {
+        if (string.IsNullOrEmpty(viewName))
+        {
+            viewName = ControllerContext.ActionDescriptor.ActionName;
+        }
+
+        ViewData.Model = model;
+
+        using (var writer = new StringWriter())
+        {
+            var viewResult = _viewEngine.FindView(ControllerContext, viewName, !partial);
+
+            if (viewResult.View == null)
+            {
+                throw new ArgumentNullException($"View {viewName} not found");
+            }
+
+            var viewContext = new ViewContext(
+                ControllerContext,
+                viewResult.View,
+                ViewData,
+                TempData,
+                writer,
+                new HtmlHelperOptions()
+            );
+
+            await viewResult.View.RenderAsync(viewContext);
+            return writer.GetStringBuilder().ToString();
+        }
+    }
+
     public class Comment : CommentsModel
     {
         public string UserName { get; set; }
         public string AvatarPath { get; set; }
+        public new string DateCommented { get; set; }
+        public new List<Comment> ChildComments { get; set; }
     }
     public class IndexViewModel : PostsModel
     {
@@ -53,6 +92,7 @@ public class PostController : Controller
         public string PathAvatar { get; set; }
         public string CateName { get; set; }
         public bool isLiked { get; set; }
+        public bool isBookmark { get; set; }
         public int NumLikes { get; set; }
         public int NumComments { get; set; }
         public List<Comment> CommentsView { get; set; }
@@ -66,7 +106,7 @@ public class PostController : Controller
         {
             return NotFound("Không tìm thấy bài viết.");
         }
-        IndexViewModel model = await _dbContext.Posts.AsNoTracking()
+        IndexViewModel model = await _dbContext.Posts
                                             .Where(p => p.Slug == slugPost)
                                             .Select(p => new IndexViewModel
                                             {
@@ -86,27 +126,37 @@ public class PostController : Controller
                                                 isPinned = p.isPinned,
                                                 NumLikes = p.Likes.Count(),
                                                 NumComments = p.Comments.Count(),
+                                                NumViews = p.NumViews
                                             }).FirstOrDefaultAsync();
         if (model == null)
         {
             return NotFound("Không tìm thấy bài viết.");
         }
 
-        // Comments
-        // var allComments = await _dbContext.Comments.AsNoTracking()
-        //     .Where(c => c.PostId == model.Id).OrderByDescending(c => c.DateCommented)
-        //     .Include(c => c.ChildComments)
-        //     .Include(c => c.User)
-        //     .ToListAsync();
+        // Increase NumViews
+        string sessionKey = $"ViewedPost_{model.Id}";
+        if (HttpContext.Session.GetString(sessionKey) == null)
+        {
+            var postToUpdate = new PostsModel { Id = model.Id, Slug = model.Slug };
+            
+            _dbContext.Attach(postToUpdate);
+            _dbContext.Entry(postToUpdate).Property(p => p.NumViews).CurrentValue = model.NumViews + 1;
+            _dbContext.Entry(postToUpdate).Property(p => p.NumViews).IsModified = true;
+            
+            await _dbContext.SaveChangesAsync();
+            HttpContext.Session.SetString(sessionKey, "viewed");
 
-        // model.CommentsView = BuildCommentTree(allComments);
+            model.NumViews++;
+        }
 
         var userId = (await _userManager.GetUserAsync(User))?.Id;
         if (userId == null)
         {
             model.isLiked = false;
+            model.isBookmark = false;
             return View(model);
         }
+        model.isBookmark = _dbContext.Bookmarks.AsNoTracking().Where(b => b.UserId == userId && b.PostId == model.Id).FirstOrDefault() != null ? true : false;
         model.isLiked = _dbContext.Likes.AsNoTracking().Where(l => l.UserId == userId && l.PostId == model.Id).FirstOrDefault() != null ? true : false;
 
         return View(model);
@@ -143,7 +193,7 @@ public class PostController : Controller
         {
             Id = comment.Id,
             Content = comment.Content,
-            DateCommented = comment.DateCommented,
+            DateCommented = comment.DateCommented.ToString("dd/MM/yyyy hh:mm"),
             UserId = comment.UserId,
             PostId = comment.PostId,
             ParentCommentId = comment.ParentCommentId,
@@ -151,7 +201,7 @@ public class PostController : Controller
             AvatarPath = _dbContext.Images
                                     .Where(i => i.UserId == comment.UserId && i.UseType == UseType.profile)
                                     .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg",
-            ChildComments = new List<CommentsModel>()
+            ChildComments = new List<Comment>()
         };
 
         var childComments = commentDict.Values.Where(c => c.ParentCommentId == comment.Id).OrderByDescending(c => c.DateCommented).ToList();
@@ -184,7 +234,7 @@ public class PostController : Controller
         var comment = new CommentsModel
         {
             Content = content,
-            DateCommented = DateTime.UtcNow,
+            DateCommented = DateTime.Now,
             PostId = id,
             UserId = user.Id
         };
@@ -195,7 +245,7 @@ public class PostController : Controller
         {
             Id = comment.Id,
             Content = comment.Content,
-            DateCommented = comment.DateCommented,
+            DateCommented = comment.DateCommented.ToString("dd/MM/yyyy hh:mm"),
             UserId = comment.UserId,
             PostId = comment.PostId,
             ParentCommentId = comment.ParentCommentId,
@@ -204,7 +254,15 @@ public class PostController : Controller
                                     .Where(i => i.UserId == comment.UserId && i.UseType == UseType.profile)
                                     .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg",
         };
-        return PartialView("_CommentPartial", model);
+
+        var numComments = _dbContext.Comments.Count(l => l.PostId == id);
+        var numCommentsFormatted = NumberFormatter.FormatNumber(numComments);
+        return Json(new 
+        {
+            success = true, 
+            numCommentsFormatted, 
+            html = await this.RenderViewAsync("_CommentPartial", model, true)
+        });
     }
 
     //POST: /ReplyComment/{content, postId, parentId}
@@ -227,7 +285,7 @@ public class PostController : Controller
         var comment = new CommentsModel
         {
             Content = content,
-            DateCommented = DateTime.UtcNow,
+            DateCommented = DateTime.Now,
             PostId = postId,
             UserId = user.Id,
             ParentCommentId = parentId
@@ -239,7 +297,7 @@ public class PostController : Controller
         {
             Id = comment.Id,
             Content = comment.Content,
-            DateCommented = comment.DateCommented,
+            DateCommented = comment.DateCommented.ToString("dd/MM/yyyy hh:mm"),
             UserId = comment.UserId,
             PostId = comment.PostId,
             ParentCommentId = comment.ParentCommentId,
@@ -248,7 +306,15 @@ public class PostController : Controller
                                     .Where(i => i.UserId == comment.UserId && i.UseType == UseType.profile)
                                     .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg",
         };
-        return PartialView("_CommentPartial", model);
+
+        var numComments = _dbContext.Comments.Count(l => l.PostId == postId);
+        var numCommentsFormatted = NumberFormatter.FormatNumber(numComments);
+        return Json(new 
+        {
+            success = true, 
+            numCommentsFormatted, 
+            html = await this.RenderViewAsync("_CommentPartial", model, true)
+        });
     }
 
     //POST: /LikePost/{id}
@@ -272,7 +338,7 @@ public class PostController : Controller
         {
             like = new LikesModel {
                 LikeType = LikeTypes.Post,
-                DateLiked = DateTime.UtcNow,
+                DateLiked = DateTime.Now,
                 UserId = user.Id,
                 PostId = id,
                 User = user
@@ -289,6 +355,36 @@ public class PostController : Controller
         var numLikesFormatted = NumberFormatter.FormatNumber(numLikes);
 
         return Json(new { success = true, numLikesFormatted });
+    }
+
+    //POST: /BookmarkPost/{id}
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> BookmarkPostAsync(int id)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            _logger.LogError(string.Empty, "Không tìm thấy tài khoản");
+            return Json(new { success = false });
+        }
+        var bookmark = await _dbContext.Bookmarks.Where(b => b.UserId == user.Id && b.PostId == id).FirstOrDefaultAsync();
+        if (bookmark == null)
+        {
+            bookmark = new BookmarksModel {
+                UserId = user.Id,
+                PostId = id,
+                DateCreated = DateTime.Now
+            };
+            await _dbContext.Bookmarks.AddAsync(bookmark);
+        }
+        else
+        {
+             _dbContext.Bookmarks.Remove(bookmark);
+        }
+        await _dbContext.SaveChangesAsync();
+
+        return Json(new { success = true});
     }
 
     public class EditCreateModel

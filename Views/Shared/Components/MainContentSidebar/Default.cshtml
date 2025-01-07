@@ -72,7 +72,7 @@
                     <ul id="category@(category.Id)" class="subcategory-list">
                         @foreach (var subCategory in category.ChildCategories)
                         {
-                            <li><a asp-action="CategoryPosts" asp-route-slug="@subCategory.Slug">@subCategory.Name</a></li>
+                            <li><a asp-controller="MainContent" asp-action="CategoryPosts" asp-route-slug="@subCategory.Slug">@subCategory.Name</a></li>
                         }
                     </ul>
                 </li>

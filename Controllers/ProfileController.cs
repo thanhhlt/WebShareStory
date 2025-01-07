@@ -137,7 +137,7 @@ public class ProfileController : Controller
         model.Relationship = userRelation.Status;
         return View(model);
     }
-    private string RemoveImagesAndTags(string html)
+    private static string RemoveImagesAndTags(string html)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
@@ -153,7 +153,7 @@ public class ProfileController : Controller
 
         return doc.DocumentNode.InnerText.Trim();
     }
-    private string TrimDescription(string description, int maxLength)
+    private static string TrimDescription(string description, int maxLength)
     {
         if (description.Length > maxLength)
         {
@@ -304,7 +304,7 @@ public class ProfileController : Controller
 
     //GET: /profile/ListUserBlock
     [HttpGet]
-    public async Task<IActionResult> ListUserBlockAsync(string id)
+    public async Task<IActionResult> ListUserBlockAsync()
     {
         var userId = (await _userManager.GetUserAsync(User)).Id;
         if (userId == null)
@@ -363,5 +363,78 @@ public class ProfileController : Controller
                 };
         List<UserRelation> listUserRelations = await qr.ToListAsync();
         return listUserRelations;
+    }
+
+    public class PostBookmark
+    {
+        public int PostId { get; set; }
+        public string Slug { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string DateCreatedPost { get; set; }
+        public string DateUpdatedPost { get; set; }
+        public string DateCreated { get; set; }
+    }
+    //GET: /profile/ListPostBookmark
+    [HttpGet]
+    public async Task<IActionResult> ListPostBookmark(string id)
+    {
+        var userId = (await _userManager.GetUserAsync(User)).Id;
+        if (userId == null)
+        {
+            return NotFound("Không tìm thấy tài khoản.");
+        }
+
+        return View(await GetListPostBookmark(userId));
+    }
+
+    public class ListPostId
+    {
+        public List<int> postIds { get; set; }
+    }
+    //POST: profile/UnBookmarkPosts
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UnBookmarkPostsAsync([FromBody] ListPostId Ids)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Json(new{success = false});
+        }
+        if (Ids.postIds == null)
+        {
+            return Json(new{success = false});
+        }
+
+        var postBookmarks = await _dbContext.Bookmarks
+                                    .Where(b => b.UserId == user.Id && 
+                                                Ids.postIds.Contains(b.PostId)).ToListAsync();
+
+        if (!postBookmarks.Any())
+        {
+            return Json(new{success = false});
+        }
+
+        _dbContext.Bookmarks.RemoveRange(postBookmarks);
+        await _dbContext.SaveChangesAsync();
+        return PartialView("_ListPostBookmark", await GetListPostBookmark(user.Id));
+    }
+
+    private async Task<List<PostBookmark>> GetListPostBookmark(string id)
+    {
+        var postBookmarks = await _dbContext.Bookmarks.AsNoTracking()
+                                        .Where(b => b.UserId == id)
+                                        .Select(b => new PostBookmark
+                                        {
+                                            PostId = b.PostId,
+                                            Title = b.Post.Title,
+                                            Description = TrimDescription(b.Post.Description ?? RemoveImagesAndTags(b.Post.Content ?? ""), 250),
+                                            Slug = b.Post.Slug,
+                                            DateCreatedPost = b.Post.DateCreated.ToString("dd/MM/yyyy"),
+                                            DateUpdatedPost = b.Post.DateUpdated.ToString("dd/MM/yyyy"),
+                                            DateCreated = b.DateCreated.ToString("dd/MM/yyyy")
+                                        }).ToListAsync();
+        return postBookmarks;
     }
 }
