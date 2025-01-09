@@ -20,8 +20,18 @@
         </div>
         <div class="form-group mb-3">
             <strong><label class="control-label">Danh mục</label></strong>
-            @Html.DropDownListFor(m => m.CategoryName, Model.AllCategories, "Chọn danh mục",
-                new { id = "select-cate", @class = "form-control" })
+            <select id="select-cate" asp-for="CategoryName" class="form-control">
+                <option value="">Chọn danh mục</option>
+                @foreach (var parentCategory in Model.AllCategories.Where(c => c.ParentId == null))
+                {
+                    <optgroup label="@parentCategory.Name">
+                        @foreach (var childCategory in Model.AllCategories.Where(c => c.ParentId == parentCategory.Id))
+                        {
+                            <option value="@childCategory.Name">@childCategory.Name</option>
+                        }
+                    </optgroup>
+                }
+            </select>
             <span class="text-danger" asp-validation-for="CategoryName"></span>
         </div>
         <div class="form-group mb-3">
@@ -76,6 +86,10 @@
                 const form = $(this);
                 const formData = new FormData(form[0]);
                 const url = form.attr('action');
+
+                if (!form.valid()) {
+                    return;
+                }
                 
                 $.ajax({
                     url: url,

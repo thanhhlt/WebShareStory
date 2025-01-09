@@ -394,7 +394,12 @@ public class PostController : Controller
 
         return Json(new { success = true});
     }
-
+    public class Category
+    {
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int? ParentId { get; set; }
+    }
     public class EditCreateModel
     {
         public int Id { get; set; }
@@ -420,7 +425,7 @@ public class PostController : Controller
         [Required(ErrorMessage = "{0} không được bỏ trống.")]
         public string CategoryName { get; set; }
 
-        public SelectList AllCategories { get; set; }
+        public List<Category> AllCategories { get; set; }
 
         public string PathThumbnail { get; set; }
 
@@ -433,19 +438,22 @@ public class PostController : Controller
     [Authorize(Policy = "AllowCreatePost")]
     public async Task<IActionResult> CreatePost()
     {
-        var allCates = await _dbContext.Categories.AsNoTracking()
-                                    .Include(c => c.ParentCate)
-                                    .Include(c => c.ChildCates)
-                                    .Where(c => c.ChildCates.Count() == 0)
-                                    .Select(c => c.Name).ToListAsync();
+        var allCategories = await _dbContext.Categories.AsNoTracking()
+                                        .Select(c => new Category
+                                        {
+                                            Id = c.Id,
+                                            Name = c.Name,
+                                            ParentId = c.ParentCateId
+                                        }).ToListAsync();
+
         var canPostAnmnt = User.HasClaim("Permission", "PostAnmnt");
         if (!canPostAnmnt)
         {
-            allCates = allCates.Where(c => c != "Thông báo chung").ToList();
+            allCategories = allCategories.Where(c => c.Name != "Thông báo chung").ToList();
         }
         EditCreateModel model = new EditCreateModel()
         {
-            AllCategories = new SelectList(allCates),
+            AllCategories = allCategories,
         };
         return View(model);
     }
@@ -584,11 +592,21 @@ public class PostController : Controller
         {
             return Forbid();
         }
-        var allCategories = await _dbContext.Categories
-                                    .Include(c => c.ParentCate)
-                                    .Where(c => c.ParentCate != null)
-                                    .Select(c => c.Name).ToListAsync();
-        model.AllCategories = new SelectList(allCategories);
+
+        var allCategories = await _dbContext.Categories.AsNoTracking()
+                                        .Select(c => new Category
+                                        {
+                                            Id = c.Id,
+                                            Name = c.Name,
+                                            ParentId = c.ParentCateId
+                                        }).ToListAsync();
+
+        var canPostAnmnt = User.HasClaim("Permission", "PostAnmnt");
+        if (!canPostAnmnt)
+        {
+            allCategories = allCategories.Where(c => c.Name != "Thông báo chung").ToList();
+        }
+        model.AllCategories = allCategories;
 
         return View(model);
     }

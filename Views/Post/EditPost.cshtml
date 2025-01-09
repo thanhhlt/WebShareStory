@@ -6,6 +6,18 @@
 
 @Html.AntiForgeryToken()
 
+<style>
+    .btn-close {
+        z-index: 1000; 
+        width: 6px; 
+        height: 6px; 
+        opacity: .8;
+        font-size: 10px;
+        padding: .3rem;
+        background-color: red;
+    }
+</style>
+
 <h2>@ViewData["Title"]</h2>
 
 <div id="_StatusMessage"></div>
@@ -20,8 +32,19 @@
         </div>
         <div class="form-group mb-3">
             <strong><label class="control-label">Danh mục</label></strong>
-            @Html.DropDownListFor(m => m.CategoryName, Model.AllCategories, "Chọn danh mục",
-                     new { id = "select-cate", @class = "form-control" })
+            <select id="select-cate" asp-for="CategoryName" class="form-control">
+                <option value="">Chọn danh mục</option>
+                @foreach (var parentCategory in Model.AllCategories.Where(c => c.ParentId == null))
+                {
+                    <optgroup label="@parentCategory.Name">
+                        @foreach (var childCategory in Model.AllCategories.Where(c => c.ParentId == parentCategory.Id))
+                        {
+                            <option value="@childCategory.Name">@childCategory.Name</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+            <span class="text-danger" asp-validation-for="CategoryName"></span>
         </div>
         <div class="form-group mb-3">
             <strong><label asp-for="Description" class="form-label"></label></strong>
@@ -42,8 +65,7 @@
                         <img src="@Url.Content(Model.PathThumbnail)" alt="Thumbnail"
                             style="max-width: 300px; height: 150px; margin-bottom: 12px;">
                         <input type="hidden" id="thumbnailDeleted" name="thumbnailDeleted" value="false" />
-                        <button type="button" class="btn-close position-absolute top-0 end-0" id="deleteThumbnail"
-                            style="z-index: 10; width: 6px; height: 6px; opacity: 0.3; top: 7px !important; right: 7px !important;"></button>
+                        <button type="button" class="btn-close position-absolute top-0 end-0" id="deleteThumbnail"></button>
                     </div>
                 }
             </div>
@@ -51,11 +73,11 @@
                 accept=".jpg,.png,.jpeg,.webp,.gif" class="form-control" />
             <span asp-validation-for="ImageThumbnail" class="text-danger"></span>
         </div>
-        <div class="form-group mb-3">
+        @* <div class="form-group mb-3">
             <strong><label asp-for="HashTags" class="form-label"></label></strong>
             <textarea asp-for="HashTags" class="form-control"></textarea>
             <span asp-validation-for="HashTags" class="text-danger"></span>
-        </div>
+        </div> *@
 
         <button type="submit" class="btn btn-primary">Cập nhật</button>
     </form>
@@ -99,6 +121,10 @@
 
                 if ($('#thumbnailDeleted').val() === 'true') {
                     formData.append('thumbnailDeleted', true);
+                }
+
+                if (!form.valid()) {
+                    return;
                 }
 
                 $.ajax({
