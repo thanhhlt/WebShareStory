@@ -1,4 +1,6 @@
+@using Microsoft.AspNetCore.Authorization
 @model IndexOptionViewModel
+@inject IAuthorizationService AuthorizationServices
 
 @{
     ViewData["Title"] = "Tuỳ chọn tài khoản";
@@ -47,8 +49,7 @@
                                         <form asp-action="LinkExternalLogin" method="post">
                                             <input asp-for="@provider.Name" name="provider" type="hidden" />
                                             <button type="submit" class="btn btn-primary"
-                                                title="Liên kết với @provider.Name">Liên
-                                                kết
+                                                title="Liên kết với @provider.Name">Liên kết
                                             </button>
                                         </form>
                                     </td>
@@ -60,26 +61,29 @@
             </div>
         </div>
 
-        <div class="card mb-4">
-            <div class="card-header">
-                <h3>Xác thực 2 yếu tố</h3>
+        @if ((await AuthorizationServices.AuthorizeAsync(User, "AllowTwoFactorAuth")).Succeeded)
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>Xác thực 2 yếu tố</h3>
+                </div>
+                <div class="card-body">
+                    <p>Tính năng này sẽ gửi một mã xác nhận vào email mỗi lần đăng nhập.</p>
+                    @if (Model.TwoFactor)
+                    {
+                        <form asp-action="DisableTwoFactorAuthentication" method="post" role="form">
+                            (Đang kích hoạt) <button type="submit" class="btn btn-danger btn-sm">Hủy</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="EnableTwoFactorAuthentication" method="post" role="form">
+                            <button type="submit" class="btn btn-primary btn-sm">Kích hoạt</button>
+                        </form>
+                    }
+                </div>
             </div>
-            <div class="card-body">
-                <p>Tính năng này sẽ gửi một mã xác nhận vào email mỗi lần đăng nhập.</p>
-                @if (Model.TwoFactor)
-                {
-                    <form asp-action="DisableTwoFactorAuthentication" method="post" role="form">
-                        (Đang kích hoạt) <button type="submit" class="btn btn-danger btn-sm">Hủy</button>
-                    </form>
-                }
-                else
-                {
-                    <form asp-action="EnableTwoFactorAuthentication" method="post" role="form">
-                        <button type="submit" class="btn btn-primary btn-sm">Kích hoạt</button>
-                    </form>
-                }
-            </div>
-        </div>
+        }
 
         <div class="card mb-4">
             <div class="card-header">

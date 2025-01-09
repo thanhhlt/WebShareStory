@@ -3,6 +3,7 @@
 using System.Globalization;
 using App.Areas.Post.Models.Post;
 using App.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +11,7 @@ namespace App.Areas.Post.Controllers;
 
 [Area("Post")]
 [Route("/[action]")]
+[Authorize(Policy = "CanManagePost")]
 public class PostController : Controller
 {
     private readonly ILogger<PostController> _logger;

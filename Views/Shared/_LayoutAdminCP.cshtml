@@ -1,8 +1,10 @@
 @using Microsoft.AspNetCore.Identity
 @using App.Models
+@using Microsoft.AspNetCore.Authorization
 
 @inject UserManager<AppUser> userManager
 @inject AppDbContext dbContext
+@inject IAuthorizationService AuthorizationServices
 
 @{
 	var user = await userManager.GetUserAsync(User);
@@ -83,62 +85,85 @@
 							</span>
 							<h4 class="text-section">Chức năng quản lý</h4>
 						</li>
-						<li class="nav-item @(ViewBag.NavActive == "database" ? "active" : "")">
-							<a asp-area="Database" asp-controller="DbManage" asp-action="Index">
-								<i class="fas fa-layer-group"></i>
-								<p>Cơ sở dữ liệu</p>
-							</a>
-						</li>
-						<li
-							class="nav-item @(ViewBag.NavActive == "list_users" || ViewBag.NavActive == "list_roles" ? "active" : "") submenu">
-							<a data-bs-toggle="collapse" href="#forms">
-								<i class="fas fa-users"></i>
-								<p>Quản lý thành viên</p>
-								<span class="caret"></span>
-							</a>
-							<div class="collapse show" id="forms">
-								<ul class="nav nav-collapse">
-									<li class="@(ViewBag.NavActive == "list_users" ? "active" : "")">
-										<a asp-area="Identity" asp-controller="User" asp-action="Index">
-											<span class="sub-item">Danh sách thành viên</span>
-										</a>
-									</li>
-									<li class="@(ViewBag.NavActive == "list_roles" ? "active" : "")">
-										<a asp-area="Identity" asp-controller="Role" asp-action="Index">
-											<span class="sub-item">Quản lý Role</span>
-										</a>
-									</li>
-								</ul>
-							</div>
-						</li>
-						<li
-							class="nav-item @(ViewBag.NavActive == "list_posts" || ViewBag.NavActive == "list_cates" ? "active" : "") submenu">
-							<a data-bs-toggle="collapse" href="#tables">
-								<i class="fas fa-file-alt"></i>
-								<p>Quản lý bài viết</p>
-								<span class="caret"></span>
-							</a>
-							<div class="collapse show" id="tables">
-								<ul class="nav nav-collapse">
-									<li class="@(ViewBag.NavActive == "list_posts" ? "active" : "")">
-										<a asp-area="Post" asp-controller="Post" asp-action="ManagePost">
-											<span class="sub-item">Danh sách bài viết</span>
-										</a>
-									</li>
-									<li class="@(ViewBag.NavActive == "list_cates" ? "active" : "")">
-										<a asp-area="Post" asp-controller="Category" asp-action="Index">
-											<span class="sub-item">Danh sách danh mục</span>
-										</a>
-									</li>
-								</ul>
-							</div>
-						</li>
-						<li class="nav-item @(ViewBag.NavActive == "list_contacts" ? "active" : "")">
-							<a asp-area="Contact" asp-controller="Contact" asp-action="Index">
-								<i class="fas fa-headset"></i>
-								<p>Quản lý liên hệ</p>
-							</a>
-						</li>
+						@if((await AuthorizationServices.AuthorizeAsync(User, "CanManageDb")).Succeeded)
+						{
+							<li class="nav-item @(ViewBag.NavActive == "database" ? "active" : "")">
+								<a asp-area="Database" asp-controller="DbManage" asp-action="Index">
+									<i class="fas fa-layer-group"></i>
+									<p>Cơ sở dữ liệu</p>
+								</a>
+							</li>
+						}
+						@if((await AuthorizationServices.AuthorizeAsync(User, "CanManageUser")).Succeeded)
+						{
+							<li
+								class="nav-item @(ViewBag.NavActive == "list_users" || ViewBag.NavActive == "list_roles" ? "active" : "") submenu">
+								<a data-bs-toggle="collapse" href="#forms">
+									<i class="fas fa-users"></i>
+									<p>Quản lý thành viên</p>
+									<span class="caret"></span>
+								</a>
+								<div class="collapse show" id="forms">
+									<ul class="nav nav-collapse">
+										<li class="@(ViewBag.NavActive == "list_users" ? "active" : "")">
+											<a asp-area="Identity" asp-controller="User" asp-action="Index">
+												<span class="sub-item">Danh sách thành viên</span>
+											</a>
+										</li>
+										@if((await AuthorizationServices.AuthorizeAsync(User, "CanManageRole")).Succeeded)
+										{
+											<li class="@(ViewBag.NavActive == "list_roles" ? "active" : "")">
+												<a asp-area="Identity" asp-controller="Role" asp-action="Index">
+													<span class="sub-item">Quản lý Role</span>
+												</a>
+											</li>
+										}
+									</ul>
+								</div>
+							</li>
+						}
+						@if((await AuthorizationServices.AuthorizeAsync(User, "CanManagePost")).Succeeded || 
+							(await AuthorizationServices.AuthorizeAsync(User, "CanManageCate")).Succeeded)
+						{
+							<li
+								class="nav-item @(ViewBag.NavActive == "list_posts" || ViewBag.NavActive == "list_cates" ? "active" : "") submenu">
+								<a data-bs-toggle="collapse" href="#tables">
+									<i class="fas fa-file-alt"></i>
+									<p>Quản lý bài viết</p>
+									<span class="caret"></span>
+								</a>
+								<div class="collapse show" id="tables">
+									<ul class="nav nav-collapse">
+										@if((await AuthorizationServices.AuthorizeAsync(User, "CanManagePost")).Succeeded)
+										{
+											<li class="@(ViewBag.NavActive == "list_posts" ? "active" : "")">
+												<a asp-area="Post" asp-controller="Post" asp-action="ManagePost">
+													<span class="sub-item">Danh sách bài viết</span>
+												</a>
+											</li>
+										}
+
+										@if((await AuthorizationServices.AuthorizeAsync(User, "CanManageCate")).Succeeded)
+										{
+											<li class="@(ViewBag.NavActive == "list_cates" ? "active" : "")">
+												<a asp-area="Post" asp-controller="Category" asp-action="Index">
+													<span class="sub-item">Danh sách danh mục</span>
+												</a>
+											</li>
+										}
+									</ul>
+								</div>
+							</li>
+						}
+						@if((await AuthorizationServices.AuthorizeAsync(User, "CanManageContact")).Succeeded)
+						{
+							<li class="nav-item @(ViewBag.NavActive == "list_contacts" ? "active" : "")">
+								<a asp-area="Contact" asp-controller="Contact" asp-action="Index">
+									<i class="fas fa-headset"></i>
+									<p>Quản lý liên hệ</p>
+								</a>
+							</li>
+						}
 					</ul>
 				</div>
 			</div>
@@ -177,23 +202,40 @@
 											</li>
 											<li>
 												<div class="dropdown-divider"></div>
-												<a class="dropdown-item" asp-area="" asp-controller="Profile"
-													asp-action="Index" asp-route-id="@user.Id"><i
-														class="fas fa-id-card"></i> Trang cá nhân</a>
+												<a class="dropdown-item" asp-area="" asp-controller="Profile" 
+													asp-action="Index" asp-route-id="@user.Id">
+													<i class="fas fa-id-card"></i> Trang cá nhân
+												</a>
 												<a class="dropdown-item" asp-area="Identity" asp-controller="Profile"
-													asp-action="Index"><i class="fas fa-edit"></i> Thay đổi thông tin</a>
+													asp-action="Index">
+													<i class="fas fa-edit"></i> Thay đổi thông tin
+												</a>
 												<a class="dropdown-item" asp-area="Identity" asp-controller="Option"
-													asp-action="Index"><i class="fas fa-wrench"></i> Tuỳ chọn</a>
+													asp-action="Index">
+													<i class="fas fa-wrench"></i> Tuỳ chọn
+												</a>
 												<div class="dropdown-divider"></div>
+												<a class="dropdown-item" asp-area="" asp-controller="Profile" 
+													asp-action="ListPostBookmark">
+													Bài viết đã lưu
+												</a>
 												<a class="dropdown-item" asp-area="" asp-controller="Profile"
-													asp-action="ListUserFollow" asp-route-id="@user.Id">Danh sách theo
-													dõi</a>
+													asp-action="ListUserFollow">
+													Danh sách theo dõi
+												</a>
 												<a class="dropdown-item" asp-area="" asp-controller="Profile"
-													asp-action="ListUserBlock" asp-route-id="@user.Id">Danh sách chặn</a>
-												<a class="dropdown-item" asp-area="Contact" asp-controller="Contact" asp-action="ListContacts">Danh sách liên hệ</a>
+													asp-action="ListUserBlock">
+													Danh sách chặn
+												</a>
+												<a class="dropdown-item" asp-area="Contact" asp-controller="Contact" 
+													asp-action="ListContacts">
+													Danh sách liên hệ
+												</a>
 												<div class="dropdown-divider"></div>
 												<a class="dropdown-item" asp-area="Identity" asp-controller="Account"
-													asp-action="LogOff"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+													asp-action="LogOff">
+													<i class="fas fa-sign-out-alt"></i> Đăng xuất
+												</a>
 											</li>
 										</div>
 									</ul>

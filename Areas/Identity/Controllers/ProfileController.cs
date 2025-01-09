@@ -23,6 +23,7 @@ namespace App.Areas.Identity.Controllers
     {
         private readonly AppDbContext _dbContext;
         private readonly UserManager<AppUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly IEmailTemplateService _emailTemplateService;
@@ -32,6 +33,7 @@ namespace App.Areas.Identity.Controllers
         public ProfileController(
             AppDbContext dbContext,
             UserManager<AppUser> userManager,
+            RoleManager<IdentityRole> roleManager,
             SignInManager<AppUser> signInManager,
             IEmailSender emailSender,
             IEmailTemplateService emailTemplateService,
@@ -40,6 +42,7 @@ namespace App.Areas.Identity.Controllers
         {
             _dbContext = dbContext;
             _userManager = userManager;
+            _roleManager = roleManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _emailTemplateService = emailTemplateService;
@@ -55,7 +58,7 @@ namespace App.Areas.Identity.Controllers
             return PartialView("_StatusMessage");
         }
 
-        // GET: /profile
+        // GET: /account/edit-profile
         [HttpGet("/account/edit-profile")]
         public async Task<IActionResult> Index()
         {
@@ -83,7 +86,7 @@ namespace App.Areas.Identity.Controllers
            return View(model);
         }
 
-        // POST: /profile/ChangeProfileInfo
+        // POST: /account/edit-profile/ChangeProfileInfo
         [HttpPost]
         public async Task<IActionResult> ChangeProfileInfo(IndexProfileViewModel model)
         {
@@ -121,7 +124,7 @@ namespace App.Areas.Identity.Controllers
             return RedirectToAction("Index");
         }
 
-        //POST: /profile/UpdateAvatar
+        //POST: /account/edit-profile/UpdateAvatar
         [HttpPost]
         public async Task<IActionResult> UpdateAvatarAsync([Bind("ImageAvatar")]IndexProfileViewModel model)
         {
@@ -190,8 +193,8 @@ namespace App.Areas.Identity.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        //GET: /profile/ResendEmailConfirm
-        [HttpGet]
+        //GET: /account/ResendEmailConfirm
+        [HttpGet("/account/ResendEmailConfirm")]
         public async Task<IActionResult> ResendEmailConfirm()
         {
             var user = await _userManager.GetUserAsync(HttpContext.User);
@@ -233,7 +236,7 @@ namespace App.Areas.Identity.Controllers
             return Json(new{success = true, message = "Đã gửi email xác nhận."});
         }
         
-        //GET: /profile/ChangeEmail
+        //GET: /account/edit-profile/ChangeEmail
         [HttpGet]
         public async Task<IActionResult> ChangeEmail(string NewEmail)
         {
@@ -247,7 +250,7 @@ namespace App.Areas.Identity.Controllers
             return View(changeEmailViewModel);
         }
 
-        //POST: /profile/ChangeEmail
+        //POST: /account/edit-profile/ChangeEmail
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeEmailAsync(ChangeEmailViewModel model)
@@ -276,7 +279,7 @@ namespace App.Areas.Identity.Controllers
                 if (login.ProviderDisplayName == "Google")
                 {
                     StatusMessage = "Error Gỡ bỏ liên kết tài khoản với Google trước khi thay đổi Email";
-                    return Json(new { success = false, redirect = Url.Action("Index") });
+                    return Json(new { success = false, redirect = Url.Action("Index", "Option") });
                 }
             }
 
@@ -312,7 +315,14 @@ namespace App.Areas.Identity.Controllers
                 }
                 return Json(new { success = false, redirect = Url.Action("Index") });   
             }
-        
+
+            //Remove Role
+            var roleExist = await _roleManager.RoleExistsAsync("Member");
+            if (roleExist)
+            {
+                await _userManager.RemoveFromRoleAsync(user, "Member");
+            }
+
             // Gửi qua email mới email xác nhận
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -342,14 +352,14 @@ namespace App.Areas.Identity.Controllers
             return Json(new { success = true, redirect = Url.Action("Index") });
         }
 
-        //GET: /profile/ChangePassword
+        //GET: /account/edit-profile/ChangePassword
         [HttpGet]
         public IActionResult ChangePassword()
         {
             return View();
         }
 
-        //POST: /profile/ChangePassword
+        //POST: /account/edit-profile/ChangePassword
         [HttpPost]
         public async Task<IActionResult> ChangePasswordAsync(ChangePasswordViewModel model)
         {

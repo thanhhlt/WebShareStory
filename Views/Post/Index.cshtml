@@ -1,5 +1,7 @@
 @model App.Controllers.PostController.IndexViewModel
 @using App.Utilities
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationServices
 
 @{
     Layout = "_MainContentLayout";
@@ -33,14 +35,18 @@
                 <span class="text-muted">Ngày đăng: @Model.DateCreated | Cập nhật: @Model.DateUpdated</span>
             </div>
             <div class="post-actions">
-                @{
+                @if((await AuthorizationServices.AuthorizeAsync(User, "AllowPinPost")).Succeeded)
+                {
                     string isPinned = Model.isPinned == true ? "Bỏ ghim" : "Ghim";
+                    <button class="btn btn-warning btn-sm" id="pinPostBtn" data-id="@Model.Id"
+                        data-url="@Url.Action("PinPost")">@isPinned</button>
                 }
-                <button class="btn btn-warning btn-sm" id="pinPostBtn" data-id="@Model.Id"
-                    data-url="@Url.Action("PinPost")">@isPinned</button>
-                <a asp-action="EditPost" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">Sửa</a>
-                <button class="btn btn-danger btn-sm" id="deletePostBtn" data-id="@Model.Id"
-                    data-url="@Url.Action("DeletePost")">Xóa</button>
+                @if((await AuthorizationServices.AuthorizeAsync(User, Model.AuthorId, "AllowUpdatePost")).Succeeded)
+                {
+                    <a asp-action="EditPost" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">Sửa</a>
+                    <button class="btn btn-danger btn-sm" id="deletePostBtn" data-id="@Model.Id"
+                        data-url="@Url.Action("DeletePost")">Xóa</button>
+                }
             </div>
         </div>
 
@@ -72,7 +78,10 @@
             <!-- Stats -->
             <div class="post-stats">
                 <span class="post-likes">
-                    <button class="like-btn" id="likePostBtn" data-id="@Model.Id" data-url="@Url.Action("LikePost")">
+                    <button class="like-btn" id="likePostBtn" 
+                            data-id="@Model.Id" 
+                            data-url="@Url.Action("LikePost")"
+                            data-is-authenticated="@((User.Identity?.IsAuthenticated ?? false).ToString().ToLower())">
                         <i class="@(Model.isLiked ? "fas fa-heart" : "far fa-heart")" id="icon-like"></i>
                     </button>
                     <span id="num-likes" style="margin-right: 0;">@NumberFormatter.FormatNumber(Model.NumLikes)</span>
@@ -83,7 +92,10 @@
                 <span class="post-views"><i class="far fa-eye"></i> @NumberFormatter.FormatNumber(Model.NumViews)</span>
             </div>
             <div class="post-share-bookmark">
-                <button class="bookmark-btn" id="bookmarkPostBtn" data-id="@Model.Id" data-url="@Url.Action("BookmarkPost")">
+                <button class="bookmark-btn" id="bookmarkPostBtn" 
+                        data-id="@Model.Id" 
+                        data-url="@Url.Action("BookmarkPost")"
+                        data-is-authenticated="@((User.Identity?.IsAuthenticated ?? false).ToString().ToLower())">
                     <i class="@(Model.isBookmark ? "fas fa-bookmark" : "far fa-bookmark")" id="icon-bookmark"></i> Bookmark
                 </button>
                 <button class="share-btn" onclick="copyToClipboard()"><i class="fas fa-share-alt"></i> Share</button>
@@ -112,5 +124,8 @@
 
 @section MainContentSidebarScripts {
     <link rel="stylesheet" href="~/css/view-post.min.css" asp-append-version="true">
+    <script>
+        var isUserLoggedIn = @((User.Identity?.IsAuthenticated) ?? false ? "true" : "false");
+    </script>
     <script src="~/js/view-post.js" asp-append-version="true"></script>
 }

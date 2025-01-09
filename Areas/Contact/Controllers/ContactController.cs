@@ -12,6 +12,7 @@ namespace App.Areas.Contact.Controllers;
 
 [Area("Contact")]
 [Route("contact/[action]")]
+[Authorize(Policy = "CanManageContact")]
 public class ContactController : Controller
 {
     private readonly ILogger<ContactController> _logger;
@@ -33,6 +34,7 @@ public class ContactController : Controller
     [TempData]
     public string StatusMessage { get; set; }
 
+    [AllowAnonymous]
     public IActionResult GetStatusMessage()
     {
         return PartialView("_StatusMessage");
@@ -183,12 +185,18 @@ public class ContactController : Controller
         _dbContext.Contacts.Add(contact);
         await _dbContext.SaveChangesAsync();
 
+        if (user == null)
+        {
+            StatusMessage = $"Gửi liên hệ thành công.";
+            return Json(new { success = true });
+        }
         var url = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{Url.Action("ContactDetail", new { id = contact.Id })}";
         StatusMessage = $"Gửi liên hệ thành công. Xem chi tiết tại <a href='{url}' target='_blank'>đây</a>";
         return Json(new { success = true });
     }
 
     //GET: /contact/{id}
+    [AllowAnonymous]
     [HttpGet("/contact/{id}")]
     public async Task<IActionResult> ContactDetail(int? id)
     {
@@ -215,6 +223,15 @@ public class ContactController : Controller
         if (contact == null)
         {
             return NotFound("Không tìm thấy liên hệ");
+        }
+
+        var currentUser = await _userManager.GetUserAsync(User);
+        var isAdmin = User.HasClaim("Feature", "ContactManage");
+        var isOwner = contact.UserId == currentUser?.Id;
+
+        if (!isAdmin && !isOwner)
+        {
+            return Forbid();
         }
 
         return View(contact);
@@ -263,7 +280,8 @@ public class ContactController : Controller
         return Json(new { success = true });
     }
 
-    //GET: 
+    //GET: /contact/ListContacts
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> ListContactsAsync()
     {

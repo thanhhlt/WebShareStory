@@ -7,6 +7,7 @@ using System.Globalization;
 using App.Areas.Identity.Models.UserViewModels;
 using App.ExtendMethods;
 using App.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -18,13 +19,14 @@ namespace App.Areas.Identity.Controllers
     // [Authorize(Roles = RoleName.Administrator)]
     [Area("Identity")]
     [Route("/manage-user/[action]")]
+    [Authorize(Policy = "CanManageUser")]
     public class UserController : Controller
     {
         private readonly ILogger<RoleController> _logger;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly AppDbContext _dbContext;
-
         private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly IDeleteUserService _deleteUser;
 
         public UserController(
@@ -32,12 +34,14 @@ namespace App.Areas.Identity.Controllers
             RoleManager<IdentityRole> roleManager, 
             AppDbContext dbContext, 
             UserManager<AppUser> userManager,
+            SignInManager<AppUser> signInManager,
             IDeleteUserService deleteUser)
         {
             _logger = logger;
             _roleManager = roleManager;
             _dbContext = dbContext;
             _userManager = userManager;
+            _signInManager = signInManager;
             _deleteUser = deleteUser;
         }
 
@@ -203,6 +207,7 @@ namespace App.Areas.Identity.Controllers
         //POST: /manageUser/UpdateRoleUser
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "CanManageRole")]
         public async Task<IActionResult> UpdateRoleUserAsync([Bind("UserId", "UserRoleNames")]ManageUserModel model)
         {
             if (string.IsNullOrEmpty(model.UserId))
@@ -211,26 +216,55 @@ namespace App.Areas.Identity.Controllers
                 return Json(new{success = false});
             }
 
-            //Remove old role
-            var userRoles = await _dbContext.UserRoles.Where(ur => ur.UserId == model.UserId).ToListAsync();
-            if (userRoles.Any())
+            var user = await _userManager.FindByIdAsync(model.UserId);
+            if (user == null)
             {
-                _dbContext.UserRoles.RemoveRange(userRoles);
-                await _dbContext.SaveChangesAsync();
+                StatusMessage = "Error Không tìm thấy người dùng.";
+                return Json(new { success = false });
+            }
+
+            //Remove old role
+
+            // var userRoles = await _dbContext.UserRoles.Where(ur => ur.UserId == model.UserId).ToListAsync();
+            // if (userRoles.Any())
+            // {
+            //     _dbContext.UserRoles.RemoveRange(userRoles);
+            //     await _dbContext.SaveChangesAsync();
+            // }
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (!removeResult.Succeeded)
+            {
+                StatusMessage = "Error Xóa vai trò hiện tại không thành công.";
+                return Json(new { success = false });
             }
 
             // Add Role
+
+            // if (model.UserRoleNames != null)
+            // {
+            //     var roles = await _dbContext.Roles.Where(r => model.UserRoleNames.Contains(r.Name)).ToListAsync();
+            //     var newUserRoles = roles.Select(r => new IdentityUserRole<string>
+            //     {
+            //         UserId = model.UserId,
+            //         RoleId = r.Id
+            //     }).ToList();
+            //     await _dbContext.UserRoles.AddRangeAsync(newUserRoles);
+            //     await _dbContext.SaveChangesAsync();
+            // }
             if (model.UserRoleNames != null)
             {
-                var roles = await _dbContext.Roles.Where(r => model.UserRoleNames.Contains(r.Name)).ToListAsync();
-                var newUserRoles = roles.Select(r => new IdentityUserRole<string>
+                var addResult = await _userManager.AddToRolesAsync(user, model.UserRoleNames);
+                if (!addResult.Succeeded)
                 {
-                    UserId = model.UserId,
-                    RoleId = r.Id
-                }).ToList();
-                await _dbContext.UserRoles.AddRangeAsync(newUserRoles);
-                await _dbContext.SaveChangesAsync();
+                    StatusMessage = "Error Thêm vai trò mới không thành công.";
+                    return Json(new { success = false });
+                }
             }
+            await _userManager.RemoveAuthenticationTokenAsync(user, "Default", "AccessToken");
+            await _userManager.UpdateSecurityStampAsync(user);
+            // await _signInManager.RefreshSignInAsync(user);
+
             var rolesView = from ur in _dbContext.UserRoles
                             join r in _dbContext.Roles on ur.RoleId equals r.Id
                             where ur.UserId == model.UserId
@@ -251,6 +285,7 @@ namespace App.Areas.Identity.Controllers
         //POST: /manageUser/LockAccountOptions
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "CanLockUser")]
         public async Task<IActionResult> LockAccountOptionsAsync([Bind("UserId, UserInfo")]ManageUserModel model)
         { 
             if (string.IsNullOrEmpty(model.UserId))
@@ -307,6 +342,7 @@ namespace App.Areas.Identity.Controllers
         //POST: /manageUser/ResetPassword
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize("CanResetPassword")]
         public async Task<IActionResult> ResetPasswordAsync(string userId)
         {
             _logger.LogError(string.Empty, userId);
@@ -337,6 +373,7 @@ namespace App.Areas.Identity.Controllers
         //POST: /manageUser/DeleteAccount
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize("CanDeleteUser")]
         public async Task<IActionResult> DeleteAccountAsync(string userId)
         {
             if (string.IsNullOrEmpty(userId))

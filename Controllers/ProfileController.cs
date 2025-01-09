@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.Controllers;
 
+[Authorize]
 [Route("/profile/[action]")]
 public class ProfileController : Controller
 {
@@ -164,6 +165,7 @@ public class ProfileController : Controller
 
     //GET: /profile/Thumbnail
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult Thumbnail(int postId)
     {
         var post = _dbContext.Posts.Include(p => p.Image).FirstOrDefault(p => p.Id == postId);

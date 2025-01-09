@@ -12,9 +12,11 @@ using SixLabors.ImageSharp.Processing;
 using System.Linq.Dynamic.Core;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Authorization;
 
 namespace App.Controllers;
 
+[Authorize]
 [Route("/[action]")]
 public class PostController : Controller
 {
@@ -23,13 +25,15 @@ public class PostController : Controller
     private readonly UserManager<AppUser> _userManager;
     private readonly IWebHostEnvironment _environment;
     private readonly ICompositeViewEngine _viewEngine;
+    private readonly IAuthorizationService _authorizationService;
 
     public PostController(
         ILogger<PostController> logger,
         AppDbContext dbContext,
         UserManager<AppUser> userManager,
         IWebHostEnvironment environment,
-        ICompositeViewEngine viewEngine
+        ICompositeViewEngine viewEngine,
+        IAuthorizationService authorizationService
     )
     {
         _logger = logger;
@@ -37,11 +41,13 @@ public class PostController : Controller
         _userManager = userManager;
         _viewEngine = viewEngine;
         _environment = environment;
+        _authorizationService = authorizationService;
     }
 
     [TempData]
     public string StatusMessage { get; set; }
 
+    [AllowAnonymous]
     public IActionResult GetStatusMessage()
     {
         return PartialView("_StatusMessage");
@@ -100,6 +106,7 @@ public class PostController : Controller
 
     //GET: /{slugPost}
     [HttpGet("/{slugPost}")]
+    [AllowAnonymous]
     public async Task<IActionResult> Index(string slugPost)
     {
         if (string.IsNullOrEmpty(slugPost))
@@ -164,6 +171,7 @@ public class PostController : Controller
 
     // GET: /GetAllComments/{id}
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllCommentsAsync(int postId)
     {
         var allComments = await _dbContext.Comments.AsNoTracking()
@@ -390,6 +398,7 @@ public class PostController : Controller
     public class EditCreateModel
     {
         public int Id { get; set; }
+        public string AuthorId { get; set; }
 
         [Display(Name = "Tên bài viết")]
         [Required(ErrorMessage = "{0} không được bỏ trống.")]
@@ -407,6 +416,8 @@ public class PostController : Controller
         [MaxLength(50, ErrorMessage = "{0} dài không quá {1} ký tự.")]
         public string HashTags { get; set; }
 
+        [Display(Name = "Danh mục")]
+        [Required(ErrorMessage = "{0} không được bỏ trống.")]
         public string CategoryName { get; set; }
 
         public SelectList AllCategories { get; set; }
@@ -419,12 +430,19 @@ public class PostController : Controller
 
     //GET: /CreatePost
     [HttpGet]
+    [Authorize(Policy = "AllowCreatePost")]
     public async Task<IActionResult> CreatePost()
     {
-        var allCates = await _dbContext.Categories
+        var allCates = await _dbContext.Categories.AsNoTracking()
                                     .Include(c => c.ParentCate)
-                                    .Where(c => c.ParentCate != null)
+                                    .Include(c => c.ChildCates)
+                                    .Where(c => c.ChildCates.Count() == 0)
                                     .Select(c => c.Name).ToListAsync();
+        var canPostAnmnt = User.HasClaim("Permission", "PostAnmnt");
+        if (!canPostAnmnt)
+        {
+            allCates = allCates.Where(c => c != "Thông báo chung").ToList();
+        }
         EditCreateModel model = new EditCreateModel()
         {
             AllCategories = new SelectList(allCates),
@@ -435,8 +453,19 @@ public class PostController : Controller
     //POST: /CreaePost
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = "AllowCreatePost")]
     public async Task<IActionResult> CreatePostAsync(EditCreateModel model)
     {
+        if (model.CategoryName == null)
+        {
+            StatusMessage = $"Error Tạo bài viết thất bại. Danh mục không được bỏ trống";
+            return Json(new { success = false });
+        }
+        var canPostAnmnt = User.HasClaim("Permission", "PostAnmnt");
+        if (!canPostAnmnt && model.CategoryName == "Thông báo chung")
+        {
+            return Forbid();
+        }
         if (!ModelState.IsValid)
         {
             var errorMessages = ModelState.Values
@@ -538,6 +567,7 @@ public class PostController : Controller
                                                     .Select(p => new EditCreateModel
                                                     {
                                                         Id = id,
+                                                        AuthorId = p.AuthorId,
                                                         Title = p.Title,
                                                         Description = p.Description,
                                                         Content = p.Content,
@@ -548,6 +578,11 @@ public class PostController : Controller
         if (model == null)
         {
             return NotFound("Không tìm thấy bài viết.");
+        }
+        var allowUpdate = await _authorizationService.AuthorizeAsync(User, model.AuthorId, "AllowUpdatePost");
+        if (!allowUpdate.Succeeded)
+        {
+            return Forbid();
         }
         var allCategories = await _dbContext.Categories
                                     .Include(c => c.ParentCate)
@@ -578,6 +613,12 @@ public class PostController : Controller
         {
             StatusMessage = "Không tìm thấy bài viết.";
             return Json(new { success = false });
+        }
+        // Authorization
+        var allowUpdate = await _authorizationService.AuthorizeAsync(User, post.AuthorId, "AllowUpdatePost");
+        if (!allowUpdate.Succeeded)
+        {
+            return Forbid();
         }
 
         var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
@@ -687,6 +728,12 @@ public class PostController : Controller
             _logger.LogError(string.Empty, "Bài viết không tồn tại");
             return Json(new { success = false });
         }
+        // Authorization
+        var allowUpdate = await _authorizationService.AuthorizeAsync(User, post.AuthorId, "AllowUpdatePost");
+        if (!allowUpdate.Succeeded)
+        {
+            return Forbid();
+        }
 
         _dbContext.Posts.Remove(post);
         await _dbContext.SaveChangesAsync();
@@ -710,6 +757,7 @@ public class PostController : Controller
     //POST: /PinPost/{id}
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = "AllowPinPost")]
     public async Task<IActionResult> PinPostAsync(int? id)
     {
         if (id == null)

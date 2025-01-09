@@ -57,6 +57,12 @@ $(document).ready(function () {
         const button = $(this);
         const id = button.data('id');
         const url = button.data('url');
+        const isAuthenticated = button.data('is-authenticated');
+        
+        if (!isAuthenticated) {
+            alert("Bạn cần đăng nhập để like bài viết");
+            return;
+        }
 
         $.ajax({
             url: url,
@@ -90,6 +96,12 @@ $(document).ready(function () {
         const button = $(this);
         const id = button.data('id');
         const url = button.data('url');
+        const isAuthenticated = button.data('is-authenticated');
+
+        if (!isAuthenticated) {
+            alert("Bạn cần đăng nhập để sử dụng tính năng thêm bookmark.");
+            return;
+        }
 
         $.ajax({
             url: url,
@@ -119,6 +131,11 @@ $(document).ready(function () {
     // Send Comment
     $('#commentForm').submit(function (e) {
         e.preventDefault();
+        if (!isUserLoggedIn) {
+            alert("Bạn cần đăng nhập để thực hiện bình luận!");
+            return;
+        }
+
         var content = $('#commentText').val();
         const numCommentsSpan = $(`.num-comments`);
         if (!content.trim()) {
@@ -149,6 +166,11 @@ $(document).ready(function () {
     // Reply Comment
     $(document).on('submit', '.replyForm', function (e) {
         e.preventDefault();
+        if (!isUserLoggedIn) {
+            alert("Bạn cần đăng nhập để thực hiện phản hồi!");
+            return;
+        }
+
         const form = $(this);
         const url = '/ReplyComment'
         const content = form.find('.replyText').val();
@@ -176,6 +198,10 @@ $(document).ready(function () {
 
     // Toggle form reply
     $(document).on('click', '.replyBtn', function () {
+        if (!isUserLoggedIn) {
+            alert("Bạn cần đăng nhập để thực hiện phản hồi!");
+            return;
+        }
         var button = $(this);
         var form = button.next('.replyForm');
         form.toggle();

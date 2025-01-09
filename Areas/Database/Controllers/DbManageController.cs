@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.Identity;
 using Bogus;
 using OfficeOpenXml;
 using System.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace App.Areas.Database.Controllers;
 
+[Authorize(Policy = "CanManageDb")]
 [Area("Database")]
 [Route("/db-dashboard/[action]")]
 public class DbManageController : Controller

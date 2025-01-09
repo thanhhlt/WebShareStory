@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using App.Security.Requirements;
+using Microsoft.AspNetCore.Authorization;
 
 Env.Load();
 
@@ -63,7 +65,7 @@ builder.Services.Configure<IdentityOptions> (options => {
     options.Password.RequireUppercase = false;
 
     //Lockout
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes (15);
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes (1);
     options.Lockout.AllowedForNewUsers = true;
 
     //User.
@@ -98,6 +100,76 @@ builder.Services.AddAuthentication()
         options.AccessDeniedPath = new PathString("/externalloginfail");
     });
 
+// Policy
+builder.Services.AddAuthorization(options => {
+    options.AddPolicy("AllowTwoFactorAuth", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Feature", "TwoFactorAuth");
+    });
+    options.AddPolicy("AllowPinPost", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Permission", "PinPost");
+    });
+    options.AddPolicy("AllowCreatePost", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Permission", "CreatePost");
+    });
+    options.AddPolicy("AllowUpdatePost", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.Requirements.Add(new PostUpdateRequirement());
+    });
+    //Manage
+    options.AddPolicy("CanManageContact", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Feature", "ContactManage");
+    });
+    options.AddPolicy("CanPostAnmnt", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Permission", "PostAnmnt");
+    });
+    //Post
+    options.AddPolicy("CanManagePost", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Feature", "PostManage");
+    });
+    options.AddPolicy("CanManageCate", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Feature", "CateManage");
+    });
+    //User
+    options.AddPolicy("CanManageUser", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Feature", "UserManage");
+    });
+    options.AddPolicy("CanLockUser", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Permission", "UserLock");
+    });
+    options.AddPolicy("CanResetPassword", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Permission", "ResetPassword");
+    });
+    options.AddPolicy("CanDeleteUser", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Permission", "DeleteUser");
+    });
+    //Other
+    options.AddPolicy("CanManageDb", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Feature", "DatabaseManage");
+    });
+    options.AddPolicy("CanViewStatistics", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Permission", "ViewStatistics");
+    });
+    options.AddPolicy("CanManageRole", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("Feature", "RoleManage");
+    });
+});
+
+builder.Services.AddScoped<IAuthorizationHandler, AppAuthorizationHandler>();
+
 // Config Format Time
 var cultureInfo = new CultureInfo("vi-VN");
 cultureInfo.DateTimeFormat.ShortDatePattern = "dd/MM/yyyy";
@@ -108,7 +180,8 @@ CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 {
-    options.ValidationInterval = TimeSpan.FromMinutes(1);
+    // options.ValidationInterval = TimeSpan.FromMinutes(5);
+    options.ValidationInterval = TimeSpan.Zero;
 });
 
 
@@ -134,6 +207,7 @@ app.UseStaticFiles(new StaticFileOptions() {
 
 app.UseSession();
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapHub<PresenceHub>("presenceHub");
 app.MapControllerRoute(

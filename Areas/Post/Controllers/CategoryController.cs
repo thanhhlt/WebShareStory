@@ -6,11 +6,13 @@ using App.Models;
 using App.Areas.Post.Models.Category;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Linq.Dynamic.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace App.Areas.Post.Controllers
 {
     [Area("Post")]
     [Route("admin/category/[action]/{id?}")]
+    [Authorize(Policy = "CanManageCate")]
     public class CategoryController : Controller
     {
         private readonly ILogger<CategoryController> _logger;

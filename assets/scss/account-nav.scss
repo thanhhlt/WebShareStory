@@ -1,4 +1,5 @@
 .account-nav {
+    position: relative;
     height: 54px;
     display: flex;
     align-items: center;
@@ -23,6 +24,7 @@
     .dropdown-menu {
         position: absolute;
         background-color: #8caaaf;
+        z-index: 1000;
     }
     .dropdown-menu::before {
         content: "";

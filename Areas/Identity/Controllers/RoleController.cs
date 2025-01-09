@@ -7,9 +7,9 @@ using System.Security.Claims;
 using App.Areas.Identity.Models.RoleViewModels;
 using App.ExtendMethods;
 using App.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.EntityFrameworkCore;
 
 namespace App.Areas.Identity.Controllers
@@ -17,6 +17,7 @@ namespace App.Areas.Identity.Controllers
 
     [Area("Identity")]
     [Route("/manage-role/[action]")]
+    [Authorize(Policy = "CanManageRole")]
     public class RoleController : Controller
     {
         private readonly ILogger<RoleController> _logger;
@@ -213,6 +214,7 @@ namespace App.Areas.Identity.Controllers
                 StatusMessage = "Error Không tìm thấy role.";
                 return Json(new {success = false});
             }
+            var tmp = await _roleManager.GetClaimsAsync(role);
 
             if ((await _roleManager.GetClaimsAsync(role)).Any(c => c.Type == model.Claim.ClaimType && c.Value == model.Claim.ClaimValue))
             {
@@ -272,7 +274,6 @@ namespace App.Areas.Identity.Controllers
 
         //POST: /role/EditRoleClaim
         [HttpPost]
-        // [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditRoleClaimAsync(int claimId, string claimType, string claimValue)
         {
             if (claimType == null || claimValue == null)
@@ -316,7 +317,6 @@ namespace App.Areas.Identity.Controllers
 
         //POST: /role/ReloadRoleClaim
         [HttpGet]
-        // [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReloadRoleClaimAsync(int claimId)
         {
             var claim = _dbContext.RoleClaims.Where(c => c.Id == claimId).FirstOrDefault();

@@ -22,6 +22,7 @@
             <strong><label class="control-label">Danh mục</label></strong>
             @Html.DropDownListFor(m => m.CategoryName, Model.AllCategories, "Chọn danh mục",
                 new { id = "select-cate", @class = "form-control" })
+            <span class="text-danger" asp-validation-for="CategoryName"></span>
         </div>
         <div class="form-group mb-3">
             <strong><label asp-for="Description" class="form-label"></label></strong>
@@ -39,11 +40,11 @@
                 accept=".jpg,.png,.jpeg,.webp,.gif" class="form-control" />
             <span asp-validation-for="ImageThumbnail" class="text-danger"></span>
         </div>
-        <div class="form-group mb-3">
+        @* <div class="form-group mb-3">
             <strong><label asp-for="HashTags" class="form-label"></label></strong>
             <textarea asp-for="HashTags" class="form-control"></textarea>
             <span asp-validation-for="HashTags" class="text-danger"></span>
-        </div>
+        </div> *@
 
         <button type="submit" class="btn btn-primary">Cập nhật</button>
     </form>

@@ -44,7 +44,7 @@ namespace App.Areas.Identity.Controllers
             return PartialView("_StatusMessage");
         }
 
-        //GET: /option
+        //GET: /account/settings
         [HttpGet("/account/settings")]
         public async Task<IActionResult> Index()
         {
@@ -152,6 +152,20 @@ namespace App.Areas.Identity.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            if (providerDisplayName  == "Google")
+            {
+                // Xác thực email tự động
+                var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var resultConfirmEmail = await _userManager.ConfirmEmailAsync(user, emailConfirmationToken);
+
+                if (resultConfirmEmail.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(user, "Member");
+                    await _userManager.UpdateSecurityStampAsync(user);
+                    await _signInManager.RefreshSignInAsync(user);
+                }
+            }
+
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
@@ -162,6 +176,7 @@ namespace App.Areas.Identity.Controllers
         // POST: /option/EnableTwoFactorAuthentication
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "AllowTwoFactorAuth")]
         public async Task<IActionResult> EnableTwoFactorAuthentication()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -178,6 +193,7 @@ namespace App.Areas.Identity.Controllers
         // POST: /option/DisableTwoFactorAuthentication
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "AllowTwoFactorAuth")]
         public async Task<IActionResult> DisableTwoFactorAuthentication()
         {
             var user = await _userManager.GetUserAsync(User);

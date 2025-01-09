@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
 using UAParser;
-using System.Web;
 
 namespace App.Areas.Identity.Controllers
 {
@@ -26,6 +25,7 @@ namespace App.Areas.Identity.Controllers
     {
         private readonly AppDbContext _dbContext;
         private readonly UserManager<AppUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IUserStore<AppUser> _userStore;
         private readonly IUserEmailStore<AppUser> _emailStore;
         private readonly SignInManager<AppUser> _signInManager;
@@ -36,6 +36,7 @@ namespace App.Areas.Identity.Controllers
         public AccountController(
             AppDbContext dbContext,
             UserManager<AppUser> userManager,
+            RoleManager<IdentityRole> roleManager,
             IUserStore<AppUser> userStore,
             SignInManager<AppUser> signInManager,
             IEmailSender emailSender,
@@ -44,6 +45,7 @@ namespace App.Areas.Identity.Controllers
         {
             _dbContext = dbContext;
             _userManager = userManager;
+            _roleManager = roleManager;
             _userStore = userStore;
             _emailStore = GetEmailStore();
             _signInManager = signInManager;
@@ -118,7 +120,7 @@ namespace App.Areas.Identity.Controllers
             return View(model);
         }
 
-        // POST: /logOff
+        // POST: /logout
         [HttpGet("/logout/")]
         public async Task<IActionResult> LogOff()
         {
@@ -153,6 +155,7 @@ namespace App.Areas.Identity.Controllers
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("Đã tạo user mới.");
+                    await _userManager.AddToRoleAsync(user, "Guest");
 
                     // Phát sinh token để xác nhận email
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -217,6 +220,12 @@ namespace App.Areas.Identity.Controllers
             }
             code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
             var result = await _userManager.ConfirmEmailAsync(user, code);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, "Member");
+                await _userManager.UpdateSecurityStampAsync(user);
+                await _signInManager.RefreshSignInAsync(user);
+            }
             return View(result.Succeeded ? "ConfirmEmail" : "ErrorConfirmEmail");
         }
 
@@ -237,7 +246,7 @@ namespace App.Areas.Identity.Controllers
         public IActionResult ExternalLoginFail(string? returnUrl)
         {
             returnUrl ??= Url.Content("~/");
-            return Redirect(returnUrl);
+            return LocalRedirect(returnUrl);
         }
 
         // GET: /account/ExternalLoginCallback
@@ -308,6 +317,17 @@ namespace App.Areas.Identity.Controllers
 
                                 if (linkResult.Succeeded)
                                 {
+                                    if (!existingUser.EmailConfirmed)
+                                    {
+                                        // Xác thực email tự động
+                                        var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(existingUser);
+                                        var resultConfirmEmail = await _userManager.ConfirmEmailAsync(existingUser, emailConfirmationToken);
+                                        if (resultConfirmEmail.Succeeded)
+                                        {
+                                            await _userManager.AddToRoleAsync(existingUser, "Member");
+                                            await _userManager.UpdateSecurityStampAsync(existingUser);
+                                        }
+                                    }
                                     await _signInManager.SignInAsync(existingUser, isPersistent: false);
                                     await SaveBrowserInfo(existingUser.Id);
                                     return LocalRedirect(returnUrl);
@@ -368,13 +388,20 @@ namespace App.Areas.Identity.Controllers
                 if (result.Succeeded)
                 {
                     result = await _userManager.AddLoginAsync(user, info);
+                    await _userManager.AddToRoleAsync(user, "Guest");
                     if (result.Succeeded)
                     {
                         if (info.ProviderDisplayName == "Google")
                         {
                             // Xác thực email tự động
                             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                            await _userManager.ConfirmEmailAsync(user, emailConfirmationToken);
+                            var resultConfirmEmail = await _userManager.ConfirmEmailAsync(user, emailConfirmationToken);
+
+                            if (resultConfirmEmail.Succeeded)
+                            {
+                                await _userManager.AddToRoleAsync(user, "Member");
+                                await _userManager.UpdateSecurityStampAsync(user);
+                            }
 
                             _logger.LogInformation(6, "User created an account using {Name} provider.", info.LoginProvider);
 
@@ -419,7 +446,6 @@ namespace App.Areas.Identity.Controllers
                 }
                 ModelState.AddModelError(result);
             }
-            Console.WriteLine(model.Email);
             ViewData["ReturnUrl"] = returnUrl;
             ViewData["ProviderDisplayName"] = info.ProviderDisplayName;
             return View(model);
@@ -616,7 +642,7 @@ namespace App.Areas.Identity.Controllers
             }
         }
 
-        [Route("/khongduoctruycap.html")]
+        [Route("/access-denied")]
         [AllowAnonymous]
         public IActionResult AccessDenied()
         {

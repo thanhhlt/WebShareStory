@@ -16,6 +16,11 @@
     .custom-radio {
         margin-right: 20px;
     }
+
+    .link-disabled {
+        cursor: progress !important;
+        text-decoration: none !important;
+    }
 </style>
 
 <partial name="_StatusMessage">
@@ -158,6 +163,7 @@
 
                 link.html('<i class="fas fa-spinner fa-pulse"></i> Đang gửi...');
                 link.prop('disabled', true);
+                link.addClass('link-disabled');
 
                 $.ajax({
                     url: url,
@@ -173,6 +179,7 @@
                     complete: function () {
                         link.html(originalText);
                         link.prop('disabled', false);
+                        link.removeClass('link-disabled');
                     }
                 });
             });

@@ -1,9 +1,14 @@
 @model App.Components.MainContentSidebar.IndexViewModel
 @using App.Utilities
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationServices
 
 <!-- Create Post -->
-<a asp-area="" asp-controller="Post" asp-action="CreatePost" class="create-post btn btn-primary btn-sm"><i
-        class="fas fa-paper-plane"></i> Bài viết mới</a>
+@if((await AuthorizationServices.AuthorizeAsync(User, "AllowCreatePost")).Succeeded)
+{
+    <a asp-area="" asp-controller="Post" asp-action="CreatePost" class="create-post btn btn-primary btn-sm"><i
+            class="fas fa-paper-plane"></i> Bài viết mới</a>
+}
 
 <!-- Search -->
 <form class="form-search" method="get" asp-controller="MainContent" asp-action="SearchPosts">
