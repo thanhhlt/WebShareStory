@@ -8,6 +8,7 @@ body {
     font-family: 'Merriweather', serif;
     background-color: #28646B;
     padding-top: 70px;
+    margin-bottom: 0;
 
     // navbar
     .navbar {
@@ -131,19 +132,17 @@ body {
         background-color: #f9f9f9;
         padding: 2em 5em;
         min-height: 86vh ;
-
-        // background: linear-gradient(45deg, rgba(103, 154, 206, 0.8), rgba(103, 214, 210, 0.85));
     }
     main.box-shadow {
         box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.4);
     }
 
     //Footer
-    .footer {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        white-space: nowrap;
-        line-height: 60px;
-    }
+    // .footer {
+    //     position: absolute;
+    //     bottom: 0;
+    //     width: 100%;
+    //     white-space: nowrap;
+    //     line-height: 60px;
+    // }
 }

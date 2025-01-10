@@ -23,9 +23,9 @@ public class CategoriesModel
     [ForeignKey(nameof(ParentCate))]
     public int? ParentCateId { get; set; }
 
-    public CategoriesModel? ParentCate { get; set; }
-    public ICollection<CategoriesModel>? ChildCates { get; set; }
-    public ICollection<PostsModel>? Posts { get; set; }
+    public virtual CategoriesModel? ParentCate { get; set; }
+    public virtual ICollection<CategoriesModel>? ChildCates { get; set; }
+    public virtual ICollection<PostsModel>? Posts { get; set; }
 
     public void SetSlug ()
     {

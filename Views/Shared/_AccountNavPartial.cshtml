@@ -1,9 +1,11 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using App.Models
+@using Microsoft.AspNetCore.Authorization
 
 @inject SignInManager<AppUser> signInManager
 @inject UserManager<AppUser> userManager
 @inject AppDbContext dbContext
+@inject IAuthorizationService AuthorizationServices
 
 @{
     var user = await userManager.GetUserAsync(User);
@@ -34,8 +36,11 @@
                         <div class="u-text">
                             <p>@user.UserName</p>
                             <p class="email">@user.Email</p>
-                            <a asp-area="Database" asp-controller="DbManage" asp-action="Index" class="btn-manage"><i
-                                    class="fas fa-cogs"></i> Quản lý</a>
+                            @if(User.IsInRole("Admin") || User.IsInRole("Editor") || User.IsInRole("Moderator"))
+                            {
+                                <a asp-area="Database" asp-controller="DbManage" asp-action="Index" class="btn-manage"><i
+                                        class="fas fa-cogs"></i> Quản lý</a>
+                            }
                         </div>
                     </div>
                     <hr class="dropdown-divider">

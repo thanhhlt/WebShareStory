@@ -10,7 +10,7 @@ namespace App.Areas.Identity.Models.AccountViewModels
     public class LoginViewModel
     {
         [Required(ErrorMessage = "{0} không được bỏ trống.")]
-        [Display(Name = "Email hoặc tên tài khoản")]
+        [Display(Name = "Email hoặc tài khoản")]
         public string UserNameOrEmail { get; set; }
 
 
@@ -19,7 +19,7 @@ namespace App.Areas.Identity.Models.AccountViewModels
         [Display(Name = "Mật khẩu")]
         public string Password { get; set; }
 
-        [Display(Name = "Nhớ thông tin đăng nhập?")]
+        [Display(Name = "Nhớ thông tin")]
         public bool RememberMe { get; set; }
     }
 }

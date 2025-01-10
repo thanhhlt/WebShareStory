@@ -17,7 +17,10 @@
     <li class="breadcrumb-item"><a asp-area="" asp-controller="MainContent" asp-action="Index"><i class="fas fa-home"></i></a></li>
     @foreach (var item in Model.Items)
     {
+      if (item != null)
+      {
         <li class="breadcrumb-item" aria-current="page"><a href="@item.Url">@item.Title</a></li>
+      }
     }
   </ol>
 </nav>

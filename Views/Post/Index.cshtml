@@ -7,6 +7,20 @@
     Layout = "_MainContentLayout";
     ViewData["Title"] = Model.Title;
     ViewBag.NavLink = "Stories";
+
+    var breadcrumb = new Breadcrumb
+    {
+        Items = new List<Item>
+        {
+            new Item { Title = Model.CateName, Url = Url.Action("CategoryPosts", "MainContent", new { slug = Model.CateSlug }) },
+            new Item { Title = "Bài viết", Url = Url.Action("Index", new { slug = Model.Slug }) }
+        }
+    };
+    if (Model.ParentCateName != null && Model.ParentCateId != null)
+    {
+        var item = new Item { Title = Model.ParentCateName, Url = Url.Action("Index", "MainContent") + $"#{Model.ParentCateId}" };
+        breadcrumb.Items.Insert(0, item);
+    }
 }
 
 @Html.AntiForgeryToken()
@@ -14,6 +28,8 @@
 @section MainContentSidebar {
     @await Component.InvokeAsync("MainContentSidebar")
 }
+
+<partial name="_Breadcrumb" model="@breadcrumb" />
 
 <article class="post my-4">
     <!-- Header -->

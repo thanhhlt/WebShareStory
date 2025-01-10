@@ -28,7 +28,7 @@ public class LikesModel
     [ForeignKey(nameof(Comment))]
     public int? CommentId { get; set; }
 
-    public required AppUser User { get; set; }
-    public PostsModel? Post { get; set; }
-    public CommentsModel? Comment { get; set; }
+    public virtual required AppUser User { get; set; }
+    public virtual PostsModel? Post { get; set; }
+    public virtual CommentsModel? Comment { get; set; }
 }

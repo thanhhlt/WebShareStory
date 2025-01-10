@@ -1,5 +1,5 @@
 .hero {
-    background: linear-gradient(45deg, rgba(2, 33, 64, 0.5) 55%, rgba(45, 95, 93, 0.55)), url("../images/background.png");
+    background: linear-gradient(45deg, rgba(2, 33, 64, 0.5) 55%, rgba(45, 95, 93, 0.55)), url("../images/background-home.png");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -17,12 +17,20 @@
 }
 
 .section-title {
-    text-align: center;
+    color: white;
     margin-bottom: 3rem;
     font-weight: 900;
+    background-color: #408f96;
+    border: 1px solid #919191;
+    border-radius: 30px;
+    padding: .7rem 2rem;
+    box-shadow: inset 0 0 5px #2e2e2e;
 }
 
 .featured-stories {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
     padding: 3rem 0;
 }
 
@@ -84,6 +92,12 @@ img.avatar {
     width: 30px;
     height: 30px;
     border-radius: 50%;
+}
+
+.latest-stories {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;  
 }
 
 .latest-stories .post-thumbnail {

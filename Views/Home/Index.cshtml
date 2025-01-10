@@ -17,7 +17,7 @@
 
 <!-- Featured Stories -->
 <section class="featured-stories">
-    <h2 class="section-title">Câu chuyện nổi bật</h2>
+    <h4 class="section-title">Câu chuyện nổi bật</h4>
     <div class="container">
         <div class="row">
             @foreach (var post in Model.FeaturedPosts)
@@ -48,25 +48,23 @@
 
 <!-- Latest Stories-->
 <section class="latest-stories">
-    <div class="container">
-        <h2 class="section-title">Câu chuyện mới nhất</h2>
-        <div class="list-group">
-            @foreach (var post in Model.LatestPosts)
-            {
-                <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug"
-                    class="list-group-item list-group-item-action d-flex p-3">
-                    <img src="/home/Thumbnail?postId=@post.Id" alt="Thumbnail" class="me-3 post-thumbnail">
-                    <div class="post-info">
-                        <p class="text-muted mb-2"><img src="@post.AvatarPath" alt="avatar" class="avatar"> @post.Author
-                            &bull; @post.CateName</p>
-                        <p class="text-muted mb-2 date"><em>Đăng ngày: @post.DateCreated - Cập nhật: @post.DateUpdated</em>
-                        </p>
-                        <strong class="title">@post.Title</strong>
-                        <p class="description">@post.Description</p>
-                    </div>
-                </a>
-            }
-        </div>
+    <h4 class="section-title">Câu chuyện mới nhất</h4>
+    <div class="list-group">
+        @foreach (var post in Model.LatestPosts)
+        {
+            <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug"
+                class="list-group-item list-group-item-action d-flex p-3">
+                <img src="/home/Thumbnail?postId=@post.Id" alt="Thumbnail" class="me-3 post-thumbnail">
+                <div class="post-info">
+                    <p class="text-muted mb-2"><img src="@post.AvatarPath" alt="avatar" class="avatar"> @post.Author
+                        &bull; @post.CateName</p>
+                    <p class="text-muted mb-2 date"><em>Đăng ngày: @post.DateCreated - Cập nhật: @post.DateUpdated</em>
+                    </p>
+                    <strong class="title">@post.Title</strong>
+                    <p class="description">@post.Description</p>
+                </div>
+            </a>
+        }
     </div>
 </section>
 

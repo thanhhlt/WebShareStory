@@ -149,7 +149,12 @@ namespace App.Areas.Identity.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new AppUser { UserName = model.UserName, Email = model.Email };
+                var user = new AppUser { 
+                    UserName = model.UserName, 
+                    Email = model.Email,
+                    Gender = model.Gender,
+                    BirthDate = model.BirthDate
+                    };
                 var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
@@ -383,6 +388,8 @@ namespace App.Areas.Identity.Controllers
 
                 await _userStore.SetUserNameAsync(user, model.UserName, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, model.Email, CancellationToken.None);
+                user.Gender = model.Gender;
+                user.BirthDate = model.BirthDate;
 
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)

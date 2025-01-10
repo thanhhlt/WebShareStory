@@ -16,14 +16,17 @@ public class PostController : Controller
 {
     private readonly ILogger<PostController> _logger;
     private readonly AppDbContext _dbContext;
+    private readonly IWebHostEnvironment _environment;
 
     public PostController(
         ILogger<PostController> logger,
-        AppDbContext dbContext
+        AppDbContext dbContext,
+        IWebHostEnvironment environment
     )
     {
         _logger = logger;
         _dbContext = dbContext;
+        _environment = environment;
     }
 
     [TempData]
@@ -125,7 +128,7 @@ public class PostController : Controller
             return Json(new{success = false, redirect=Url.Action("ManagePost")});
         }
 
-        var posts = await _dbContext.Posts.Where(p => Ids.postIds.Contains(p.Id)).ToListAsync();
+        var posts = await _dbContext.Posts.Include(p => p.Image).Where(p => Ids.postIds.Contains(p.Id)).ToListAsync();
 
         if (!posts.Any())
         {
@@ -133,8 +136,22 @@ public class PostController : Controller
             return Json(new{success = false, redirect=Url.Action("ManagePost")});
         }
 
-        _dbContext.Posts.RemoveRange(posts);
-        await _dbContext.SaveChangesAsync();
+        foreach (var post in posts)
+        {
+            _dbContext.Posts.Remove(post);
+            await _dbContext.SaveChangesAsync();
+            if (post.Image != null)
+            {
+                if (post.Image.FilePath.StartsWith("/imgs/"))
+                {
+                    var filePath = Path.Combine(_environment.ContentRootPath, "Images/" + post.Image.FilePath.Substring(6));
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+            }
+        }
         
         StatusMessage = "Đã xoá những bài viết đã chọn.";
         ManagePostModel model = new ManagePostModel();

@@ -97,6 +97,9 @@ public class PostController : Controller
         public string Author { get; set; }
         public string PathAvatar { get; set; }
         public string CateName { get; set; }
+        public string CateSlug { get; set; }
+        public string ParentCateName { get; set; }
+        public int? ParentCateId { get; set; }
         public bool isLiked { get; set; }
         public bool isBookmark { get; set; }
         public int NumLikes { get; set; }
@@ -120,6 +123,9 @@ public class PostController : Controller
                                                 Id = p.Id,
                                                 AuthorId = p.AuthorId,
                                                 CateName = p.Category.Name,
+                                                CateSlug = p.Category.Slug,
+                                                ParentCateName = p.Category.ParentCate != null ? p.Category.ParentCate.Name : null,
+                                                ParentCateId = p.Category.ParentCate != null ? p.Category.ParentCate.Id : null,
                                                 Title = p.Title,
                                                 DateCreated = p.DateCreated,
                                                 DateUpdated = p.DateUpdated,
@@ -740,6 +746,7 @@ public class PostController : Controller
             return Json(new { success = false });
         }
         var post = await _dbContext.Posts.Where(p => p.Id == id)
+                                        .Include(p => p.Category)
                                         .Include(p => p.Image).FirstOrDefaultAsync();
         if (post == null)
         {
@@ -766,10 +773,8 @@ public class PostController : Controller
                     System.IO.File.Delete(filePath);
                 }
             }
-            _dbContext.Images.Remove(post.Image);
         }
-
-        return Json(new { success = true, redirect = Url.Action("Index", "Home") });
+        return Json(new { success = true, redirect = Url.Action("CategoryPosts", "MainContent", new {slug = post.Category.Slug}) });
     }
 
     //POST: /PinPost/{id}

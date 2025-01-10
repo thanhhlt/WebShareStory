@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.ComponentModel.DataAnnotations;
+using App.Models;
 
 namespace App.Areas.Identity.Models.AccountViewModels
 {
@@ -30,5 +31,14 @@ namespace App.Areas.Identity.Models.AccountViewModels
         [Display(Name = "Xác nhận mật khẩu")]
         [Compare("Password", ErrorMessage = "Sai mật khẩu xác nhận.")]
         public string ConfirmPassword { get; set; }
+
+        [Required(ErrorMessage = "{0} không được bỏ trống.")]
+        [Display(Name = "Ngày sinh")]
+        [DataType(DataType.Date)]
+        public DateTime BirthDate { get; set; } = DateTime.Now;
+
+        [Required(ErrorMessage = "{0} không được bỏ trống.")]
+        [Display(Name = "Giới tính")]
+        public Gender? Gender { get; set; }  
     }
 }

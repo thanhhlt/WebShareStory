@@ -22,8 +22,8 @@ public class CommentsModel
     [ForeignKey(nameof(User))]
     public required string UserId { get; set; }
 
-    public CommentsModel? ParentComment { get; set; }
-    public ICollection<CommentsModel>? ChildComments { get; set; }
-    public PostsModel? Posts { get; set; }
-    public AppUser? User { get; set; }
+    public virtual CommentsModel? ParentComment { get; set; }
+    public virtual ICollection<CommentsModel>? ChildComments { get; set; }
+    public virtual PostsModel? Posts { get; set; }
+    public virtual AppUser? User { get; set; }
 }
