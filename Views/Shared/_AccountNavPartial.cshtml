@@ -8,6 +8,7 @@
 @inject IAuthorizationService AuthorizationServices
 
 @{
+    ViewData["ReturnUrl"] = Context.Request.Path + Context.Request.QueryString;
     var user = await userManager.GetUserAsync(User);
     string avatarPath = "";
     if (user != null)
@@ -77,13 +78,13 @@
             <!-- Dropdown menu -->
             <ul class="dropdown-menu shadow-lg logout">
                 <li>
-                    <a class="dropdown-item mb-2 btn-login" asp-area="Identity" asp-controller="Account" asp-action="Login">
+                    <a class="dropdown-item mb-2 btn-login" asp-area="Identity" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]">
                         Đăng nhập <i class="fas fa-sign-in-alt"></i>
                     </a>
                 </li>
                 <li class="small">Bạn chưa có tài khoản?</li>
                 <li>
-                    <a class="small" asp-area="Identity" asp-controller="Account" asp-action="Register">
+                    <a class="small" asp-area="Identity" asp-controller="Account" asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]">
                         Đăng ký
                     </a>
                 </li>
@@ -91,7 +92,7 @@
                     <hr class="hr-text" data-content="hoặc">
                 </li>
                 <li>
-                    <form asp-area="Identity" asp-controller="Account" asp-action="ExternalLogin" asp-route-returnurl=""
+                    <form asp-area="Identity" asp-controller="Account" asp-action="ExternalLogin" asp-route-returnurl="@ViewData["ReturnUrl"]"
                         type="hidden" method="post" class="form-horizontal" role="form">
                         <input type="hidden" name="provider" value="Google" />
                         <button type="submit" class="dropdown-item external-login mb-3">
@@ -100,7 +101,7 @@
                     </form>
                 </li>
                 <li>
-                    <form asp-area="Identity" asp-controller="Account" asp-action="ExternalLogin" asp-route-returnurl=""
+                    <form asp-area="Identity" asp-controller="Account" asp-action="ExternalLogin" asp-route-returnurl="@ViewData["ReturnUrl"]"
                         type="hidden" method="post" class="form-horizontal" role="form">
                         <input type="hidden" name="provider" value="Facebook" />
                         <button type="submit" class="dropdown-item external-login ">

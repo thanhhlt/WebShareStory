@@ -455,7 +455,7 @@ public class DbManageController : Controller
             .RuleFor(u => u.isActivate, f => f.Random.Bool());
 
         List<AppUser> fkUsers = new List<AppUser>();
-        for (int i = 0; i < 200; i++)
+        for (int i = 0; i < 2359; i++)
         {
             var user = fakerUser.Generate();
             user.UserName = user.UserName.Replace("{i}", i.ToString());
@@ -508,11 +508,19 @@ public class DbManageController : Controller
         await _dbContext.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('Posts', RESEED, 0)");
 
         var userIds = _dbContext.Users.Select(u => u.Id).ToList();
-        var cateIds = _dbContext.Categories.Where(c => c.ParentCateId != null).Select(c => c.Id).ToList();
+        var cateIds = _dbContext.Categories.Where(c => c.ChildCates.Count == 0).Select(c => c.Id).ToList();
+
+        double percentage = 0.33;
+        var random = new Random();
+
+        var selectedUserIds = userIds
+            .OrderBy(x => random.Next())
+            .Take((int)(userIds.Count * percentage))
+            .ToList();
 
         var fakerPost = new Faker<PostsModel>()
-            // .RuleFor(p => p.AuthorId, f => f.PickRandom(userIds))
-            .RuleFor(p => p.AuthorId, "8e339bd2-b7c2-47f7-8e3f-71dad05bacb6")
+            .RuleFor(p => p.AuthorId, f => f.PickRandom(selectedUserIds))
+            // .RuleFor(p => p.AuthorId, "8e339bd2-b7c2-47f7-8e3f-71dad05bacb6")
             .RuleFor(p => p.Title, f => f.Lorem.Sentence(5))
             .RuleFor(p => p.Description, f => f.Lorem.Paragraph(2))
             .RuleFor(p => p.Content, f => f.Lorem.Paragraphs(7) + "fakeData")
@@ -521,18 +529,25 @@ public class DbManageController : Controller
             .RuleFor(p => p.DateUpdated, (f, p) => p.DateCreated)
             .RuleFor(p => p.isPublished, f => f.Random.Bool())
             .RuleFor(p => p.isChildAllowed, f => f.Random.Bool())
-            .RuleFor(p => p.CategoryId, 9);
-        // .RuleFor(p => p.CategoryId, f => f.PickRandom(cateIds));
+            .RuleFor(p => p.isPinned, f => false)
+            // .RuleFor(p => p.CategoryId, 9);
+            .RuleFor(p => p.CategoryId, f => f.PickRandom(cateIds));
 
         List<PostsModel> fkPosts = new List<PostsModel>();
-        for (int i = 0; i < 125; i++)
+        for (int i = 0; i < 1193; i++)
         {
             var post = fakerPost.Generate();
-            post.SetSlug();
             fkPosts.Add(post);
+            post.SetSlug(i);
         }
 
         await _dbContext.AddRangeAsync(fkPosts);
+        await _dbContext.SaveChangesAsync();
+
+        foreach (var post in fkPosts)
+        {
+            post.SetSlug();
+        }
         await _dbContext.SaveChangesAsync();
     }
 
@@ -546,21 +561,30 @@ public class DbManageController : Controller
         var postIds = await _dbContext.Posts.Select(p => p.Id).ToListAsync();
         var commentIds = await _dbContext.Comments.Select(c => c.Id).ToListAsync();
 
+        double percentage = 0.46;
+        var random = new Random();
+
+        var selectedPostIds = postIds
+            .OrderBy(x => random.Next())
+            .Take((int)(postIds.Count * percentage))
+            .ToList();
+
         var fakerLike = new Faker<LikesModel>()
             .RuleFor(l => l.UserId, f => f.PickRandom(userIds))
-            .RuleFor(l => l.LikeType, f => f.PickRandom<LikeTypes>())
+            // .RuleFor(l => l.LikeType, f => f.PickRandom<LikeTypes>())
+            .RuleFor(l => l.LikeType, f => LikeTypes.Post)
             .RuleFor(l => l.DateLiked, f => f.Date.Recent(30));
 
         var fkLikes = new List<LikesModel>();
         var uniqueLikes = new HashSet<(string, int?, int?)>();
 
-        for (int i = 0; i < 500; i++)
+        for (int i = 0; i < 5390; i++)
         {
             var like = fakerLike.Generate();
 
             if (like.LikeType == LikeTypes.Post && postIds.Any())
             {
-                like.PostId = new Faker().PickRandom(postIds);
+                like.PostId = new Faker().PickRandom(selectedPostIds);
                 like.CommentId = null;
             }
             else if (like.LikeType == LikeTypes.Comment && commentIds.Any())
@@ -630,19 +654,27 @@ public class DbManageController : Controller
         var userIds = _dbContext.Users.Select(u => u.Id).ToList();
         var postIds = _dbContext.Posts.Select(p => p.Id).ToList();
 
+        double percentage = 0.38;
+        var random = new Random();
+
+        var selectedPostIds = postIds
+            .OrderBy(x => random.Next())
+            .Take((int)(postIds.Count * percentage))
+            .ToList();
+
         var fakerComment = new Faker<CommentsModel>()
             .RuleFor(c => c.Content, f => {
                 var text = f.Lorem.Text();
                 return text.Length > 210 ? text.Substring(0, Math.Min(200, text.Length)) + "fakeData" : text + "fakeData";
             })
             .RuleFor(c => c.DateCommented, f => f.Date.Past(1))
-            // .RuleFor(c => c.PostId, f => f.PickRandom(postIds))
-            .RuleFor(c => c.PostId, f => 6)
+            .RuleFor(c => c.PostId, f => f.PickRandom(selectedPostIds))
+            // .RuleFor(c => c.PostId, f => 6)
             .RuleFor(c => c.UserId, f => f.PickRandom(userIds));
             // .RuleFor(c => c.ParentCommentId, f => f.Random.Bool(0.2f) ? null : (int?)f.Random.Int(1, 200));
 
         List<CommentsModel> fakeComments = new List<CommentsModel>();
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 3978; i++)
         {
             var comment = fakerComment.Generate();
             fakeComments.Add(comment);

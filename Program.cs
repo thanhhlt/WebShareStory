@@ -182,9 +182,10 @@ CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 {
     // options.ValidationInterval = TimeSpan.FromMinutes(5);
-    options.ValidationInterval = TimeSpan.Zero;
+    options.ValidationInterval = TimeSpan.FromMinutes(5);
 });
 
+// builder.WebHost.UseUrls("http://0.0.0.0:8090");
 
 var app = builder.Build();
 

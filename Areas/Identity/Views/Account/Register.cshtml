@@ -122,13 +122,18 @@
                             <div>
                                 <input type="hidden" name="provider" value="Google" />
                                 <button type="submit" class="external-login">
-                                    <img src="~/images/google.png" alt="google"> <p>Đăng nhập với Google</p>
+                                    <img src="~/images/google.png" alt="google"> 
+                                    <p>Đăng nhập với Google</p>
                                 </button>
                             </div>
+                        </form>
+                        <form asp-controller="Account" asp-action="ExternalLogin" asp-route-returnurl="@ViewData["ReturnUrl"]"
+                            method="post" role="form">
                             <div>
                                 <input type="hidden" name="provider" value="Facebook" />
                                 <button type="submit" class="external-login ">
-                                    <img src="~/images/facebook.png" alt="facebook"> <p>Đăng nhập với Facebook</p>
+                                    <img src="~/images/facebook.png" alt="facebook"> 
+                                    <p>Đăng nhập với Facebook</p>
                                 </button>
                             </div>
 

@@ -441,7 +441,7 @@ public class PostController : Controller
 
     //GET: /CreatePost
     [HttpGet]
-    [Authorize(Policy = "AllowCreatePost")]
+    // [Authorize(Policy = "AllowCreatePost")]
     public async Task<IActionResult> CreatePost()
     {
         var allCategories = await _dbContext.Categories.AsNoTracking()
@@ -467,7 +467,7 @@ public class PostController : Controller
     //POST: /CreaePost
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = "AllowCreatePost")]
+    // [Authorize(Policy = "AllowCreatePost")]
     public async Task<IActionResult> CreatePostAsync(EditCreateModel model)
     {
         if (model.CategoryName == null)
