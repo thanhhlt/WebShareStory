@@ -7,6 +7,10 @@
     ViewBag.NavLink = "Stories";
 }
 
+@section MCPageStyles {
+    <link rel="stylesheet" href="~/css/categories.min.css" asp-append-version="true" />
+}
+
 @section MainContentSidebar {
     @await Component.InvokeAsync("MainContentSidebar")
 }
@@ -52,8 +56,6 @@
 }
 
 @section MainContentSidebarScripts {
-    <link rel="stylesheet" href="~/css/categories.min.css" asp-append-version="true" />
-
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             function scrollToElement() {

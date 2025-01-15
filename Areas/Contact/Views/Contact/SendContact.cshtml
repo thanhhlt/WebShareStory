@@ -7,6 +7,10 @@
 
 @Html.AntiForgeryToken()
 
+@section PageStyles {
+    <link rel="stylesheet" href="~/css/send-contact.min.css" asp-append-version="true" />
+}
+
 <div class="title">
     <h2>Gửi yêu cầu hỗ trợ</h2>
 </div>
@@ -78,8 +82,6 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-
-    <link rel="stylesheet" href="~/css/send-contact.min.css" asp-append-version="true" />
     <script>
         $(document).ready(function () {
             $(".form-control").each(function () {

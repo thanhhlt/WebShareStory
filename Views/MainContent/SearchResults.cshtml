@@ -19,6 +19,10 @@
     }
 }
 
+@section MCPageStyles {
+    <link rel="stylesheet" href="~/css/search-posts.min.css" asp-append-version="true" />
+}
+
 @section MainContentSidebar {
     @await Component.InvokeAsync("MainContentSidebar")
 }
@@ -65,7 +69,3 @@
         <partial name="_Paging" model="@pagingmodel" />
     }
 </section>
-
-@section MainContentSidebarScripts {
-    <link rel="stylesheet" href="~/css/search-posts.min.css" asp-append-version="true" />
-}

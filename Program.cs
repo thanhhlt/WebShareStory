@@ -66,7 +66,7 @@ builder.Services.Configure<IdentityOptions> (options => {
     options.Password.RequireUppercase = false;
 
     //Lockout
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes (1);
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes (30);
     options.Lockout.AllowedForNewUsers = true;
 
     //User.
@@ -182,7 +182,7 @@ CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 {
     // options.ValidationInterval = TimeSpan.FromMinutes(5);
-    options.ValidationInterval = TimeSpan.FromMinutes(5);
+    options.ValidationInterval = TimeSpan.FromMinutes(30);
 });
 
 // builder.WebHost.UseUrls("http://0.0.0.0:8090");

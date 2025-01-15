@@ -4,6 +4,10 @@
     ViewData["Title"] = "Tạo bài viết";
 }
 
+@section PageStyles {
+    <link rel="stylesheet" href="~/lib/select2/css/select2.min.css" />
+}
+
 @Html.AntiForgeryToken()
 
 <h2>@ViewData["Title"]</h2>
@@ -70,7 +74,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <link rel="stylesheet" href="~/lib/select2/css/select2.min.css" />
     <script src="~/lib/select2/js/select2.min.js"></script>
 
     <script>

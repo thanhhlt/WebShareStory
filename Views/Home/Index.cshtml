@@ -6,6 +6,10 @@
     ViewBag.NavLink = "Index";
 }
 
+@section PageStyles {
+    <link rel="stylesheet" href="~/css/home.min.css">
+}
+
 <!-- Hero Section -->
 <section class="hero">
     <div class="container">
@@ -69,8 +73,6 @@
 </section>
 
 @section Scripts {
-    <link rel="stylesheet" href="~/css/home.min.css">
-
     <script>
         function truncateText(selector, maxLines) {
             const elements = document.querySelectorAll(selector);

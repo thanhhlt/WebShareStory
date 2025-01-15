@@ -7,6 +7,10 @@
     ViewBag.NavLink = "Contact";
 }
 
+@section PageStyles {
+    <link rel="stylesheet" href="~/css/detail-contact.min.css" asp-append-version="true" />
+}
+
 @Html.AntiForgeryToken()
 
 <div class="contact-detail">
@@ -64,8 +68,6 @@
 </div>
 
 @section Scripts {
-    <link rel="stylesheet" href="~/css/detail-contact.min.css" asp-append-version="true" />
-
     <script>
         // Response
         function toggleResponseInput() {
