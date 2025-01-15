@@ -533,6 +533,8 @@ public class DbManageController : Controller
             // .RuleFor(p => p.CategoryId, 9);
             .RuleFor(p => p.CategoryId, f => f.PickRandom(cateIds));
 
+        var maxId = _dbContext.Posts.Any() ? _dbContext.Posts.Max(p => p.Id) : 0;
+        await _dbContext.Database.ExecuteSqlAsync($"DBCC CHECKIDENT ('Posts', RESEED, {maxId})");
         List<PostsModel> fkPosts = new List<PostsModel>();
         for (int i = 0; i < 1193; i++)
         {

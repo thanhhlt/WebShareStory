@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using App.Models;
 using Microsoft.EntityFrameworkCore;
 using HtmlAgilityPack;
+using System.Threading.Tasks;
 
 namespace App.Controllers;
 
@@ -12,19 +13,19 @@ namespace App.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
-    private readonly AppDbContext _context;
+    private readonly AppDbContext _dbContext;
     private readonly IWebHostEnvironment _env;
     private readonly IThumbnailService _thumbnailService;
 
     public HomeController(
         ILogger<HomeController> logger, 
-        AppDbContext context,
+        AppDbContext dbContext,
         IWebHostEnvironment env,
         IThumbnailService thumbnailService
         )
     {
         _logger = logger;
-        _context = context;
+        _dbContext = dbContext;
         _env = env;
         _thumbnailService = thumbnailService;
     }
@@ -51,15 +52,15 @@ public class HomeController : Controller
     }
 
     //GET: /
-        [HttpGet("/")]
+    [HttpGet("/")]
     public async Task<IActionResult> Index()
     {
         var model = new IndexViewModel();
 
-        var dateCreatedLatest = await _context.Posts.MaxAsync(p => p.DateCreated);
+        var dateCreatedLatest = await _dbContext.Posts.MaxAsync(p => p.DateCreated);
         var sevenDaysAgoFromLatest = dateCreatedLatest.AddDays(-7);
 
-        var featuredPosts = await _context.Posts
+        var featuredPosts = await _dbContext.Posts
             .AsNoTracking()
             .Where(p => p.DateCreated >= sevenDaysAgoFromLatest && p.DateCreated <= dateCreatedLatest)
             .OrderByDescending(p => p.Likes.Count)
@@ -77,7 +78,7 @@ public class HomeController : Controller
                 NumComments = p.Comments.Count,
                 CateName = p.Category.Name,
                 Author = p.User.UserName,
-                AvatarPath = _context.Images
+                AvatarPath = _dbContext.Images
                     .Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
                     .Select(i => i.FilePath)
                     .FirstOrDefault() ?? "/images/no_avt.jpg"
@@ -86,7 +87,7 @@ public class HomeController : Controller
 
         if (featuredPosts.Count < 3)
         {
-            var additionalPosts = await _context.Posts
+            var additionalPosts = await _dbContext.Posts
                 .AsNoTracking()
                 .OrderByDescending(p => p.Likes.Count)
                 .Take(3 - featuredPosts.Count)
@@ -103,7 +104,7 @@ public class HomeController : Controller
                     NumComments = p.Comments.Count,
                     CateName = p.Category.Name,
                     Author = p.User.UserName,
-                    AvatarPath = _context.Images
+                    AvatarPath = _dbContext.Images
                         .Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
                         .Select(i => i.FilePath)
                         .FirstOrDefault() ?? "/images/no_avt.jpg"
@@ -115,7 +116,7 @@ public class HomeController : Controller
 
         model.FeaturedPosts = featuredPosts;
 
-        model.LatestPosts = await _context.Posts
+        model.LatestPosts = await _dbContext.Posts
             .AsNoTracking()
             .OrderByDescending(p => p.DateCreated)
             .Take(20)
@@ -129,7 +130,7 @@ public class HomeController : Controller
                 DateUpdated = p.DateUpdated,
                 CateName = p.Category.Name,
                 Author = p.User.UserName,
-                AvatarPath = _context.Images
+                AvatarPath = _dbContext.Images
                     .Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
                     .Select(i => i.FilePath)
                     .FirstOrDefault() ?? "/images/no_avt.jpg"
@@ -167,7 +168,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult Thumbnail(int postId)
     {
-        var post = _context.Posts.Include(p => p.Image).FirstOrDefault(p => p.Id == postId);
+        var post = _dbContext.Posts.Include(p => p.Image).FirstOrDefault(p => p.Id == postId);
 
         if (post?.Image != null)
         {
@@ -188,9 +189,28 @@ public class HomeController : Controller
         return File(generatedImageBytes, "image/png");
     }
     
-    public IActionResult Privacy()
+    public async Task<IActionResult> Privacy()
     {
-        return View();
+        var slug = await _dbContext.Posts.AsNoTracking()
+                                .Where(p => p.Title == "Chính sách bảo mật" && p.Category.Name == "Thông báo chung")
+                                .Select(p => p.Slug).FirstOrDefaultAsync();
+        if (string.IsNullOrEmpty(slug))
+        {
+            return NotFound("Không có Chính sách bảo mật");
+        }
+        return RedirectToAction("Index", "Post", new {slugPost = slug});
+    }
+
+    public async Task<IActionResult> TermsOfUse()
+    {
+        var slug = await _dbContext.Posts.AsNoTracking()
+                                .Where(p => p.Title == "Điều khoản sử dụng" && p.Category.Name == "Thông báo chung")
+                                .Select(p => p.Slug).FirstOrDefaultAsync();
+        if (string.IsNullOrEmpty(slug))
+        {
+            return NotFound("Không có Điều khoản sử dụng");
+        }
+        return RedirectToAction("Index", "Post", new {slugPost = slug});
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
