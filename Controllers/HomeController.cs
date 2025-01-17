@@ -16,18 +16,20 @@ public class HomeController : Controller
     private readonly AppDbContext _dbContext;
     private readonly IWebHostEnvironment _env;
     private readonly IThumbnailService _thumbnailService;
+    private readonly IUserBlockService _userBlockService;
 
     public HomeController(
         ILogger<HomeController> logger, 
         AppDbContext dbContext,
         IWebHostEnvironment env,
-        IThumbnailService thumbnailService
-        )
+        IThumbnailService thumbnailService,
+        IUserBlockService userBlockService)
     {
         _logger = logger;
         _dbContext = dbContext;
         _env = env;
         _thumbnailService = thumbnailService;
+        _userBlockService = userBlockService;
     }
     
     public class Post
@@ -56,11 +58,12 @@ public class HomeController : Controller
     public async Task<IActionResult> Index()
     {
         var model = new IndexViewModel();
+        var Posts = _userBlockService.GetFilteredPosts(_dbContext.Posts);
 
-        var dateCreatedLatest = await _dbContext.Posts.MaxAsync(p => p.DateCreated);
+        var dateCreatedLatest = await Posts.MaxAsync(p => p.DateCreated);
         var sevenDaysAgoFromLatest = dateCreatedLatest.AddDays(-7);
 
-        var featuredPosts = await _dbContext.Posts
+        var featuredPosts = await Posts
             .AsNoTracking()
             .Where(p => p.DateCreated >= sevenDaysAgoFromLatest && p.DateCreated <= dateCreatedLatest)
             .OrderByDescending(p => p.Likes.Count)
@@ -87,7 +90,7 @@ public class HomeController : Controller
 
         if (featuredPosts.Count < 3)
         {
-            var additionalPosts = await _dbContext.Posts
+            var additionalPosts = await Posts
                 .AsNoTracking()
                 .OrderByDescending(p => p.Likes.Count)
                 .Take(3 - featuredPosts.Count)
@@ -116,7 +119,7 @@ public class HomeController : Controller
 
         model.FeaturedPosts = featuredPosts;
 
-        model.LatestPosts = await _dbContext.Posts
+        model.LatestPosts = await Posts
             .AsNoTracking()
             .OrderByDescending(p => p.DateCreated)
             .Take(20)

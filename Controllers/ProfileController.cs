@@ -20,20 +20,22 @@ public class ProfileController : Controller
     private readonly UserManager<AppUser> _userManager;
     private readonly IThumbnailService _thumbnailService;
     private readonly IWebHostEnvironment _env;
+    private readonly IUserBlockService _userBlockService;
 
     public ProfileController(
         ILogger<ProfileController> logger,
         AppDbContext dbContext,
         UserManager<AppUser> userManager,
         IThumbnailService thumbnailService,
-        IWebHostEnvironment env
-    )
+        IWebHostEnvironment env,
+        IUserBlockService userBlockService)
     {
         _logger = logger;
         _dbContext = dbContext;
         _userManager = userManager;
         _thumbnailService = thumbnailService;
         _env = env;
+        _userBlockService = userBlockService;
     }
 
     public class PostListModel
@@ -66,9 +68,17 @@ public class ProfileController : Controller
         {
             return NotFound("Không tìm thấy tài khoản.");
         }
-        var user = await _dbContext.Users.Where(u => u.Id == id).Include(u => u.Posts)
-                                        .Select(u => new{u.Id, u.UserName, u.Introduction, u.isActivate, u.Gender, u.BirthDate, u.Address, u.Posts})
-                                        .FirstOrDefaultAsync();
+
+        if (_userBlockService.IsBlockedUser(id))
+        {
+            return NotFound("Không tìm thấy tài khoản.");
+        }
+
+        var user = await _dbContext.Users
+                                .AsNoTracking()
+                                .Where(u => u.Id == id).Include(u => u.Posts)
+                                .Select(u => new{u.Id, u.UserName, u.Introduction, u.isActivate, u.Gender, u.BirthDate, u.Address, u.Posts})
+                                .FirstOrDefaultAsync();
         if (user == null)
         {
             return NotFound("Không tìm thấy tài khoản.");

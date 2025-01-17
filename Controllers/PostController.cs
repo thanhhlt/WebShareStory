@@ -26,6 +26,7 @@ public class PostController : Controller
     private readonly IWebHostEnvironment _environment;
     private readonly ICompositeViewEngine _viewEngine;
     private readonly IAuthorizationService _authorizationService;
+    private readonly IUserBlockService _userBlockService;
 
     public PostController(
         ILogger<PostController> logger,
@@ -33,8 +34,8 @@ public class PostController : Controller
         UserManager<AppUser> userManager,
         IWebHostEnvironment environment,
         ICompositeViewEngine viewEngine,
-        IAuthorizationService authorizationService
-    )
+        IAuthorizationService authorizationService,
+        IUserBlockService userBlockService)
     {
         _logger = logger;
         _dbContext = dbContext;
@@ -42,6 +43,7 @@ public class PostController : Controller
         _viewEngine = viewEngine;
         _environment = environment;
         _authorizationService = authorizationService;
+        _userBlockService = userBlockService;
     }
 
     [TempData]
@@ -116,38 +118,42 @@ public class PostController : Controller
         {
             return NotFound("Không tìm thấy bài viết.");
         }
-        IndexViewModel model = await _dbContext.Posts
-                                            .Where(p => p.Slug == slugPost)
-                                            .Select(p => new IndexViewModel
-                                            {
-                                                Id = p.Id,
-                                                AuthorId = p.AuthorId,
-                                                CateName = p.Category.Name,
-                                                CateSlug = p.Category.Slug,
-                                                ParentCateName = p.Category.ParentCate != null ? p.Category.ParentCate.Name : null,
-                                                ParentCateId = p.Category.ParentCate != null ? p.Category.ParentCate.Id : null,
-                                                Title = p.Title,
-                                                DateCreated = p.DateCreated,
-                                                DateUpdated = p.DateUpdated,
-                                                Hashtag = p.Hashtag,
-                                                Content = p.Content,
-                                                Slug = slugPost,
-                                                Author = p.User.UserName ?? "Vô danh",
-                                                PathAvatar = _dbContext.Images.Where(i => i.UserId == p.AuthorId &&
-                                                                                            i.UseType == UseType.profile)
-                                                                .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg",
-                                                isPinned = p.isPinned,
-                                                NumLikes = p.Likes.Count(),
-                                                NumComments = p.Comments.Count(),
-                                                NumViews = p.NumViews
-                                            }).FirstOrDefaultAsync();
+
+        var Posts = _userBlockService.GetFilteredPosts(_dbContext.Posts);
+
+        IndexViewModel model = await Posts
+                                    .AsNoTracking()
+                                    .Where(p => p.Slug == slugPost)
+                                    .Select(p => new IndexViewModel
+                                    {
+                                        Id = p.Id,
+                                        AuthorId = p.AuthorId,
+                                        CateName = p.Category.Name,
+                                        CateSlug = p.Category.Slug,
+                                        ParentCateName = p.Category.ParentCate != null ? p.Category.ParentCate.Name : null,
+                                        ParentCateId = p.Category.ParentCate != null ? p.Category.ParentCate.Id : null,
+                                        Title = p.Title,
+                                        DateCreated = p.DateCreated,
+                                        DateUpdated = p.DateUpdated,
+                                        Hashtag = p.Hashtag,
+                                        Content = p.Content,
+                                        Slug = slugPost,
+                                        Author = p.User.UserName ?? "Vô danh",
+                                        PathAvatar = _dbContext.Images
+                                                        .Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
+                                                        .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg",
+                                        isPinned = p.isPinned,
+                                        NumLikes = p.Likes.Count(),
+                                        NumComments = p.Comments.Count(),
+                                        NumViews = p.NumViews
+                                    }).FirstOrDefaultAsync();
         if (model == null)
         {
             return NotFound("Không tìm thấy bài viết.");
         }
 
         // Increase NumViews
-        string sessionKey = $"ViewedPost_{model.Id}";
+        string sessionKey = $"VPost_{model.Id}";
         if (HttpContext.Session.GetString(sessionKey) == null)
         {
             var postToUpdate = new PostsModel { Id = model.Id, Slug = model.Slug };
@@ -169,8 +175,10 @@ public class PostController : Controller
             model.isBookmark = false;
             return View(model);
         }
-        model.isBookmark = _dbContext.Bookmarks.AsNoTracking().Where(b => b.UserId == userId && b.PostId == model.Id).FirstOrDefault() != null ? true : false;
-        model.isLiked = _dbContext.Likes.AsNoTracking().Where(l => l.UserId == userId && l.PostId == model.Id).FirstOrDefault() != null ? true : false;
+        model.isBookmark = _dbContext.Bookmarks.AsNoTracking()
+                                .Where(b => b.UserId == userId && b.PostId == model.Id).FirstOrDefault() != null ? true : false;
+        model.isLiked = _dbContext.Likes.AsNoTracking()
+                                .Where(l => l.UserId == userId && l.PostId == model.Id).FirstOrDefault() != null ? true : false;
 
         return View(model);
     }
@@ -180,7 +188,8 @@ public class PostController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> GetAllCommentsAsync(int postId)
     {
-        var allComments = await _dbContext.Comments.AsNoTracking()
+        var filteredComment = _userBlockService.GetFilteredComments(_dbContext.Comments);
+        var allComments = await filteredComment.AsNoTracking()
             .Where(c => c.PostId == postId).OrderByDescending(c => c.DateCommented)
             .Include(c => c.ChildComments)
             .Include(c => c.User)

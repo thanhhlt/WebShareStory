@@ -8,12 +8,14 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.EntityFrameworkCore.Proxies;
 using App.Security.Requirements;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOptions();
 // Add services to the container.
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllersWithViews();
 builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddIdentity<AppUser, IdentityRole>()
@@ -32,8 +34,13 @@ builder.Services.AddDbContext<AppDbContext>(options => {
 // Add SignalR
 builder.Services.AddSignalR();
 
-//Add Session
-builder.Services.AddDistributedMemoryCache();
+// Add Redis
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = "localhost:6379";
+});
+
+// Add Session
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -54,10 +61,10 @@ if (mailsettings != null)
     });
 }
 builder.Services.AddSingleton<IEmailSender, SendMailService>();
-
 builder.Services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
 builder.Services.AddScoped<IDeleteUserService, DeleteUserService>();
 builder.Services.AddScoped<IThumbnailService, ThumbnailService>();
+builder.Services.AddScoped<IUserBlockService, UserBlockService>();
 
 //IdentityOptions
 builder.Services.Configure<IdentityOptions> (options => {
@@ -207,6 +214,10 @@ app.UseStaticFiles(new StaticFileOptions() {
     RequestPath = "/imgs"
 });
 
+// app.UseForwardedHeaders(new ForwardedHeadersOptions
+// {
+//     ForwardedHeaders = ForwardedHeaders.XForwardedProto
+// });
 app.UseSession();
 app.UseRouting();
 app.UseAuthentication();

@@ -10,11 +10,14 @@ namespace App.Components
     public class MainContentSidebar : ViewComponent
     {
         private readonly AppDbContext _dbContext;
+        private readonly IUserBlockService _userBlockService;
 
         public MainContentSidebar(
-            AppDbContext dbContext)
+            AppDbContext dbContext,
+            IUserBlockService userBlockService)
         {
             _dbContext = dbContext;
+            _userBlockService = userBlockService;
         }
 
         public class Category
@@ -54,6 +57,7 @@ namespace App.Components
         public async Task<IViewComponentResult> InvokeAsync()
         {
             IndexViewModel model = new IndexViewModel();
+            var filteredPosts = _userBlockService.GetFilteredPosts(_dbContext.Posts);
 
             var categories = await _dbContext.Categories.Where(c => c.ParentCateId == null)
                                                         .Include(c => c.ChildCates)
@@ -70,20 +74,20 @@ namespace App.Components
                                                             }).ToList()
                                                         }).ToListAsync();
             
-            var latestPosts = await _dbContext.Posts.OrderByDescending(p => p.DateCreated).Take(5)
-                                                    .Include(p => p.Category)
-                                                    .Include(p => p.User)
-                                                    .Select(p => new LatestPost
-                                                    {
-                                                        Id = p.Id,
-                                                        Slug = p.Slug,
-                                                        Title = p.Title,
-                                                        CateName = p.Category.Name,
-                                                        AuthorId = p.AuthorId,
-                                                        Author = p.User.UserName,
-                                                        AvatarPath = _dbContext.Images.Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
-                                                                                    .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg"
-                                                    }).ToListAsync();
+            var latestPosts = await filteredPosts.OrderByDescending(p => p.DateCreated).Take(5)
+                                                .Include(p => p.Category)
+                                                .Include(p => p.User)
+                                                .Select(p => new LatestPost
+                                                {
+                                                    Id = p.Id,
+                                                    Slug = p.Slug,
+                                                    Title = p.Title,
+                                                    CateName = p.Category.Name,
+                                                    AuthorId = p.AuthorId,
+                                                    Author = p.User.UserName,
+                                                    AvatarPath = _dbContext.Images.Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
+                                                                                .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg"
+                                                }).ToListAsync();
 
             var topUsers = await _dbContext.Users.Include(u => u.Posts)
                                                 .OrderByDescending(u => u.Posts.Count).Take(5)

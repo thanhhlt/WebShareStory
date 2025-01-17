@@ -13,15 +13,17 @@ public class MainContentController : Controller
     private readonly AppDbContext _dbContext;
     private readonly IWebHostEnvironment _env;
     private readonly IThumbnailService _thumbnailService;
+    private readonly IUserBlockService _userBlockService;
     public MainContentController(
         AppDbContext dbContext,
         IWebHostEnvironment env,
-        IThumbnailService thumbnailService
-    )
+        IThumbnailService thumbnailService,
+        IUserBlockService userBlockService)
     {
         _dbContext = dbContext;
         _env = env;
         _thumbnailService = thumbnailService;
+        _userBlockService = userBlockService;
     }
 
     public class Post
@@ -59,11 +61,11 @@ public class MainContentController : Controller
     [HttpGet("/stories")]
     public async Task<IActionResult> Index()
     {
+        var filteredPosts = _userBlockService.GetFilteredPosts(_dbContext.Posts);
         var categories = await _dbContext.Categories
+                                    .AsNoTracking()
                                     .Where(c => c.ParentCateId == null)
                                     .Include(c => c.ChildCates)
-                                    .ThenInclude(cc => cc.Posts)
-                                    .ThenInclude(p => p.User)
                                     .Select(c => new Category()
                                     {
                                         Id = c.Id,
@@ -74,22 +76,23 @@ public class MainContentController : Controller
                                             Id = cc.Id,
                                             Name = cc.Name,
                                             Slug = cc.Slug,
-                                            ToTalPosts = cc.Posts.Count(),
-                                            LatestPost = cc.Posts.OrderByDescending(p => p.DateCreated).Take(1).Select(p => new Post()
-                                            {
-                                                Id = p.Id,
-                                                Slug = p.Slug,
-                                                Title = p.Title,
-                                                DateCreated = p.DateCreated.ToString("dd/MM/yyyy"),
-                                                AuthorId = p.AuthorId,
-                                                Author = p.User.UserName,
-                                                AvatarPath = _dbContext.Images.Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
-                                                                            .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg"
-                                            }).FirstOrDefault()
+                                            ToTalPosts = filteredPosts.Count(p => p.CategoryId == cc.Id),
+                                            LatestPost = filteredPosts.Where(p => p.CategoryId == cc.Id).AsNoTracking()
+                                                .OrderByDescending(p => p.DateCreated).Take(1).Select(p => new Post()
+                                                {
+                                                    Id = p.Id,
+                                                    Slug = p.Slug,
+                                                    Title = p.Title,
+                                                    DateCreated = p.DateCreated.ToString("dd/MM/yyyy"),
+                                                    AuthorId = p.AuthorId,
+                                                    Author = p.User.UserName,
+                                                    AvatarPath = _dbContext.Images.Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
+                                                                                .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg"
+                                                }).FirstOrDefault()
                                         }).ToList()
                                     }).ToListAsync();
 
-        var totalPosts = await _dbContext.Posts.CountAsync();
+        // var totalPosts = await _dbContext.Posts.CountAsync();
 
         IndexViewModel model = new IndexViewModel()
         {
@@ -123,6 +126,8 @@ public class MainContentController : Controller
             return NotFound("Không tìm thấy danh mục");
         }
 
+        var filteredPosts = _userBlockService.GetFilteredPosts(_dbContext.Posts);
+
         var model = new CategoryPostsViewModel();
 
         var category = await _dbContext.Categories
@@ -139,24 +144,25 @@ public class MainContentController : Controller
                     Id = c.ParentCateId ?? 0,
                     Name = c.ParentCate.Name,
                 },
-                Posts = c.Posts.Select(p => new
-                {
-                    p.Id,
-                    p.Slug,
-                    p.Title,
-                    Description = TrimDescription(p.Description ?? RemoveImagesAndTags(p.Content ?? ""), 250),
-                    DateCreated = p.DateCreated,
-                    DateUpdated = p.DateUpdated,
-                    NumLikes = p.Likes.Count(),
-                    NumComments = p.Comments.Count(),
-                    p.isPinned,
-                    AuthorId = p.AuthorId,
-                    Author = p.User.UserName,
-                    AvatarPath = _dbContext.Images
-                        .Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
-                        .Select(i => i.FilePath)
-                        .FirstOrDefault() ?? "/images/no_avt.jpg"
-                }).ToList()
+                Posts = filteredPosts.Where(p => p.CategoryId == c.Id)
+                    .AsNoTracking().Select(p => new
+                    {
+                        p.Id,
+                        p.Slug,
+                        p.Title,
+                        Description = TrimDescription(p.Description ?? RemoveImagesAndTags(p.Content ?? ""), 250),
+                        DateCreated = p.DateCreated,
+                        DateUpdated = p.DateUpdated,
+                        NumLikes = p.Likes.Count(),
+                        NumComments = p.Comments.Count(),
+                        p.isPinned,
+                        AuthorId = p.AuthorId,
+                        Author = p.User.UserName,
+                        AvatarPath = _dbContext.Images
+                            .Where(i => i.UserId == p.AuthorId && i.UseType == UseType.profile)
+                            .Select(i => i.FilePath)
+                            .FirstOrDefault() ?? "/images/no_avt.jpg"
+                    }).ToList()
             })
             .FirstOrDefaultAsync();
 
@@ -166,6 +172,7 @@ public class MainContentController : Controller
         }
 
         var postsPinned = category.Posts
+            .AsReadOnly()
             .Where(p => p.isPinned)
             .OrderByDescending(p => p.DateCreated)
             .Select(p => new Post
@@ -254,7 +261,10 @@ public class MainContentController : Controller
     {
         var model = new CategoryPostsViewModel();
 
-        var posts = _dbContext.Posts
+        var Posts = _userBlockService.GetFilteredPosts(_dbContext.Posts);
+
+        var posts = Posts
+            .AsNoTracking()
             .OrderByDescending(p => p.DateCreated).Take(50)
             .Select(p => new Post
             {
@@ -350,7 +360,7 @@ public class MainContentController : Controller
         ViewBag.SearchCategory = searchCategory;
 
         var model = new CategoryPostsViewModel();
-        var posts = _dbContext.Posts.AsQueryable();
+        var posts = _userBlockService.GetFilteredPosts(_dbContext.Posts);
 
         if (string.IsNullOrWhiteSpace(query))
         {
