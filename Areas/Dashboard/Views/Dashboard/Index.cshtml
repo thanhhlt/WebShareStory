@@ -1,0 +1,312 @@
+@model IndexViewModel
+@{
+    Layout = "_LayoutAdminCP";
+    ViewData["Title"] = "Dashboard";
+    ViewBag.NavActive = "dashboard";
+}
+
+<div class="page-header">
+    <h3 class="fw-bold mb-3">Dashboard</h3>
+    <ul class="breadcrumbs mb-3">
+        <li class="nav-home">
+            <a asp-area="Dashboard" asp-controller="Dashboard" asp-action="Index">
+                <i class="icon-home"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<div class="dashboard">
+    <section class="stats-overview row row-card-no-pd">
+        <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6><b>Tổng lượt truy cập trong 30 ngày</b></h6>
+                        </div>
+                        <h4 class="text-info fw-bold">@Model.TotalVisits</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6><b>Tổng số bài viết</b></h6>
+                        </div>
+                        <h4 class="text-success fw-bold">@Model.TotalPosts</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6><b>Tổng số thành viên</b></h6>
+                        </div>
+                        <h4 class="text-secondary fw-bold">@Model.TotalUsers</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-charts">
+        <div class="chart row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Tổng số lượt truy cập theo ngày</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="visitsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Tổng số bài viết mới theo tuần</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="postsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Tổng số thành viên mới theo tuần</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="usersChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="top-content row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Bài viết nổi bật</div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-items-center mb-0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th scope="col">Tiêu đề</th>
+                                    <th scope="col">Tác giả</th>
+                                    <th scope="col">Lượt xem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var post in Model.TopPosts)
+                                {
+                                    <tr>
+                                        <th scope="row"><a asp-area="" asp-controller="Post" asp-action="Index"
+                                                asp-route-slugPost="@post.Slug">@post.Title</a></th>
+                                        <td><a asp-area="" asp-controller="Profile" asp-action="Index"
+                                                asp-route-id="@post.AuthorId">@post.AuthorName</a></td>
+                                        <td>@post.TotalViews</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Thành viên nổi bật</div>
+                </div>
+                <div class="card-body pb-0">
+                    @foreach (var user in Model.TopUsers)
+                    {
+                        <div class="d-flex">
+                            <a asp-area="" asp-controller="Profile" asp-action="Index" asp-route-id="@user.Id">
+                                <div class="d-flex">
+                                    <div class="avatar">
+                                        <img src="@user.AvatarPath" alt="..." class="avatar-img rounded-circle" />
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <h6 class="fw-bold mb-1" style="color: rgb(53, 53, 53); margin-bottom: 0 !important;">@user.Name</h6>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="d-flex ms-auto align-items-center">
+                                <h4 class="text-info fw-bold">@user.TotalPosts <span style="font-size: medium;">bài
+                                        biết</span></h4>
+                            </div>
+                        </div>
+                        <div class="separator-dashed"></div>
+                    }
+                    @* <div class="pull-in">
+                      <canvas id="topProductsChart"></canvas>
+                    </div> *@
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/lib/kaiadmin-lite-1.2.0/js/plugin/chart.js/chart.min.js"></script>
+    <script>
+        // Chart Visits
+        const dailyVisitsData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.VisitsChartData));
+        const visitLabels = dailyVisitsData.map(item => {
+            const date = item.Item1;
+            return `${date.substring(6, 8)}/${date.substring(4, 6)}`;
+        });
+
+        const visitSessions = dailyVisitsData.map(item => item.Item2);
+
+        const visitsChartCtx = document.getElementById('visitsChart').getContext('2d');
+        new Chart(visitsChartCtx, {
+            type: 'line',
+            data: {
+                labels: visitLabels,
+                datasets: [{
+                    label: 'Lượt truy cập',
+                    data: visitSessions,
+                    borderColor: "#1d7af3",
+                    pointBorderColor: "#FFF",
+                    pointBackgroundColor: "#1d7af3",
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 4,
+                    pointHoverBorderWidth: 1,
+                    pointRadius: 4,
+                    backgroundColor: "transparent",
+                    fill: true,
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 2,
+                legend: {
+                    labels: {
+                    padding: 10,
+                    fontColor: "#1d7af3",
+                    },
+                },
+                tooltips: {
+                    bodySpacing: 4,
+                    mode: "nearest",
+                    intersect: 0,
+                    position: "nearest",
+                    xPadding: 10,
+                    yPadding: 10,
+                    caretPadding: 10,
+                },
+                layout: {
+                    padding: { left: 15, right: 15, top: 15, bottom: 15 },
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Ngày'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Lượt truy cập'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Chart Posts
+        const postsChartCtx = document.getElementById('postsChart').getContext('2d');
+        const weeklyPostData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.PostsChartData));
+
+        const postLabels = weeklyPostData.map(data => data.Item1);
+        const postCounts = weeklyPostData.map(data => data.Item2);
+
+        new Chart(postsChartCtx, {
+            type: 'bar',
+            data: {
+                labels: postLabels,
+                datasets: [{
+                    label: 'Số bài viết mới',
+                    data: postCounts,
+                    backgroundColor: "#31ce36",
+                    borderColor: "#31ce36",
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Số bài viết mới'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Tuần'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Chart Users
+        const usersChartCtx = document.getElementById('usersChart').getContext('2d');
+        const weeklyUserData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.UsersChartData));
+
+        const userLabels = weeklyUserData.map(data => data.Item1);
+        const userCounts = weeklyUserData.map(data => data.Item2);
+
+        new Chart(usersChartCtx, {
+            type: 'bar',
+            data: {
+                labels: userLabels,
+                datasets: [{
+                    label: 'Số thành viên mới',
+                    data: userCounts,
+                    backgroundColor: '#6861ce',
+                    borderColor: '#6861ce',
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Số thành viên mới'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Tuần'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

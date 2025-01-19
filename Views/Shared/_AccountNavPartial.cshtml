@@ -39,7 +39,7 @@
                             <p class="email">@user.Email</p>
                             @if(User.IsInRole("Admin") || User.IsInRole("Editor") || User.IsInRole("Moderator"))
                             {
-                                <a asp-area="Database" asp-controller="DbManage" asp-action="Index" class="btn-manage"><i
+                                <a asp-area="Dashboard" asp-controller="Dashboard" asp-action="Index" class="btn-manage"><i
                                         class="fas fa-cogs"></i> Quản lý</a>
                             }
                         </div>

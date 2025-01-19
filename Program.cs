@@ -65,6 +65,12 @@ builder.Services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
 builder.Services.AddScoped<IDeleteUserService, DeleteUserService>();
 builder.Services.AddScoped<IThumbnailService, ThumbnailService>();
 builder.Services.AddScoped<IUserBlockService, UserBlockService>();
+builder.Services.AddSingleton<IGoogleAnalyticsService>(provider =>
+{
+    var propertyId = Environment.GetEnvironmentVariable("PROPERTY_ID") ?? "";
+    var credentialPath = Environment.GetEnvironmentVariable("CREDENTIAL_PATH") ?? "";
+    return new GoogleAnalyticsService(propertyId, credentialPath);
+});
 
 //IdentityOptions
 builder.Services.Configure<IdentityOptions> (options => {

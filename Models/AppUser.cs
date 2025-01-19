@@ -29,7 +29,7 @@ public class AppUser : IdentityUser
 
         [Required]
         [DataType(DataType.Date)]
-        public DateTime AccountCreationDate { get; set; } = DateTime.UtcNow;
+        public DateTime AccountCreationDate { get; set; } = DateTime.Now;
 
         public DateTimeOffset? PostLockEnd { get; set; }
 

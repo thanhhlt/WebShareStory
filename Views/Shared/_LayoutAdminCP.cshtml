@@ -73,10 +73,10 @@
 			<div class="sidebar-wrapper scrollbar scrollbar-inner">
 				<div class="sidebar-content">
 					<ul class="nav nav-secondary">
-						<li class="nav-item">
-							<a href="#">
+						<li class="nav-item @(ViewBag.NavActive == "dashboard" ? "active" : "")">
+							<a asp-area="Dashboard" asp-controller="Dashboard" asp-action="Index">
 								<i class="fas fa-home"></i>
-								<p>Bảng điều khiển</p>
+								<p>Dashboard</p>
 							</a>
 						</li>
 						<li class="nav-section">
