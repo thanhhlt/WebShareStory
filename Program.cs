@@ -127,10 +127,15 @@ builder.Services.AddAuthorization(options => {
     options.AddPolicy("AllowCreatePost", policy => {
         policy.RequireAuthenticatedUser();
         policy.RequireClaim("Permission", "CreatePost");
+        policy.Requirements.Add(new PostCreateRequirement());
     });
     options.AddPolicy("AllowUpdatePost", policy => {
         policy.RequireAuthenticatedUser();
         policy.Requirements.Add(new PostUpdateRequirement());
+    });
+    options.AddPolicy("AllowComment", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.Requirements.Add(new CmtCreateRequirement());
     });
     //Manage
     options.AddPolicy("CanManageContact", policy => {
@@ -198,7 +203,7 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
     options.ValidationInterval = TimeSpan.FromMinutes(30);
 });
 
-// builder.WebHost.UseUrls("http://0.0.0.0:8090");
+builder.WebHost.UseUrls("http://0.0.0.0:8090");
 
 var app = builder.Build();
 
@@ -220,15 +225,22 @@ app.UseStaticFiles(new StaticFileOptions() {
     RequestPath = "/imgs"
 });
 
-// app.UseForwardedHeaders(new ForwardedHeadersOptions
-// {
-//     ForwardedHeaders = ForwardedHeaders.XForwardedProto
-// });
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto
+});
 app.UseSession();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHub<PresenceHub>("presenceHub");
+
+app.MapGet("/robots.txt", async context =>
+{
+    var robotsContent = "User-agent: *\nDisallow:";
+    context.Response.ContentType = "text/plain";
+    await context.Response.WriteAsync(robotsContent);
+});
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

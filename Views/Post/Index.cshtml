@@ -145,6 +145,7 @@
 @section MainContentSidebarScripts {
     <script>
         var isUserLoggedIn = @((User.Identity?.IsAuthenticated) ?? false ? "true" : "false");
+        var canUserComment = @( (await AuthorizationServices.AuthorizeAsync(User, "AllowComment")).Succeeded ? "true" : "false" );
     </script>
     <script src="~/js/view-post.js" asp-append-version="true"></script>
 }

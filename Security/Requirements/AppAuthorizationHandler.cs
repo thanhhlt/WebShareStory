@@ -30,6 +30,20 @@ public class AppAuthorizationHandler : IAuthorizationHandler
                     context.Succeed(requirement);
                 }
             }
+            if (requirement is PostCreateRequirement)
+            {
+                if (await CanCreatePost(context.User, context.Resource, (PostCreateRequirement)requirement))
+                {
+                    context.Succeed(requirement);
+                }
+            }
+            if (requirement is CmtCreateRequirement)
+            {
+                if (await CanComment(context.User, context.Resource, (CmtCreateRequirement)requirement))
+                {
+                    context.Succeed(requirement);
+                }
+            }
         }
     }
 
@@ -52,5 +66,32 @@ public class AppAuthorizationHandler : IAuthorizationHandler
         }
 
         return authorId == appUser.Id;
+    }
+
+    private async Task<bool> CanCreatePost(ClaimsPrincipal user, object? resource, PostCreateRequirement requirement)
+    {
+        if (user.HasClaim("Feature", "PostManage"))
+        {
+            return true;
+        }
+
+        var appUser = await _userManager.GetUserAsync(user);
+        if (appUser == null)
+        {
+            return false;
+        }
+
+        return appUser?.PostLockEnd == null || appUser?.PostLockEnd < DateTime.Now;
+    }
+
+    private async Task<bool> CanComment(ClaimsPrincipal user, object? resource, CmtCreateRequirement requirement)
+    {
+        var appUser = await _userManager.GetUserAsync(user);
+        if (appUser == null)
+        {
+            return false;
+        }
+
+        return appUser?.CommentLockEnd == null || appUser?.CommentLockEnd < DateTime.Now;
     }
 }

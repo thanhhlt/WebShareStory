@@ -240,6 +240,7 @@ public class PostController : Controller
     //POST: /CommentPost/{id, content}
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = "AllowComment")]
     public async Task<IActionResult> CommentPostAsync(int id, string content)
     {
         if (string.IsNullOrEmpty(content))
@@ -291,6 +292,7 @@ public class PostController : Controller
     //POST: /ReplyComment/{content, postId, parentId}
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = "AllowComment")]
     public async Task<IActionResult> ReplyCommentAsync(int postId, int parentId, string content)
     {
         if (string.IsNullOrEmpty(content))
@@ -450,7 +452,7 @@ public class PostController : Controller
 
     //GET: /CreatePost
     [HttpGet]
-    // [Authorize(Policy = "AllowCreatePost")]
+    [Authorize(Policy = "AllowCreatePost")]
     public async Task<IActionResult> CreatePost()
     {
         var allCategories = await _dbContext.Categories.AsNoTracking()
@@ -476,7 +478,7 @@ public class PostController : Controller
     //POST: /CreaePost
     [HttpPost]
     [ValidateAntiForgeryToken]
-    // [Authorize(Policy = "AllowCreatePost")]
+    [Authorize(Policy = "AllowCreatePost")]
     public async Task<IActionResult> CreatePostAsync(EditCreateModel model)
     {
         if (model.CategoryName == null)

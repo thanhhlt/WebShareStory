@@ -6,7 +6,7 @@
 }
 @if (Model.PostLockEnd > DateTime.UtcNow)
 {
-    <li>Cấm post bài đến: @Model.PostLockEnd</li>
+    <li>Cấm đăng bài đến: @Model.PostLockEnd</li>
 }
 @if (Model.CommentLockEnd > DateTime.UtcNow)
 {

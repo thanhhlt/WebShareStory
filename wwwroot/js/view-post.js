@@ -135,6 +135,10 @@ $(document).ready(function () {
             alert("Bạn cần đăng nhập để thực hiện bình luận!");
             return;
         }
+        if (!canUserComment) {
+            alert("Tài khoản của bạn đã bị khoá bình luận!");
+            return;
+        }
 
         var content = $('#commentText').val();
         const numCommentsSpan = $(`.num-comments`);
@@ -168,6 +172,10 @@ $(document).ready(function () {
         e.preventDefault();
         if (!isUserLoggedIn) {
             alert("Bạn cần đăng nhập để thực hiện phản hồi!");
+            return;
+        }
+        if (!canUserComment) {
+            alert("Tài khoản của bạn đã bị khoá bình luận!");
             return;
         }
 
