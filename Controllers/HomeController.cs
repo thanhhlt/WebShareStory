@@ -66,7 +66,7 @@ public class HomeController : Controller
         var featuredPosts = await Posts
             .AsNoTracking()
             .Where(p => p.DateCreated >= sevenDaysAgoFromLatest && p.DateCreated <= dateCreatedLatest)
-            .OrderByDescending(p => p.Likes.Count)
+            .OrderByDescending(p => p.NumViews).ThenByDescending(p => p.Likes.Count)
             .Take(3)
             .Select(p => new Post
             {
@@ -92,7 +92,7 @@ public class HomeController : Controller
         {
             var additionalPosts = await Posts
                 .AsNoTracking()
-                .OrderByDescending(p => p.Likes.Count)
+                .OrderByDescending(p => p.NumViews).ThenByDescending(p => p.Likes.Count)
                 .Take(3 - featuredPosts.Count)
                 .Select(p => new Post
                 {

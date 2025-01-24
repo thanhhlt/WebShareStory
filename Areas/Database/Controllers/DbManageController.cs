@@ -685,4 +685,16 @@ public class DbManageController : Controller
         await _dbContext.Comments.AddRangeAsync(fakeComments);
         await _dbContext.SaveChangesAsync();
     }
+
+    [HttpGet]
+    public async Task<IActionResult> DeleteMultiPostAsync()
+    {
+        var CateBlackList = new List<string> { "Thông báo chung", "Hướng dẫn và Trợ giúp", "Xử lý vi phạm - Khiếu nại", "Góp ý" };
+        var posts = await _dbContext.Posts.Where(p => p.Content.Contains("fakeData") &&
+                                                !CateBlackList.Any(c => p.Category.Name.Contains(c)))
+                                    .ToListAsync();
+        _dbContext.RemoveRange(posts);
+        await _dbContext.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
 }
