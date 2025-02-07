@@ -5,7 +5,7 @@ using Google.Apis.AnalyticsData.v1beta.Data;
 
 public interface IGoogleAnalyticsService
 {
-    List<(string Date, int Sessions)> GetDailyVisits(DateTime startDate, DateTime endDate);
+    List<(string Date, int PageViews)> GetDailyPageViews(DateTime startDate, DateTime endDate);
 }
 
 public class GoogleAnalyticsService : IGoogleAnalyticsService
@@ -19,7 +19,7 @@ public class GoogleAnalyticsService : IGoogleAnalyticsService
         _credentialPath = credentialPath;
     }
 
-    public List<(string Date, int Sessions)> GetDailyVisits(DateTime startDate, DateTime endDate)
+    public List<(string Date, int PageViews)> GetDailyPageViews(DateTime startDate, DateTime endDate)
     {
         GoogleCredential credential = GoogleCredential.FromFile(_credentialPath);
 
@@ -37,7 +37,7 @@ public class GoogleAnalyticsService : IGoogleAnalyticsService
             },
             Metrics = new List<Metric> 
             { 
-                new Metric { Name = "sessions" } 
+                new Metric { Name = "screenPageViews" } 
             },
             DateRanges = new List<DateRange> 
             { 
@@ -59,12 +59,12 @@ public class GoogleAnalyticsService : IGoogleAnalyticsService
             {
                 date = "Unknown";
             }
-            var sessions = 0;
-            if (int.TryParse(row.MetricValues[0].Value, out int parsedSessions))
+            var pageViews = 0;
+            if (int.TryParse(row.MetricValues[0].Value, out int parsedPageViews))
             {
-                sessions = parsedSessions;
+                pageViews = parsedPageViews;
             }
-            results.Add((date, sessions));
+            results.Add((date, pageViews));
         }
 
         return results;

@@ -53,9 +53,9 @@ public class DashboardController : Controller
 
         var startDate = DateTime.Now.AddDays(-30);
         var endDate = DateTime.Now;
-        var visitsLast30Days = _googleAnalyticsService.GetDailyVisits(startDate, endDate);
+        var visitsLast30Days = _googleAnalyticsService.GetDailyPageViews(startDate, endDate);
 
-        var totalVisits = visitsLast30Days.Sum(x => x.Sessions);
+        var totalVisits = visitsLast30Days.Sum(x => x.PageViews);
 
         var visitsLast15Days = visitsLast30Days
             .AsReadOnly()
