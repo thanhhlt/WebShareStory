@@ -686,10 +686,11 @@ public class DbManageController : Controller
         await _dbContext.SaveChangesAsync();
     }
 
+    // GET: /db-dashboard/DeleteMultiPost
     [HttpGet]
     public async Task<IActionResult> DeleteMultiPostAsync()
     {
-        var CateBlackList = new List<string> { "Thông báo chung", "Hướng dẫn và Trợ giúp", "Xử lý vi phạm - Khiếu nại", "Góp ý" };
+        var CateBlackList = new List<string> {  };
         var posts = await _dbContext.Posts.Where(p => p.Content.Contains("fakeData") &&
                                                 !CateBlackList.Any(c => p.Category.Name.Contains(c)))
                                     .ToListAsync();
