@@ -203,7 +203,7 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
     options.ValidationInterval = TimeSpan.FromMinutes(30);
 });
 
-builder.WebHost.UseUrls("http://0.0.0.0:8090");
+// builder.WebHost.UseUrls("http://0.0.0.0:8090");
 
 var app = builder.Build();
 
@@ -225,10 +225,10 @@ app.UseStaticFiles(new StaticFileOptions() {
     RequestPath = "/imgs"
 });
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedProto
-});
+// app.UseForwardedHeaders(new ForwardedHeadersOptions
+// {
+//     ForwardedHeaders = ForwardedHeaders.XForwardedProto
+// });
 app.UseSession();
 app.UseRouting();
 app.UseAuthentication();

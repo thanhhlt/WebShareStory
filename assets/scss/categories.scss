@@ -86,3 +86,26 @@
         }
     }
 }
+
+@media (max-width: 768px) {
+    .main-content {
+        .category {
+            .category-section {
+                .category-item {
+                    padding-top: .7rem;
+                    .cate a {
+                        p {
+                            font-size: 1.05rem;
+                            font-weight: 700;
+                        }
+                    }
+                    .col-md-2 p {
+                        font-size: .9rem;
+                        text-align: center;
+                        margin: 0;
+                    }
+                }
+            }
+        }
+    }
+}

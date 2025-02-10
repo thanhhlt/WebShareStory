@@ -39,7 +39,7 @@
     }
     .login {
         animation: slideup-login 0.5s ease;
-        transform: translateX(-45%) translateY(1.7%);
+        transform: translateX(-45%) translateY(1.2%);
         padding: 5px 4px;
         font-size: .8rem;
 
@@ -105,14 +105,14 @@
         }
     
         to {
-            transform: translateY(1.7%) translateX(-45%);
+            transform: translateY(1.2%) translateX(-45%);
             opacity: 1;
         }
     }
 
     .logout {
         animation: slideup-logout 0.5s ease;
-        transform: translateX(-78%) translateY(1.7%);
+        transform: translateX(-78%) translateY(3%);
         text-align: center;
         padding-left: 20px;
         padding-right: 20px;
@@ -179,8 +179,50 @@
         }
     
         to {
-            transform: translateY(1.7%) translateX(-78%);
+            transform: translateY(3%) translateX(-78%);
             opacity: 1;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .account-nav {
+        .dropdown-menu::before {
+            right: 84%;
+        }
+        .login {
+            transform: translateY(1.5%);
+            border: none;
+        }
+        @keyframes slideup-login {
+            from {
+                transform: translateY(-10%) translateX(0);
+                opacity: 0;
+            }
+        
+            to {
+                transform: translateY(1.5%) translateX(-0);
+                opacity: 1;
+            }
+        }
+
+        .logout {
+            transform: translateY(4.6%);
+            border: none;
+            &::before {
+                right: 88%;
+            }
+        }
+        @keyframes slideup-logout {
+            from {
+                transform: translateY(-10%);
+                opacity: 0;
+            }
+        
+            to {
+                transform: translateY(4.5%);
+                opacity: 1;
+            }
         }
     }
 }

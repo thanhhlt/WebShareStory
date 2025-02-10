@@ -53,3 +53,14 @@
         }
     }
 }
+
+@media (max-width: 768px) {
+    .main-content {
+        .posts {
+            .post-content {
+                flex-direction: column;
+                padding: .5rem;
+            }
+        }
+    }
+}

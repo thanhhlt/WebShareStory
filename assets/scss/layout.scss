@@ -83,3 +83,11 @@ body {
     //     line-height: 60px;
     // }
 }
+
+@media (max-width: 768px) {
+    body {
+        main {
+            padding: 1rem 1rem;
+        }
+    }
+}

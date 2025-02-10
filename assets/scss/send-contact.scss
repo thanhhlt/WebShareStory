@@ -80,6 +80,7 @@
     .col-md-8 {
         background-color: #dfe2ff;
         padding: 1.2rem;
+        border-radius: 0 10px 10px 0;
 
         .send-contact-form form {
             .form-group {
@@ -192,6 +193,17 @@
             button:hover {
                 background-color: rgb(21, 53, 56);
             }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .send-contact {
+        .col-md-4 {
+            border-radius: 10px 10px 0 0;
+        }
+        .col-md-8 {
+            border-radius: 0 0 10px 10px;
         }
     }
 }

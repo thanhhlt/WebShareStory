@@ -220,3 +220,16 @@
         }
     }
 }
+
+@media (max-width: 768px) {
+    .main-content {
+        .post {
+            margin-right: 0;
+            .post-header {
+                .post-actions {
+                    top: -35%;
+                }
+            }
+        }
+    }
+}

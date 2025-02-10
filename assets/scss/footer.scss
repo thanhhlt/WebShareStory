@@ -16,7 +16,7 @@ body .footer {
         .footer-left {
             flex: 1;
             p {
-                font-size: 12px;
+                font-size: 15px;
                 margin: 0;
             }
         }
@@ -56,8 +56,24 @@ body .footer {
             }
             
             .social-icon:hover {
-                color: #ff6347;
+                color: #5ADAAF;
             }
         }
+    }
+}
+
+@media (max-width: 768px) {
+    .footer .container {
+        flex-direction: column;
+    }
+    .footer-middle, .footer-right {
+        font-size: .9rem;
+        border-top: 1px solid #686868;
+        padding-top: .7rem;
+    }
+    
+    .footer-left, .footer-middle, .footer-right {
+        width: 100%;
+        margin-bottom: 10px;
     }
 }

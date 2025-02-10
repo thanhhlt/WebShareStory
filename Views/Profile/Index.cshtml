@@ -20,7 +20,7 @@
         <!-- User Info -->
         <div class="col-md-4 text-center">
             <div class="profile-card shadow p-3 mb-4 bg-white rounded">
-                <img src="@Model.AvatarPath" alt="Avatar" class="rounded-circle img-thumbnail mb-3"
+                <img src="@Model.AvatarPath" alt="Avatar" class="rounded-circle img-avatar mb-3"
                     style="width: 150px; height: 150px;" id="editAvatar">
                 <h3 class="mb-0">@Model.UserName</h3>
                 @if (Model.isActivate)
@@ -78,7 +78,7 @@
                 {
                     <div class="card mb-4 post-item">
                         <div class="card-header">
-                            <h5>@post.Title</h5>
+                            <h5 style="font-size: 1.1rem; text-align: center;">@post.Title</h5>
                         </div>
                         <div class="card-body d-flex align-items-start">
                             <div>
