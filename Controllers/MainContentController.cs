@@ -35,7 +35,7 @@ public class MainContentController : Controller
         public string DateCreated { get; set; }
         public string DateUpdated { get; set; }
         public int NumLikes { get; set; }
-        public int NumComments { get; set; }
+        public int NumViews { get; set; }
         public bool IsPinned { get; set; }
         public string AuthorId { get; set; }
         public string Author { get; set; }
@@ -153,6 +153,7 @@ public class MainContentController : Controller
                         Description = TrimDescription(p.Description, 150),
                         DateCreated = p.DateCreated,
                         DateUpdated = p.DateUpdated,
+                        NumViews = p.NumViews,
                         NumLikes = p.Likes.Count(),
                         NumComments = p.Comments.Count(),
                         p.isPinned,
@@ -184,7 +185,6 @@ public class MainContentController : Controller
                 DateCreated = p.DateCreated.ToString("dd/MM/yyyy"),
                 DateUpdated = p.DateUpdated.ToString("dd/MM/yyyy"),
                 NumLikes = p.NumLikes,
-                NumComments = p.NumComments,
                 IsPinned = p.isPinned,
                 AuthorId = p.AuthorId,
                 Author = p.Author,
@@ -202,6 +202,8 @@ public class MainContentController : Controller
             ("DateCreated", "desc") => posts.OrderByDescending(p => p.DateCreated),
             ("DateUpdated", "asc") => posts.OrderBy(p => p.DateUpdated),
             ("DateUpdated", "desc") => posts.OrderByDescending(p => p.DateUpdated),
+            ("NumViews", "asc") => posts.OrderBy(p => p.NumViews),
+            ("NumViews", "desc") => posts.OrderByDescending(p => p.NumViews),
             ("NumLikes", "asc") => posts.OrderBy(p => p.NumLikes),
             ("NumLikes", "desc") => posts.OrderByDescending(p => p.NumLikes),
             ("NumComments", "asc") => posts.OrderBy(p => p.NumComments),
@@ -242,7 +244,7 @@ public class MainContentController : Controller
             DateCreated = p.DateCreated.ToString("dd/MM/yyyy"),
             DateUpdated = p.DateUpdated.ToString("dd/MM/yyyy"),
             NumLikes = p.NumLikes,
-            NumComments = p.NumComments,
+            NumViews = p.NumViews,
             IsPinned = p.isPinned,
             AuthorId = p.AuthorId,
             Author = p.Author,
@@ -274,7 +276,7 @@ public class MainContentController : Controller
                 Description = TrimDescription(p.Description, 150),
                 DateCreated = p.DateCreated.ToString("dd/MM/yyyy"),
                 NumLikes = p.Likes.Count(),
-                NumComments = p.Comments.Count(),
+                NumViews = p.NumViews,
                 AuthorId = p.AuthorId,
                 Author = p.User.UserName,
                 AvatarPath = _dbContext.Images
@@ -410,7 +412,7 @@ public class MainContentController : Controller
             Description = p.Description,
             DateCreated = p.DateCreated.ToString("dd/MM/yyyy"),
             NumLikes = p.Likes.Count(),
-            NumComments = p.Comments.Count(),
+            NumViews = p.NumViews,
             AuthorId = p.AuthorId,
             Author = p.User.UserName,
             AvatarPath = _dbContext.Images

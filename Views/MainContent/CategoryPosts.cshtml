@@ -66,8 +66,8 @@
             </div>
 
             <div class="col-md-2">
+                <p class='post-views'><i class="far fa-eye"></i> Lượt xem: @NumberFormatter.FormatNumber(post.NumViews)</p>
                 <p class='post-likes'><i class="fas fa-heart"></i> Lượt thích: @NumberFormatter.FormatNumber(post.NumLikes)</p>
-                <p class='post-comments'><i class="fas fa-comments"></i> Bình luận: @NumberFormatter.FormatNumber(post.NumComments)</p>
             </div>
         </div>
     }
@@ -86,6 +86,12 @@
             <a asp-action="CategoryPosts" asp-route-slug="@Model.Category.Slug" asp-route-sortOption="DateUpdated"
                 asp-route-sortBy="@ViewBag.SortBy" class="@(ViewBag.SortOption == "DateUpdated" ? "active" : "")">
                 Thời gian cập nhật
+            </a>
+        </li>
+        <li class="sort-item">
+            <a asp-action="CategoryPosts" asp-route-slug="@Model.Category.Slug" asp-route-sortOption="NumViews"
+                asp-route-sortBy="@ViewBag.SortBy" class="@(ViewBag.SortOption == "NumViews" ? "active" : "")">
+                Lượt xem
             </a>
         </li>
         <li class="sort-item">
@@ -132,8 +138,8 @@
             </div>
 
             <div class="col-md-2">
+                <p class='post-views'><i class="far fa-eye"></i> Lượt xem: @NumberFormatter.FormatNumber(post.NumViews)</p>
                 <p class='post-likes'><i class="fas fa-heart"></i> Lượt thích: @NumberFormatter.FormatNumber(post.NumLikes)</p>
-                <p class='post-comments'><i class="fas fa-comments"></i> Bình luận: @NumberFormatter.FormatNumber(post.NumComments)</p>
             </div>
         </div>
     }
