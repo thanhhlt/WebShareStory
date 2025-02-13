@@ -74,11 +74,7 @@ public class ProfileController : Controller
             return NotFound("Không tìm thấy tài khoản.");
         }
 
-        var user = await _dbContext.Users
-                                .AsNoTracking()
-                                .Where(u => u.Id == id).Include(u => u.Posts)
-                                .Select(u => new{u.Id, u.UserName, u.Introduction, u.isActivate, u.Gender, u.BirthDate, u.Address, u.Posts})
-                                .FirstOrDefaultAsync();
+        var user = await _userManager.FindByIdAsync(id);
         if (user == null)
         {
             return NotFound("Không tìm thấy tài khoản.");
@@ -100,10 +96,20 @@ public class ProfileController : Controller
                                             .Select(i => i.FilePath).FirstOrDefault() ?? "/images/no_avt.jpg",
         };
 
-        if (user.Posts != null && user.Posts.Any())
+        var userPosts = await _dbContext.Posts.AsNoTracking()
+                                .Where(p => p.AuthorId == user.Id)
+                                .Select(p => new PostsModel{
+                                    Id = p.Id,
+                                    Title = p.Title,
+                                    Description = TrimDescription(p.Description, 150),
+                                    Slug = p.Slug,
+                                    DateCreated = p.DateCreated,
+                                    DateUpdated = p.DateUpdated
+                                }).ToListAsync();
+        if (userPosts != null && userPosts.Any())
         {
             model.PostList.currentPage = currentPage;
-            model.PostList.totalPosts = user.Posts.Count();
+            model.PostList.totalPosts = userPosts.Count();
             model.PostList.countPages = (int)Math.Ceiling((double)model.PostList.totalPosts / model.PostList.ITEMS_PER_PAGE);
 
             if (model.PostList.currentPage < 1)
@@ -111,17 +117,9 @@ public class ProfileController : Controller
             if (model.PostList.currentPage > model.PostList.countPages)
                 model.PostList.currentPage = model.PostList.countPages;
 
-            model.Posts = user.Posts.OrderByDescending(p => p.DateCreated)
+            model.Posts = userPosts.OrderByDescending(p => p.DateCreated)
                                     .Skip((model.PostList.currentPage - 1) * model.PostList.ITEMS_PER_PAGE)
-                                    .Take(model.PostList.ITEMS_PER_PAGE)
-                                    .Select(p => new PostsModel{
-                                        Id = p.Id,
-                                        Title = p.Title,
-                                        Description = TrimDescription(p.Description ?? RemoveImagesAndTags(p.Content ?? ""), 250),
-                                        Slug = p.Slug,
-                                        DateCreated = p.DateCreated,
-                                        DateUpdated = p.DateUpdated
-                                    }).ToList();
+                                    .Take(model.PostList.ITEMS_PER_PAGE).ToList();
         }
 
         var userLogin = await _userManager.GetUserAsync(User);

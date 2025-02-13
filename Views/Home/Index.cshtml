@@ -29,7 +29,7 @@
                 <div class="col-md-4">
                     <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug"
                         class="card featured-story shadow-sm">
-                        <img src="/home/Thumbnail?postId=@post.Id" class="post-thumbnail" alt="Thumbnail">
+                        <img src="/home/Thumbnail?postId=@post.Id" class="post-thumbnail" alt="Thumbnail" loading="lazy">
                         <div class="card-body">
                             <strong class="title">@post.Title</strong>
                             <p class="description">@post.Description</p>
@@ -58,7 +58,7 @@
         {
             <a asp-area="" asp-controller="Post" asp-action="Index" asp-route-slugPost="@post.Slug"
                 class="list-group-item list-group-item-action d-flex p-3">
-                <img src="/home/Thumbnail?postId=@post.Id" alt="Thumbnail" class="me-3 post-thumbnail">
+                <img src="/home/Thumbnail?postId=@post.Id" alt="Thumbnail" class="me-3 post-thumbnail" loading="lazy">
                 <div class="post-info">
                     <p class="text-muted mb-2"><img src="@post.AvatarPath" alt="avatar" class="avatar"> @post.Author
                         &bull; @post.CateName</p>

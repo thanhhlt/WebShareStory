@@ -13,6 +13,7 @@ using System.Linq.Dynamic.Core;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Authorization;
+using HtmlAgilityPack;
 
 namespace App.Controllers;
 
@@ -27,6 +28,7 @@ public class PostController : Controller
     private readonly ICompositeViewEngine _viewEngine;
     private readonly IAuthorizationService _authorizationService;
     private readonly IUserBlockService _userBlockService;
+    private readonly IDescriptionService _descriptionService;
 
     public PostController(
         ILogger<PostController> logger,
@@ -35,7 +37,9 @@ public class PostController : Controller
         IWebHostEnvironment environment,
         ICompositeViewEngine viewEngine,
         IAuthorizationService authorizationService,
-        IUserBlockService userBlockService)
+        IUserBlockService userBlockService,
+        IDescriptionService descriptionService
+    )
     {
         _logger = logger;
         _dbContext = dbContext;
@@ -44,6 +48,7 @@ public class PostController : Controller
         _environment = environment;
         _authorizationService = authorizationService;
         _userBlockService = userBlockService;
+        _descriptionService = descriptionService;
     }
 
     [TempData]
@@ -502,6 +507,11 @@ public class PostController : Controller
             return Json(new { success = false });
         }
 
+        if (string.IsNullOrEmpty(model.Description))
+        {
+            model.Description = GetFirstWords(RemoveImagesAndTags(model.Content));
+        }
+
         var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
         var timeInVietnam = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
         PostsModel post = new PostsModel()
@@ -581,6 +591,30 @@ public class PostController : Controller
 
         return Json(new { success = true, redirect = Url.Action("Index", new { slugPost = post.Slug }) });
     }
+    private static string RemoveImagesAndTags(string html)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+
+        var imgNodes = doc.DocumentNode.SelectNodes("//img");
+        if (imgNodes != null)
+        {
+            foreach (var img in imgNodes)
+            {
+                img.Remove();
+            }
+        }
+
+        return doc.DocumentNode.InnerText.Trim();
+    }
+    private static string GetFirstWords(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        var words = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        return string.Join(" ", words.Take(100));
+    }
 
     //GET: /EditPost/{id}
     [HttpGet]
@@ -654,6 +688,16 @@ public class PostController : Controller
         if (!allowUpdate.Succeeded)
         {
             return Forbid();
+        }
+        var canPostAnmnt = User.HasClaim("Permission", "PostAnmnt");
+        if (!canPostAnmnt && model.CategoryName == "Thông báo chung")
+        {
+            return Forbid();
+        }
+
+        if (string.IsNullOrEmpty(model.Description))
+        {
+            model.Description = GetFirstWords(RemoveImagesAndTags(model.Content));
         }
 
         var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");

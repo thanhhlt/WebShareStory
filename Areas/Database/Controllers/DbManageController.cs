@@ -9,6 +9,7 @@ using Bogus;
 using OfficeOpenXml;
 using System.Data;
 using Microsoft.AspNetCore.Authorization;
+using HtmlAgilityPack;
 
 namespace App.Areas.Database.Controllers;
 
@@ -697,5 +698,50 @@ public class DbManageController : Controller
         _dbContext.RemoveRange(posts);
         await _dbContext.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
+    }
+
+    // GET: /db-dashboard/GenerateDescriptions
+    [HttpGet]
+    public async Task<IActionResult> GenerateDescriptionsAsync()
+    {
+        var postsToUpdate = await _dbContext.Posts
+            .Where(p => string.IsNullOrEmpty(p.Description) && !string.IsNullOrEmpty(p.Content))
+            .ToListAsync();
+
+        foreach (var post in postsToUpdate)
+        {
+            post.Description = GetFirstWords(RemoveImagesAndTags(post.Content));
+        }
+
+        if (postsToUpdate.Count > 0)
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+
+        return Ok(new { UpdatedCount = postsToUpdate.Count, Message = "Cập nhật Description thành công!" });
+    }
+    private static string RemoveImagesAndTags(string html)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+
+        var imgNodes = doc.DocumentNode.SelectNodes("//img");
+        if (imgNodes != null)
+        {
+            foreach (var img in imgNodes)
+            {
+                img.Remove();
+            }
+        }
+
+        return doc.DocumentNode.InnerText.Trim();
+    }
+    private static string GetFirstWords(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        var words = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        return string.Join(" ", words.Take(100));
     }
 }

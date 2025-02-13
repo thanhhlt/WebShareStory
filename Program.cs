@@ -72,6 +72,15 @@ builder.Services.AddSingleton<IGoogleAnalyticsService>(provider =>
     return new GoogleAnalyticsService(propertyId, credentialPath);
 });
 
+// Generate Description
+builder.Services.AddHttpClient<IDescriptionService, DescriptionService>();
+builder.Services.AddSingleton<IDescriptionService, DescriptionService>(provider =>
+{
+    var httpClient = provider.GetRequiredService<HttpClient>();
+    var apiKey = Environment.GetEnvironmentVariable("HUGGINGFACE_API_KEY") ?? "";
+    return new DescriptionService(httpClient, apiKey);
+});
+
 //IdentityOptions
 builder.Services.Configure<IdentityOptions> (options => {
     // Password

@@ -126,9 +126,7 @@ namespace App.Areas.Identity.Controllers
             {
                 return NotFound("Không tìm thấy thành viên.");
             }
-            var user = await _userManager.Users.Where(u => u.Id == id)
-                            .Include(u => u.Posts)
-                            .FirstOrDefaultAsync();
+            var user = await _userManager.FindByIdAsync(id);
             if (user == null)
             {
                 return NotFound("Không tìm thấy thành viên.");
@@ -157,23 +155,17 @@ namespace App.Areas.Identity.Controllers
             };
 
             //Get post info
-            var posts = new List<PostInfoModel>();
-            foreach (var post in user.Posts)
-            {
-                var postInfoModel = new PostInfoModel()
-                {
-                    Id = post.Id,
-                    Title = post.Title,
-                    DateCreated = post.DateCreated,
-                    DateUpdated = post.DateUpdated,
-                    Category = await (from c in _dbContext.Categories
-                                    join p in _dbContext.Posts on c.Id equals p.CategoryId
-                                    where p.Id == post.Id
-                                    select c.Name).FirstOrDefaultAsync(),
-                    Slug = post.Slug
-                };
-                posts.Add(postInfoModel);
-            }
+            var posts = await _dbContext.Posts.AsNoTracking()
+                                    .Where(p => p.AuthorId == user.Id)
+                                    .Select(p => new PostInfoModel
+                                    {
+                                        Id = p.Id,
+                                        Slug = p.Slug,
+                                        Title = p.Title,
+                                        DateCreated = p.DateCreated,
+                                        DateUpdated = p.DateUpdated,
+                                        Category = p.Category.Name
+                                    }).ToListAsync();
             
             //Get role info
             var roles = from ur in _dbContext.UserRoles
